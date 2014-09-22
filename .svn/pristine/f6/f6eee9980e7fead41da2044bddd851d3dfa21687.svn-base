@@ -1,0 +1,269 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : socket管理对象，每一个
+ */
+#include "socketmgr.h"
+#include "tcpsocket.h"
+#include "common.h"
+#include "eventworkthread.h"
+
+SocketMgr::SocketMgr(EventWorkThread* _epoll)
+		: _epoll_thread(_epoll)
+{
+	_reconn_check_time = time(NULL);
+	_online_check_time = time(NULL);
+}
+
+SocketMgr::~SocketMgr()
+{
+	_sock_set.clear();
+	_recon_socks.clear();
+}
+
+bool SocketMgr::query_socket(Socket* _sock)
+{
+	Guard g(mutex);
+	return _sock_set.find(_sock) != _sock_set.end();
+}
+
+bool SocketMgr::add_online_socket(Socket* _sock)
+{
+	Guard g(mutex);
+	bool ret = false;
+	std::pair<std::set<Socket*>::iterator, bool> insert_ret;
+
+	if (NULL == _sock)
+	{
+		goto add_socket_ERROR;
+	}
+
+	insert_ret = _sock_set.insert(_sock);
+	if (insert_ret.second)
+	{ //true insert 成功，false 以存在重复数据
+//		_sock->add_ref();
+	}
+	ret = true;
+
+	return ret;
+	add_socket_ERROR: return ret;
+}
+
+bool SocketMgr::del_online_socket(Socket* _sock)
+{
+	Guard g(mutex);
+	bool ret = false;
+	unsigned int count = 0;
+	if (NULL == _sock)
+	{
+		goto del_socket_ERROR;
+	}
+	count = _sock_set.erase(_sock);
+	if (count == 1)
+	{ //erase 成功
+//		_sock->release();
+	}
+	ret = true;
+
+	return ret;
+	del_socket_ERROR: return true;
+}
+
+/*-----------------------------------------------------------------------------
+ *  由于重连监测和连接断开通知是在同一个线程中
+ *  因此此函数和reconn_process 不会同时发生，不需要锁保护
+ *-----------------------------------------------------------------------------*/
+bool SocketMgr::add_recon_socket(Socket* _sock)
+{
+	Guard g(mutex);
+	bool ret = false;
+	std::pair<std::set<Socket*>::iterator, bool> insert_ret;
+
+	if (_sock == NULL)
+	{
+		goto add_recon_socket_ERROR;
+	}
+	insert_ret = _recon_socks.insert(_sock);
+	if (insert_ret.second)
+	{
+		OUT_INFO(NULL, 0, NULL, "socket fd[%d] ready to reconn", _sock->_fd);
+//		_sock->add_ref();
+	}
+	ret = true;
+
+	return ret;
+	add_recon_socket_ERROR: return ret;
+}
+
+bool SocketMgr::del_recon_socket(Socket* _sock)
+{
+	Guard g(mutex);
+	unsigned int count = 0;
+	bool ret = false;
+	if (NULL == _sock)
+	{
+		goto del_recon_socket_ERROR;
+	}
+	count = _recon_socks.erase(_sock);
+	if (count == 1)
+	{
+//		_sock->release();
+	}
+	ret = true;
+
+	return ret;
+	del_recon_socket_ERROR: return ret;
+}
+
+void SocketMgr::process_discon_sock(Socket* sock)
+{
+	switch (sock->_sock_type)
+	{
+		case TCPSVRCONN:
+		{
+			//回收前 重置socket状态
+			sock->recove_socket();
+			break;
+		}
+		case TCPCLIENTCONN:
+		{
+			if (sock->_need_reconn)
+			{
+				//需要重连的tcp客户端从在线队列中删除并放入重连队列
+				add_recon_socket(sock);
+			}
+			else
+			{
+				//不需要重连的队列直接回收
+				sock->recove_socket();
+			}
+			break;
+		}
+		case UDPSOCK:
+		{
+			//此处只处理udp客户端的超时监测
+			if (UDP_TYPE_CONN == ((UdpSocket*) sock)->udp_type)
+			{
+				if (sock->_need_reconn)
+				{
+					add_recon_socket(sock);
+				}
+				else
+				{
+					sock->recove_socket();
+				}
+			}
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void SocketMgr::reconn_process()
+{
+	Guard g(mutex);
+
+	ASYN_CONN_RET con_state = CONNFAILED;
+	Socket* _sock = NULL;
+	int _cur_time = time(NULL);
+	set<Socket*>::iterator iter;
+	std::pair<std::set<Socket*>::iterator, bool> insert_ret;
+
+	if (_cur_time < _reconn_check_time + TIME_INTERVAL)
+	{
+		goto reconn_process_ERROR;
+	}
+
+	_reconn_check_time = _cur_time;
+	iter = _recon_socks.begin();
+	for (; iter != _recon_socks.end();)
+	{
+		_sock = (Socket*) *iter;
+		if (_cur_time > _sock->_next_reconn_time + _sock->_reconn_timeval)
+		{
+			OUT_INFO(NULL, 0, NULL, "try to connect [%s]:[%d]", _sock->_peer_host,
+			        _sock->_peer_port);
+			con_state = _sock->asyn_connect(_sock->_peer_host, _sock->_peer_port,
+			        _sock->_event_reactor, _sock->_tprotocol);
+			if (CONNSUCCESS == con_state)
+			{
+				OUT_INFO(NULL, 0, NULL, "reconn success");
+				//非阻塞重连成功。一般svr和client
+				//在同一台机器上才会出现这种情况
+//				_sock->release();				//引用计数-1
+				_recon_socks.erase(iter++);
+
+				//从待重连list回到在线list
+				insert_ret = _sock_set.insert(_sock);
+				if (insert_ret.second)
+				{
+//					_sock->add_ref();
+				}
+				//fd与epoll进行绑定
+				_sock->_epoll_dispatcher->event_set(_sock, true, false);
+				_sock->_state = ESTABLISHED;
+				//通知外界重连成功
+//				_sock->add_ref();
+				_sock->_event_reactor->on_conn(_sock);
+//				_sock->release();
+
+			}
+			else
+			{
+				_sock->_next_reconn_time = _cur_time;
+				iter++;
+				OUT_INFO(NULL, 0, NULL, "NEXT reco time[%d]", _sock->_next_reconn_time);
+			}
+		}
+		else
+		{
+			//未到重连时间
+			iter++;
+			OUT_INFO(NULL, 0, NULL, "未到重连时间");
+		}
+	}
+
+	return;
+	reconn_process_ERROR: return;
+}
+
+void SocketMgr::online_process()
+{
+	//锁保护
+	Guard g(mutex);
+
+	Socket* sock = NULL;
+	int _cur_time = time(NULL);
+	set<Socket*>::iterator iter;
+	if (_cur_time < _online_check_time + TIME_INTERVAL)
+	{
+		goto online_process_ERROR;
+	}
+	_online_check_time = _cur_time;
+	iter = _sock_set.begin();
+	for (; iter != _sock_set.end();)
+	{
+		sock = *iter;
+		//超时时间为15分钟
+		if (_cur_time > sock->_last_active_time + SOCKET_TIMEOUT)
+		{
+			OUT_ERROR(NULL, 0, NULL, "Ready to recycle socket,fd[%d]", sock->_fd);
+			//通知外界连接断开
+			sock->_event_reactor->on_disconn(sock);
+			//与epoll句柄解绑
+			_epoll_thread->remove(sock);
+			//引用计数-1
+			_sock_set.erase(iter++);
+			process_discon_sock(sock);
+		}
+		else
+		{
+			iter++;
+		}
+	}
+
+	return;
+	online_process_ERROR: return;
+}
+

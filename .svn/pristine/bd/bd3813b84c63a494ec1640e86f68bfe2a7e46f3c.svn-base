@@ -1,0 +1,38 @@
+##
+# TRIONES_HOME
+#
+# MODULE
+# EXTRA_CFLAGS
+# EXTRA_INC_PATH
+# EXTRA_LIB_PATH
+# EXTRA_LIBS
+# SRCS
+# INCS
+# BIN
+# SLIB
+# DLIB
+
+TRIONES_HOME ?= ${shell readlink -n -e ../.. }
+
+MODULE = net
+
+INCS =  common.h sockutil.h sock_buffer.h
+INCS += socket.h tcpsocket.h udpsocket.h tcplistensocket.h
+INCS += epollhandler.h epolldispatcher.h eventworkthread.h eventreactor.h socketmgr.h socketpool.h
+INCS += tcptransport.h udptransport.h
+
+SRCS =  sockutil.cpp socketmgr.cpp socketpool.cpp
+SRCS += socket.cpp tcplistensocket.cpp tcpsocket.cpp udpsocket.cpp 
+SRCS += epollhandler.cpp epolldispatcher.cpp eventworkthread.cpp
+SRCS += tcptransport.cpp udptransport.cpp
+
+SLIB = libtrionesnet.a
+
+EXTRA_INC_PATH = 
+
+EXTRA_LIB_PATH = 
+
+EXTRA_CFLAGS = 
+
+include ${TRIONES_HOME}/Makefile.inc
+

@@ -1,0 +1,66 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : socket 管理对象
+ */
+
+#ifndef _TRIONES_SOCKET_MGR_H_INC
+#define _TRIONES_SOCKET_MGR_H_INC
+
+#include <set>
+#include "socket.h"
+#include "udpsocket.h"
+#include "../thread/mutex.h"
+using namespace std;
+namespace triones
+{
+
+class EventWorkThread;
+class SocketMgr
+{
+public:
+	SocketMgr(EventWorkThread* _epoll);
+
+	~SocketMgr();
+public:
+
+	bool query_socket(Socket* _sock);
+
+	bool add_online_socket(Socket* _sock);
+
+	bool del_online_socket(Socket* _sock);
+
+	bool add_recon_socket(Socket* _sock);
+
+	bool del_recon_socket(Socket* _sock);
+
+	//重连检查
+	void reconn_process();
+
+	//连接超时检查
+	void online_process();
+
+private:
+	//处理断开socket
+	void process_discon_sock(Socket* _sock);
+
+private:
+
+	//用于SocketMgr的内部线程同步锁
+	triones::Mutex mutex;
+
+
+	EventWorkThread * _epoll_thread;
+
+	//在线的tcp连接
+	set<Socket*> _sock_set;
+
+	//等待重连的tcp连接
+	set<Socket*> _recon_socks;
+
+	int _reconn_check_time;
+
+	int _online_check_time;
+};
+}
+#endif /*  _SOCKET_MGR_H_INC */

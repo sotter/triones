@@ -1,0 +1,32 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : TCP listen socket 封装实现
+ */
+#ifndef _TRIONES_TCPLISTEN_SOCKET_H_INC_
+#define _TRIONES_TCPLISTEN_SOCKET_H_INC_
+
+#include "common.h"
+#include "socket.h"
+#include "epolldispatcher.h"
+
+namespace triones
+{
+class TcpListenSocket: public Socket
+{
+public:
+
+    virtual ~TcpListenSocket();
+
+    bool listen(const char *host, unsigned short port, int backlog = 32);
+    //状态机处理函数
+    virtual int to_close();
+
+    virtual int to_read();
+
+    virtual int to_write();
+
+    virtual bool check_sockfd(); 
+};
+}
+#endif

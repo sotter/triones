@@ -1,0 +1,93 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : TCP listen socket 封装实现
+ */
+#include "tcplistensocket.h"
+
+TcpListenSocket:: ~TcpListenSocket()
+{
+	 if(_fd != -1)
+	 {
+		::close(_fd);
+		_fd = -1;
+	 }
+}
+bool TcpListenSocket::listen(const char *host, unsigned short port, int backlog/* = 32 */)
+{
+	check_sockfd();
+
+	set_non_block(_fd);
+	set_recv_buf(_fd,MAX_SOCKET_BUF);
+	set_send_buf(_fd,MAX_SOCKET_BUF);
+	set_reuse_addr(_fd);
+
+    if (!bind(host, port))
+        return false;
+    if (::listen(_fd, backlog) < 0)
+    {
+        OUT_ERROR(NULL,0,NULL,"Tcp svr listen %s %d error : %s ", host, port, strerror(errno));
+        return false;
+    }
+    _state = LISTEN;
+
+    return true;
+}
+
+int TcpListenSocket::to_close()
+{ 
+    ::close(_fd);
+    _fd = -1;
+    return FSM_END;
+}
+
+int TcpListenSocket::to_read()
+{ 
+	struct sockaddr_in client_addr;
+	int len = sizeof(client_addr);
+    int clientfd = ::accept(_fd, (sockaddr* )&client_addr, (socklen_t* )&len);
+    if(clientfd < 0)
+    {
+    	OUT_ERROR(NULL,0,NULL,"LISTENSVR: socket[%d]accept error:%s \n", _fd,strerror(errno));
+    	return FSM_END;
+    }
+
+	OUT_INFO(NULL,0,NULL,"accept a new client,fd[%d]",clientfd);
+
+    set_non_block(clientfd);
+    TcpSocket *tcpsock = (TcpSocket*)SocketPool::instance().get(TCPSVRCONN);
+	//设置socket属性
+	tcpsock->_fd = clientfd;
+	tcpsock->_state = ESTABLISHED;
+	tcpsock->_sock_type = TCPSVRCONN;
+	tcpsock->set_peer_addr((struct sockaddr*)&client_addr);
+	tcpsock->_last_active_time = time(NULL);
+	//设置协议解析器和事件响应器
+    tcpsock->set_event_reactor(_event_reactor);
+	tcpsock->set_trans_protocol(_tprotocol);
+	//设置与客户端关联的dispatcher
+	tcpsock->set_epoll_dispatcher(_epoll_dispatcher);
+	//新客户加入事件分发模块
+	_epoll_dispatcher->event_add(tcpsock, true, false);
+	//新连接加入事件管理
+	_epoll_dispatcher->select_epoll_thread(tcpsock)->on_connected(tcpsock); 
+	//通知外部模块由新连接
+    _event_reactor->on_conn(tcpsock);	
+    return FSM_END;
+}
+int TcpListenSocket::to_write()
+{
+	OUT_INFO(NULL,0,NULL,"TcpListenSocket write event tigger");
+    return FSM_END;
+}
+
+bool TcpListenSocket::check_sockfd()
+{
+    if (_fd == -1 && (_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+        return false;
+    }
+    return true;
+}
+
+

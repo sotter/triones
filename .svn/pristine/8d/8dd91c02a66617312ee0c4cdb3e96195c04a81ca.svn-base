@@ -1,0 +1,81 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : 单个epoll驱动线程
+ */
+
+#ifndef _TRIONES_EVENT_WORK_THREAD_H_INC
+#define _TRIONES_EVENT_WORK_THREAD_H_INC
+
+#include "../thread/thread.h"
+#include "../log/comlog.h"
+#include "socketpool.h"
+#include "socketmgr.h"
+#include "common.h"
+#include <list>
+#include <set>
+
+using namespace std;
+
+namespace triones
+{
+
+class EpollHandler;
+
+class EventWorkThread: public Runnable
+{
+public:
+	EventWorkThread()
+			: _run(true)
+	{
+		_max_sock = 0;
+	}
+
+	~EventWorkThread();
+
+	void set_thread_id(int id);
+
+	int get_thread_id();
+
+	int init(int max_sock);
+
+	int stop();
+
+	int start();
+
+	virtual void run(void *param);
+
+	int event_loop();
+
+	bool add_event(Socket *socket, bool read, bool write);
+
+	bool set_event(Socket *socket, bool read, bool write);
+
+	bool remove(Socket *socket);
+
+	//socket 管理相关函数
+	void on_disconnected(Socket *socket);
+	//新连接到来
+	void on_connected(Socket *socket);
+	//重连检测
+	void reconn_process();
+	//超时检测
+	void online_process();
+
+private:
+
+	int _thread_index;
+
+	EpollHandler *_epoll_handler;
+
+	triones::ThreadManager _work_thread;
+
+	SocketMgr *_sock_mgr;
+
+	int _max_sock;
+
+	bool _run;
+};
+
+}
+#endif /* _EVENT_WORK_THREAD_H_INC */

@@ -1,0 +1,48 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : epoll 事件分发模型
+ */
+
+#ifndef _TRIONES_EPOLL_DISPATCHER_H_INC
+#define _TRIONES_EPOLL_DISPATCHER_H_INC
+
+#include <vector>
+#include "socket.h"
+#include "eventworkthread.h"
+using namespace std;
+
+namespace triones
+{
+class EpollDispatcher
+{
+public:
+	EpollDispatcher();
+
+	virtual ~EpollDispatcher();
+
+	bool init(int epoll_thread_num = 1);
+
+	bool start();
+
+    bool stop();
+
+	int event_add(Socket *socket, bool readable = true, bool writeable = false);
+
+	int event_set(Socket * socket, bool readable, bool writeable);
+
+	int event_del(Socket* socket);
+
+	EventWorkThread *select_epoll_thread(Socket *event);
+
+private:
+
+    bool _run;
+
+	int _max_num;
+
+    std::vector<EventWorkThread *> _epoll_threads;
+};
+}
+
+#endif /* _EPOLL_DISPATCHER_H_INC*/

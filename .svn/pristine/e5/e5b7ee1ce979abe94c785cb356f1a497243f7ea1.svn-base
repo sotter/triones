@@ -1,0 +1,80 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : UDP 套接字封装װ
+ */
+
+#ifndef _TRIONES_UDP_SOCKET_H_
+#define _TRIONES_UDP_SOCKET_H_
+
+#include "common.h"
+#include "socket.h"
+#include "sock_buffer.h"
+#include "../pack/tprotocol.h"
+#include "eventreactor.h"
+namespace triones
+{
+class UdpSocket : public Socket
+{
+public:
+    //需要实现的功能接口
+	virtual int type(){return UDPSOCK;}
+
+    virtual int send(const void *data, int len);
+
+    //状态机处理函数
+	virtual int to_close();
+
+	virtual int to_read();
+
+	virtual int to_write();
+
+	int to_conn_resp();	
+
+	int get_one_packet(FifoBuffer::FifoPacket *packet);
+
+public:
+
+	UdpSocket();
+
+	UdpSocket(int sock, SOCKSTATE s, struct sockaddr_in *peer_address);
+
+	bool start_server(const char *ip, unsigned short port);
+
+	virtual ~UdpSocket()
+	{
+		this->close_socket();
+	}
+
+	virtual ASYN_CONN_RET asyn_connect(const char *peer_ip, unsigned int peer_port,
+										IEventReactor* reactor,TransProtocol* protocol);
+
+	void shutdown();
+
+	bool set_recv_buffer_size(int s);
+
+    bool set_sndbuffer_max_size(int s);
+
+	bool check_sockfd();
+
+	int get_soerror(); 
+
+	void close_socket();
+private:
+	long long get_index(const struct sockaddr_in *addr);
+
+    long long get_index(const char *ip, unsigned short port);
+
+	void discon_virturl_sock(const struct sockaddr *addr);
+
+public:
+
+	int udp_type;
+	//对端
+	struct sockaddr_in  peer_addr;	
+
+	FifoBuffer read_buffer;       //读buffer的	
+	map<long long, UdpSocket *> virtual_udpsock;
+};
+}
+#endif /* _TRIONES_UDP_SOCKET_H_*/

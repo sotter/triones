@@ -1,0 +1,120 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : epoll 事件分发模型
+ */
+#include "epolldispatcher.h"
+#include "epollhandler.h"
+
+EpollDispatcher::EpollDispatcher() 
+: _run(false)
+{
+    _max_num = 2;
+}
+
+EpollDispatcher::~EpollDispatcher()
+{
+    stop();
+    for(int i = 0; i < (int)_epoll_threads.size(); i++)
+    {
+    	delete _epoll_threads[i];
+    	_epoll_threads[i] = NULL;
+    }
+}
+
+bool EpollDispatcher::init(int epoll_thread_num )
+{
+	if(epoll_thread_num  < 1)
+	{
+		_max_num = 1;
+	}
+	_max_num = epoll_thread_num ;	
+	for(int i = 0; i < _max_num; i++)
+	{
+	    EventWorkThread *_thread = new EventWorkThread;
+	    _thread->init(1024);
+        _thread->set_thread_id(i);
+        _epoll_threads.push_back(_thread);
+	}	
+	return true;
+}
+
+bool EpollDispatcher::start()
+{
+	if (!_run)
+	{
+		_run = true;
+		for (int i = 0; i < _max_num; i++)
+		{
+			_epoll_threads[i]->start();
+		}
+	}
+
+    return true;
+}
+
+bool EpollDispatcher::stop()
+{
+	if (_run)
+	{
+		_run = false;
+		for (int i = 0; i < _max_num; i++)
+		{
+			_epoll_threads[i]->stop();
+		}
+	}
+
+    return true;
+}
+
+
+/*-----------------------------------------------------------------------------
+ * 对于udpClient、tcpClient 客户端fd需要均匀分布在0~max_num-1 的epoll thread上
+ * 对于 tcpServer thread[0]负责监听listen_sock 其余线程负责数据收发
+ *-----------------------------------------------------------------------------*/
+EventWorkThread *EpollDispatcher::select_epoll_thread(Socket *socket)
+{
+	int index = 0;
+	switch(socket->_sock_type)
+	{
+		case TCPLISTEN:
+			{
+				index = 0;
+				break;
+			}
+		case TCPSVRCONN:
+			{
+				index = _epoll_threads.size()>1?(socket->_fd%(_max_num-1))+1:0;
+				break;
+			}
+		case TCPCLIENTCONN:
+		case UDPSOCK:
+			{
+				index = _epoll_threads.size() > 1 ? socket->_fd % _max_num:0;
+				break;
+			}
+		default:
+			{
+				index  = _epoll_threads.size() > 1 ? socket->_fd % _max_num : 0;
+				break;
+			}
+	}	
+	return _epoll_threads[index];
+}
+
+int EpollDispatcher::event_add(Socket * socket, bool readable, bool writeable)
+{	
+	EventWorkThread* thread = NULL;	
+	thread = select_epoll_thread(socket);
+	return thread->add_event(socket, readable, writeable);
+}
+
+int EpollDispatcher::event_set(Socket * socket, bool readable, bool writeable)
+{
+	return select_epoll_thread(socket)->set_event(socket, readable, writeable);
+}
+
+int EpollDispatcher::event_del(Socket* socket)
+{
+	return select_epoll_thread(socket)->remove(socket);
+}

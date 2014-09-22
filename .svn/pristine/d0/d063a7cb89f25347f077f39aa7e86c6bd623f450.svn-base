@@ -1,0 +1,197 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : socket recv buffer 
+ */
+
+#ifndef _TRIONES_SOCK_BUFFER_H_
+#define _TRIONES_SOCK_BUFFER_H_
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <list>
+#include <string>
+#include "../thread/mutex.h"
+
+using namespace std;
+
+/*******************************************************
+ * 1. 主要用于数据的整合与分组。
+ * (1)将外部的数据add_data,加入如到缓冲区中，通过分包取得数据，取出来的数据指明的分段信息，而不是将数据拷贝出来。
+ * (2)也可以不同过add_data, 而是通过read_pos,和absolute_avail，直接拷贝进去。
+ *******************************************************/
+namespace triones
+{
+class FifoBuffer
+{
+public:
+	class FifoPacket
+	{
+	public:
+		FifoPacket()
+		{
+			data = NULL;
+			offset = 0;
+		}
+		const char *data;
+		int offset;
+	};
+
+	FifoBuffer() :
+			_read_offset(0), _write_offset(0), _size(0), _buffer(NULL)
+	{
+
+	}
+
+	virtual ~FifoBuffer()
+	{
+		delete[] _buffer;
+		_read_offset = _write_offset = _size = 0;
+	}
+
+	void set_max_size(int max_size = 4096)
+	{
+		if (_buffer != NULL)
+		{
+			delete[] _buffer;
+			_buffer = NULL;
+		}
+
+		_size = max_size;
+		_buffer = new char[max_size];
+
+		return;
+	}
+
+	//返回的是写入的长度, -1 表示有错误发生
+	int add_data(const char *data, int len)
+	{
+		//还有空间写入。
+		if (data == NULL || len < 0) return 0;
+		//最大拷贝的数据为absolute_avail()大小。
+
+		if (len > (int) absolute_avail())
+		{
+			printf("len = %d absolute_avail = %u \n", len, absolute_avail());
+			len = (int) absolute_avail();
+		}
+
+		if (len > (int) relative_avail())
+		{
+			reset();
+		}
+
+		memcpy(_buffer + _write_offset, data, len);
+		_write_offset += len;
+
+		return len;
+	}
+
+	/********************************
+	 * 重新排列buffer, 将数据拷贝到开头处。
+	 ********************************/
+	void reset()
+	{
+		memcpy(_buffer, _buffer + _read_offset, _write_offset - _read_offset);
+		_write_offset = _write_offset - _read_offset;
+		_read_offset = 0;
+	}
+
+	void clear()
+	{
+		_read_offset = _write_offset = 0;
+	}
+
+	//可获得的绝对空间，空间总大小。
+	unsigned int absolute_avail()
+	{
+		return _size - (_write_offset - _read_offset);
+	}
+
+	unsigned int relative_avail()
+	{
+		return _size - _write_offset;
+	}
+
+	char *get_buffer()
+	{
+		return _buffer;
+	}
+
+	char *read_pos()
+	{
+		return _buffer + _read_offset;
+	}
+
+	char *write_pos()
+	{
+		return _buffer + _write_offset;
+	}
+
+	unsigned int get_read_offset()
+	{
+		return _read_offset;
+	}
+
+	void read_offset_add(int i)
+	{
+		_read_offset += i;
+	}
+
+	void set_read_offset(int i)
+	{
+		_read_offset = i;
+	}
+
+	unsigned int get_write_offset()
+	{
+		return _write_offset;
+	}
+
+	void set_write_offset(int i)
+	{
+		_write_offset = i;
+	}
+
+	void write_offset_add(int i)
+	{
+		_write_offset += i;
+	}
+
+	unsigned int use()
+	{
+		return _write_offset - _read_offset;
+	}
+
+	unsigned int get_size()
+	{
+		return _size;
+	}
+
+	//默认将所有的数据都取出来，具体应用时需要将这个重写, 注意考虑中间出现的异常情况。
+	virtual int get_one_packet(FifoPacket *packet)
+	{
+		if (NULL == packet)
+		{
+
+		}
+		return 0;
+	}
+
+	string info()
+	{
+		char buffer[128] = { 0 };
+		snprintf(buffer, sizeof(buffer) - 1, "size : %d read pos : %d write pos : %d ", _size,
+		        _read_offset, _write_offset);
+		return buffer;
+	}
+
+private:
+	unsigned int _read_offset;
+	unsigned int _write_offset;
+	unsigned int _size;
+	char *_buffer;
+};
+}
+#endif /* SOCK_BUFFER_H_ */

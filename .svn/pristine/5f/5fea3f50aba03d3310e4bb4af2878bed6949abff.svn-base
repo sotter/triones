@@ -1,0 +1,49 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : 实现tcp传输,将tcp client 和 tcp server 融合在一起
+ */
+
+#ifndef _TRIONES_TCP_TRANSPORT_H
+#define _TRIONES_TCP_TRANSPORT_H
+#include "common.h"
+#include "socket.h"
+#include "epolldispatcher.h"
+#include "../pack/tprotocol.h"
+#include "eventreactor.h"
+#include "../log/comlog.h"
+
+namespace triones
+{
+
+class TcpTransPort
+{
+public:
+	TcpTransPort();
+
+	virtual ~TcpTransPort();
+	//设置编解码类和事件反应器
+	bool start(IEventReactor *reactor, TransProtocol* protocol);
+
+	bool stop();
+	//启动tcp svr
+	bool tcp_svr_listen(const char *ip, unsigned short port, int thread_num);
+	//启动tcp client
+	TcpSocket* tcp_connect(char*peer_ip, int peer_port, int thread_num = 1);
+	//发送消息,此函数调用完毕需自行释放*data_buf 指针
+	int send_msg(Socket* _sock, const char* data_buf, int len);
+private:
+	//tcp cl 、svr 通用事件分发模型
+	EpollDispatcher _epoll_dispatcher;
+	//事件分发器指针
+	IEventReactor *_event_reactor;
+	//解封包实现
+	TransProtocol* _sock_protocol;
+	//tcp svr 启动标志
+	bool _svr_startup;
+	//tcp cl 启动标志
+	bool _cl_startup;
+};
+}
+#endif  /* _TRIONES_TCP_TRANSPORT_H */
+

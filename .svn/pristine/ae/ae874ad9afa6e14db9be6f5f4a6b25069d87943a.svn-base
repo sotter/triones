@@ -1,0 +1,92 @@
+/**
+ * author: Triones
+ * date  : 2014-08-21
+ * desc  : General definition
+ */
+ 
+#ifndef _TRIONES_SOCKET_COMMON_H_INC
+#define _TRIONES_SOCKET_COMMON_H_INC
+
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
+
+namespace triones
+{
+
+#define OK (0)
+#define MAX_IP_LEN (16)
+
+#define EV_TIMEOUT  0x01
+#define EV_READ     (0x01 << 1)
+#define EV_WRITE    (0x01 << 2)
+#define EV_SIGNAL   (0x01 << 3)
+#define EV_RPERSIST (0x01 << 4) /* 是否每次都加入读事件  */
+#define EV_WPERSIST (0x01 << 5) /* 写事件是否持续性的     */
+
+#define FSM_END     (-1)
+
+#define ONE_SEND_MAX (16)
+//epoll 超时设置
+#define EVENTBASE_TIMEOUT (30)
+
+
+/*-----------------------------------------------------------------------------
+* TCPSVRCONN 接入服务器的连接
+* TCPCLENTCONN 连向服务器的连接
+*-----------------------------------------------------------------------------*/
+enum SOCKTYPE
+{
+    TCPLISTEN = 0, TCPSVRCONN,TCPCLIENTCONN, UDPSOCK, SOCKTYPE_NUM
+};
+
+/*-----------------------------------------------------------------------------
+ *  Tcpserver 状态转化：accept() 成功后连接状态为ESTABLISHED
+ *  Tcpclient 状态转化：初始为CONNECTING ,连接服务器成功后为ESTABLISHED
+ *-----------------------------------------------------------------------------*/
+enum SOCKSTATE
+{
+    CLOSED = 0, CONNECTING, ESTABLISHED, LISTEN, SOCKSTATE_NUM
+};
+
+enum SOCKEVENT
+{
+    TOCLOSE = 0, TOREAD, TOWRITE, SOCKEVENT_NUM
+};
+
+enum ASYN_CONN_RET
+{
+	CONNSUCCESS = 0,CONNFAILED,CONNBYEPOLL
+};
+
+//udp socket type
+#define UDP_TYPE_SERVER  (0)
+#define UDP_TYPE_CONN    (1)
+#define UDP_TYPE_VIRTUAL (2)
+
+//Udp socket FifoBuffer 的默认大小
+#define DEFAULT_READ_BUFFER   (1024 * 1024)
+//每次对一个socket的读写最多为5次，防止某一个socket的数据过来，阻塞其他socket
+ #define MAX_ONE_WR_OPER        (16)
+//UDP TCP发送的每个包的大小, 应用层进行拆包，
+ #define WR_SOCK_LEN            (2048)
+
+#define SOCKET_SENDERR			(-1) 	// 发送数据错误
+
+#define MAX_SOCKET_BUF			(64000)    // 最大发送和接收缓存区的大?
+
+#define SOCKET_TIMEOUT			(900)  //连接超时时间15min
+
+#define TIME_INTERVAL			(30)  //30s,重连和在线监测时间间隔
+}
+
+#endif /*_TRIONES_SOCKET_COMMON_H_INC */

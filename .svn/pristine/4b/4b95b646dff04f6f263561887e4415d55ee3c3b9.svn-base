@@ -1,0 +1,16 @@
+Triones
+=======
+
+Install
+-------
+
+$ make
+$ make install
+
+Examples
+--------
+
+$ make
+$ make install
+$ make examples
+
