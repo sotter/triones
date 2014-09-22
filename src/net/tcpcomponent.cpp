@@ -635,6 +635,10 @@ bool TCPComponent::writeData()
 //	}
 
 	return true;
+
+
+	printf("GGIIITTT\n");
+
 }
 
 /****************************
