@@ -2,5 +2,6 @@ eclipse.preferences.version=1
 encoding//src/log/comlog.h=UTF-8
 encoding//src/net/iocomponent.h=UTF-8
 encoding//src/net/socket.cpp=UTF-8
+encoding//src/pack/tprotocol.h=UTF-8
 encoding//src/thread/atomic.h=UTF-8
 encoding//src/thread/thread.h=UTF-8

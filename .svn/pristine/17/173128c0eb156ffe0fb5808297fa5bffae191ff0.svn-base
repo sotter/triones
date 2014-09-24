@@ -5,12 +5,14 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
+ *
  * Version: $Id$
  *
  * Authors:
  *   duolong <duolong@taobao.com>
  *
  */
+
 #include "cnet.h"
 #include "../comlog.h"
 
@@ -48,6 +50,7 @@ bool Transport::start() {
 
 /*
  * 停止，停掉读写线程，及销毁。
+ *
  * @return 是否成功, true - 成功, false - 失败。
  */
 bool Transport::stop() {
@@ -200,8 +203,7 @@ void Transport::timeoutLoop() {
  *
  * @param arg: 运行时传入参数
  */
-void Transport::run(triones::Thread *thread, void *arg)
-{
+void Transport::run(triones::Thread *thread, void *arg) {
     if (thread == &_timeoutThread) {
         timeoutLoop();
     } else {
@@ -416,11 +418,9 @@ void Transport::removeComponent(IOComponent *ioc) {
     if (ioc == _iocListHead) { // head
         _iocListHead = ioc->_next;
     }
-
     if (ioc == _iocListTail) { // tail
         _iocListTail = ioc->_prev;
     }
-
     if (ioc->_prev != NULL)
         ioc->_prev->_next = ioc->_next;
     if (ioc->_next != NULL)

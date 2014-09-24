@@ -368,159 +368,9 @@ bool TCPComponent::handlePacket(DataBuffer *input, PacketHeader *header)
 	if (_iocomponent)
 		_iocomponent->addRef();
 
-	Packet *packet;
+	Packet *packet; //怎么得到的这个packet
 	return _serverAdapter->handlePacket(this, packet);
-
-//	Packet *packet;
-//	IPacketHandler::HPRetCode rc;
-//	void *args = NULL;
-//	Channel *channel = NULL;
-//	IPacketHandler *packetHandler = NULL;
-//
-//	if (_streamer->existPacketHeader() && !_isServer)
-//	{ // 存在包头
-//		uint32_t chid = header->_chid;    // 从header中取
-//		chid = (chid & 0xFFFFFFF);
-//		channel = _channelPool.offerChannel(chid);
-//
-//		// channel没找到
-//		if (channel == NULL)
-//		{
-//			input->drainData(header->_dataLen);
-//			OUT_ASSERT(NULL, 0, NULL, "没找到channel, id: %u, %s", chid,
-//			        tbsys::CNetUtil::addrToString(getServerId()).c_str());
-//			return false;
-//		}
-//
-//		packetHandler = channel->getHandler();
-//		args = channel->getArgs();
-//	}
-//
-//	// 解码
-//	packet = _streamer->decode(input, header);
-//	if (packet == NULL)
-//	{
-//		packet = &ControlPacket::BadPacket;
-//	}
-//	else
-//	{
-//		packet->setPacketHeader(header);
-//		// 是批量调用, 直接放入queue, 返回
-//		if (_isServer && _serverAdapter->_batchPushPacket)
-//		{
-//			if (_iocomponent) _iocomponent->addRef();
-//			_inputQueue.push(packet);
-//			if (_inputQueue.size() >= 15)
-//			{ // 大于15个packet就调用一次
-//				_serverAdapter->handleBatchPacket(this, _inputQueue);
-//				_inputQueue.clear();
-//			}
-//			return true;
-//		}
-//	}
-//
-//	// 调用handler
-//	if (_isServer)
-//	{
-//		if (_iocomponent) _iocomponent->addRef();
-//		rc = _serverAdapter->handlePacket(this, packet);
-//	}
-//	else
-//	{
-//		if (packetHandler == NULL)
-//		{    // 用默认的
-//			packetHandler = _defaultPacketHandler;
-//		}
-//		assert(packetHandler != NULL);
-//
-//		rc = packetHandler->handlePacket(packet, args);
-//		channel->setArgs(NULL);
-//		// 接收回来释放掉
-//		if (channel)
-//		{
-//			_channelPool.appendChannel(channel);
-//		}
-//	}
-//
-//	return true;
 }
-
-///*
-// * 客户端的连接超时检测
-// */
-//bool TCPComponent::checkTimeout(int64_t now)
-//{
-//	// 得到超时的channel的list
-//	Channel *list = _channelPool.getTimeoutList(now);
-//	Channel *channel = NULL;
-//	IPacketHandler *packetHandler = NULL;
-//
-//	if (list != NULL)
-//	{
-//		if (!_isServer)
-//		{ // client endpoint, 给每个channel发一个超时packet, 服务器端把channel回收
-//			channel = list;
-//			while (channel != NULL)
-//			{
-//				packetHandler = channel->getHandler();
-//				if (packetHandler == NULL)
-//				{    // 用默认的
-//					packetHandler = _defaultPacketHandler;
-//				}
-//				// 回调
-//				if (packetHandler != NULL)
-//				{
-//					packetHandler->handlePacket(&ControlPacket::TimeoutPacket, channel->getArgs());
-//					channel->setArgs(NULL);
-//				}
-//				channel = channel->getNext();
-//			}
-//		}
-//		// 加到freelist中
-//		_channelPool.appendFreeList(list);
-//	}
-//
-//	// 对PacketQueue超时检查
-//	_output_mutex.lock();
-//	Packet *packetList = _outputQueue.getTimeoutList(now);
-//	_output_mutex.unlock();
-//	while (packetList)
-//	{
-//		Packet *packet = packetList;
-//		packetList = packetList->getNext();
-//		channel = packet->getChannel();
-//		packet->free();
-//		if (channel)
-//		{
-//			packetHandler = channel->getHandler();
-//			if (packetHandler == NULL)
-//			{    // 用默认的
-//				packetHandler = _defaultPacketHandler;
-//			}
-//			// 回调
-//			if (packetHandler != NULL)
-//			{
-//				packetHandler->handlePacket(&ControlPacket::TimeoutPacket, channel->getArgs());
-//				channel->setArgs(NULL);
-//			}
-//			_channelPool.freeChannel(channel);
-//		}
-//	}
-//
-//	// 如果是client, 并且有queue长度的限制
-//	if (!_isServer && _queueLimit > 0 && _queueTotalSize > _queueLimit)
-//	{
-//		_output_mutex.lock();
-//		_queueTotalSize = _outputQueue.size() + _channelPool.getUseListCount() + _myQueue.size();
-//		if (_queueTotalSize <= _queueLimit)
-//		{
-//			_outputCond.broadcast();
-//		}
-//		_output_mutex.unlock();
-//	}
-//
-//	return true;
-//}
 
 /**
  * 连接状态
@@ -534,8 +384,7 @@ bool TCPComponent::isConnectState()
 	return false;
 }
 
-/********* 原先TCPCONNECTION的地方  **************************/
-/** 说明 2014-09-21 刘波  **
+/*** 说明 2014-09-21
  * （1）这个地方应该限定写入次数，如果在单线程的条件下，写入的数据量过大，导致其它的socket的任务一直处于等待状态 ，
  * 在这里面默认最大是只写10次的。
  * （2）对于写事件中出现的异常，如EPIPE等，没有作特殊处理，这样的话只能通过读事件来判定socket的断开情况。
@@ -543,10 +392,9 @@ bool TCPComponent::isConnectState()
  * 用同一种协议进行了封装，数据传输都是通过packet的方式。这个packet是带有chanelID的，这样发送端和接收端的业务就能对应起来。
  * 而在我们的业务中，实现的是跟通用客户端的通信，这种客户端可能不cnet写的，而是走的协议（transprotocol）
  *  *********/
-
 bool TCPComponent::writeData()
 {
-	// 把 _outputQueue copy到 _myQueue中
+	// 把 _outputQueue copy到 _myQueue中, 从_myQueue中向外发送
 	_output_mutex.lock();
 	_outputQueue.moveTo(&_myQueue);
 
@@ -572,11 +420,10 @@ bool TCPComponent::writeData()
 			// 队列空了就退出
 			if (myQueueSize == 0)
 				break;
-
 			packet = _myQueue.pop();
 			myQueueSize--;
 			_streamer->encode(packet, &_output);
-//			_channelPool.setExpireTime(packet->getChannel(), packet->getExpireTime());
+			//_channelPool.setExpireTime(packet->getChannel(), packet->getExpireTime());
 			packet->free();
 			TBNET_COUNT_PACKET_WRITE(1);
 		}
@@ -622,90 +469,59 @@ bool TCPComponent::writeData()
 		return false;
 	}
 
-//	// 如果是client, 并且有queue长度的限制
-//	if (!_isServer && _queueLimit > 0 && _queueTotalSize > _queueLimit)
-//	{
-//		_output_mutex.lock();
-//		_queueTotalSize = queueSize + _channelPool.getUseListCount();
-//		if (_queueTotalSize <= _queueLimit)
-//		{
-//			_outputCond.broadcast();
-//		}
-//		_output_mutex.unlock();
-//	}
-
 	return true;
-
-
-	printf("GGIIITTT\n");
-
 }
 
+
 /****************************
- *(1)read
+ *(1)socket能够读取的最大的包是多少
  ***************************/
 bool TCPComponent::readData()
 {
+	//每个包设置为8K的大小，第一次读取出来最大是8K
 	_input.ensureFree(READ_WRITE_SIZE);
+
+	//ret表示已经读取到的数据
 	int ret = _socket->read(_input.getFree(), _input.getFreeLen());
-	int readCnt = 0;
-	int freeLen = 0;
+
+
+	int read_cnt = 0;
 	bool broken = false;
 
-	while (ret > 0)
+	//最大能连续读取10次，读任务便切换出来，给其他socket使用
+	while(ret  > 0 && ++read_cnt < 10)
 	{
 		_input.pourData(ret);
-		freeLen = _input.getFreeLen();
+		int decode = _streamer->decode(_input.getData(), _input.getDataLen(), &_inputQueue);
 
-		while (1)
-		{
-			if (!_gotHeader)
-			{
-				_gotHeader = _streamer->getPacketInfo(&_input, &_packetHeader, &broken);
-				if (broken) break;
-			}
-			// 如果有足够的数据, decode, 并且调用handlepacket
-			if (_gotHeader && _input.getDataLen() >= _packetHeader._dataLen)
-			{
-				handlePacket(&_input, &_packetHeader);
-				_gotHeader = false;
-				_packetHeader._dataLen = 0;
-				TBNET_COUNT_PACKET_READ(1);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		if (broken || freeLen > 0 || readCnt >= 10)
-		{
+		//如果发生了断开事件，或是_input没有读满（说明缓冲区里面已经没有数据了）
+		if(broken || _input.getFreeLen() > 0)
 			break;
-		}
 
-		if (_packetHeader._dataLen - _input.getDataLen() > READ_WRITE_SIZE)
-		{
-			_input.ensureFree(_packetHeader._dataLen - _input.getDataLen());
-		}
-		else
+		//如果判定读出来的包还没有解析完全说明，可能有未读出来的半包。
+		if(decode > 0 && decode < _input.getDataLen())
 		{
 			_input.ensureFree(READ_WRITE_SIZE);
 		}
 
+		//todo: 如果发送是一个大包，要在encode体现出来，告知上层，那么_input继续扩大自己的范围来适应大包的发送。
+
 		ret = _socket->read(_input.getFree(), _input.getFreeLen());
-		readCnt++;
 	}
 
-	_socket->setTcpQuickAck(true);
-
-	// 是否为批量回调
-	if (_isServer && _serverAdapter->_batchPushPacket && _inputQueue.size() > 0)
+	//将读到的数据进行批量处理
+	if(_inputQueue._size > 0)
 	{
 		_serverAdapter->handleBatchPacket(this, _inputQueue);
-		_inputQueue.clear();
 	}
 
+	//将读缓存区回归到初始位置
 	_input.shrink();
+
+	/*************
+	 * broken事件在最后处理，且是在事件在外层调用的，所以当读取几个包后，读到断开事件时并不影响已经读到的数据的处理。但需要一个前提条件：
+	 * （1）断开事件不能采用直接回调的方式，而是跟其它packet数据一样进行处理排队，这个地方要对packet进行处理
+	 *************/
 	if (!broken)
 	{
 		if (ret == 0)
@@ -717,10 +533,6 @@ bool TCPComponent::readData()
 			int error = Socket::getLastError();
 			broken = (error != EAGAIN);
 		}
-	}
-	else
-	{
-		_gotHeader = false;
 	}
 
 	return !broken;
