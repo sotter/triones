@@ -54,7 +54,7 @@ TCPComponent::~TCPComponent()
 void TCPComponent::disconnect()
 {
 	_output_mutex.lock();
-	_myQueue.moveTo(&_outputQueue);
+	_myQueue.moveto(&_outputQueue);
 	_output_mutex.unlock();
 	checkTimeout(TBNET_MAX_TIME);
 }
@@ -247,7 +247,7 @@ void TCPComponent::checkTimeout(int64_t now)
 void TCPComponent::disconnect()
 {
 	_output_mutex.lock();
-	_myQueue.moveTo(&_outputQueue);
+	_myQueue.moveto(&_outputQueue);
 	_output_mutex.unlock();
 	checkTimeout(TBNET_MAX_TIME);
 }
@@ -255,8 +255,7 @@ void TCPComponent::disconnect()
 /*
  * 发送packet到发送队列
  */
-bool TCPComponent::postPacket(Packet *packet, IPacketHandler *packetHandler, void *args,
-        bool noblocking)
+bool TCPComponent::postPacket(Packet *packet,bool noblocking)
 {
 	if (!isConnectState())
 	{
@@ -362,7 +361,7 @@ bool TCPComponent::postPacket(Packet *packet, IPacketHandler *packetHandler, voi
 /*
  * handlePacket 数据
  */
-bool TCPComponent::handlePacket(DataBuffer *input, PacketHeader *header)
+bool TCPComponent::handlePacket(DataBuffer *input)
 {
 	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
 	if (_iocomponent)
@@ -396,7 +395,7 @@ bool TCPComponent::writeData()
 {
 	// 把 _outputQueue copy到 _myQueue中, 从_myQueue中向外发送
 	_output_mutex.lock();
-	_outputQueue.moveTo(&_myQueue);
+	_outputQueue.moveto(&_myQueue);
 
 	//如果socket中的数据已经全部发送完毕了，置可写事件为false，然后退出来
 	if (_myQueue.size() == 0 && _output.getDataLen() == 0)
@@ -412,19 +411,24 @@ bool TCPComponent::writeData()
 	int writeCnt = 0;
 	int myQueueSize = _myQueue.size();
 
+	//todo:这块代码需要重写，packet本身就是从_output继承过来的
+	//如果write出现ERRORAGAIN的情况，下一个包继续发送；
+
 	do
 	{
-		// 写满到
 		while (_output.getDataLen() < READ_WRITE_SIZE)
 		{
 			// 队列空了就退出
 			if (myQueueSize == 0)
 				break;
 			packet = _myQueue.pop();
+
+			//为什么将packet放入到_output中发送，如果发送有失败的情况，可以将未发送的数据放入到out_put中；
+			//而且是易扩展，如果packet不是继承DataBuffer,可以将packet序列成数据流。
+			//缺点是增加了一次内存拷贝。
+			_output.write_buffer(*(DataBuffer*)packet);
 			myQueueSize--;
-			_streamer->encode(packet, &_output);
-			//_channelPool.setExpireTime(packet->getChannel(), packet->getExpireTime());
-			packet->free();
+			delete packet;
 			TBNET_COUNT_PACKET_WRITE(1);
 		}
 
@@ -450,7 +454,6 @@ bool TCPComponent::writeData()
 		**********/
 	} while (ret > 0 && _output.getDataLen() == 0 && myQueueSize > 0 && writeCnt < 10);
 
-
 	// 紧缩
 	_output.shrink();
 
@@ -472,7 +475,6 @@ bool TCPComponent::writeData()
 	return true;
 }
 
-
 /****************************
  *(1)socket能够读取的最大的包是多少
  ***************************/
@@ -483,7 +485,6 @@ bool TCPComponent::readData()
 
 	//ret表示已经读取到的数据
 	int ret = _socket->read(_input.getFree(), _input.getFreeLen());
-
 
 	int read_cnt = 0;
 	bool broken = false;
@@ -505,14 +506,24 @@ bool TCPComponent::readData()
 		}
 
 		//todo: 如果发送是一个大包，要在encode体现出来，告知上层，那么_input继续扩大自己的范围来适应大包的发送。
-
 		ret = _socket->read(_input.getFree(), _input.getFreeLen());
 	}
 
-	//将读到的数据进行批量处理
+	//对读到的数据业务回调处理，注意这个地方并不负责packet的释放，而是由外部来释放的
 	if(_inputQueue._size > 0)
 	{
-		_serverAdapter->handleBatchPacket(this, _inputQueue);
+		if(_serverAdapter->_batchPushPacket)
+		{
+			_serverAdapter->handleBatchPacket(this, _inputQueue);
+		}
+		else
+		{
+			Packet *pack = NULL;
+			while((pack = _inputQueue.pop()) != NULL)
+			{
+				_serverAdapter->handlePacket(this, pack);
+			}
+		}
 	}
 
 	//将读缓存区回归到初始位置

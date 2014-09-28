@@ -79,12 +79,12 @@ public:
      * @param args: 参数
      * @param timeout: 超时时间
      */
-    bool postPacket(Packet *packet, IPacketHandler *packetHandler = NULL, void *args = NULL, bool noblocking = true);
+    bool postPacket(Packet *packet, bool noblocking = true);
 
     /*
      * 当数据收到时的处理函数
      */
-    bool handlePacket(DataBuffer *input, PacketHeader *header);
+    bool handlePacket(DataBuffer *input);
 
     /*
      * 写出数据
@@ -96,25 +96,12 @@ public:
      */
     bool readData() = 0;
 
-    /*
-     * 设置写完是否关闭, 只TCP要用
-     */
-    virtual void setWriteFinishClose(bool v) {
-      UNUSED(v);
-    }
 
     /*
      * 设置对列的超时时间
      */
     void setQueueTimeout(int queueTimeout) {
         _queueTimeout = queueTimeout;
-    }
-
-    /*
-     * 清空output的buffer
-     */
-    virtual void clearOutputBuffer() {
-        ;
     }
 
     /*
@@ -207,7 +194,6 @@ private:
     /**  TCPCONNECTION 部分  ******************/
     DataBuffer _output;      // 输出的buffer
     DataBuffer _input;       // 读入的buffer
-    PacketHeader _packetHeader; // 读入的packet header
     bool _gotHeader;            // packet header已经取过
     bool _writeFinishClose;     // 写完断开
 };

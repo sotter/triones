@@ -71,21 +71,15 @@ class PacketQueueThread;
 class ConnectionManager;
 }
 
-
-#include "packet.h"
 #include "ipacketfactory.h"
 #include "databuffer.h"
 #include "ipackethandler.h"
 #include "ipacketstreamer.h"
 #include "iserveradapter.h"
-#include "packetqueue.h"
 
 #include "socket.h"
 #include "serversocket.h"
 #include "socketevent.h"
-
-#include "tcpconnection.h"
-#include "udpconnection.h"
 
 #include "iocomponent.h"
 #include "tcpacceptor.h"
@@ -93,9 +87,6 @@ class ConnectionManager;
 #include "udpacceptor.h"
 #include "udpcomponent.h"
 #include "transport.h"
-
-#include "packetqueuethread.h"
-#include "connectionmanager.h"
 
 // Define C99 equivalent types.
 typedef signed char           int8_t;
