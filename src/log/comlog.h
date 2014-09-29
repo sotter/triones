@@ -31,8 +31,8 @@ namespace triones
 #define LOG_NUM_LEVEL(level)  level, __FILE__, __LINE__, __FUNCTION__
 #define LOG_NULL_LEVEL(level) level, NULL, 0, NULL
 
-// 涓�骇鏃ュ織锛岄敊璇姤璀︼紝杩欑被闇�璁板綍閿欒鍑虹幇鐨勬墍鍦ㄦ枃浠惰鍙蜂互鍙婂嚱鏁板悕绉�#define OUT_WARNING(ip,port,user_id,msg,...)\
-		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"WARN",ip,port,user_id,msg,  ## __VA_ARGS__)
+//// 涓�骇鏃ュ織锛岄敊璇姤璀︼紝杩欑被闇�璁板綍閿欒鍑虹幇鐨勬墍鍦ㄦ枃浠惰鍙蜂互鍙婂嚱鏁板悕绉�#define OUT_WARNING(ip,port,user_id,msg,...)
+//		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"WARN",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_ERROR(ip,port,user_id,msg,...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"ERROR",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_ASSERT(ip,port,user_id,msg,...)\
@@ -42,8 +42,8 @@ namespace triones
 #define OUT_RUNNING(ip,port,user_id,msg,...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"RUNNING",ip,port,user_id,msg,  ## __VA_ARGS__)
 
-// 浜岀骇鏃ュ織锛屾祦绋嬬畝鍗曟暟鎹�#define OUT_INFO( ip, port, user_id, msg, ...)\
-		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(2),"INFO",ip,port,user_id,msg,  ## __VA_ARGS__)
+//// 浜岀骇鏃ュ織锛屾祦绋嬬畝鍗曟暟鎹�#define OUT_INFO( ip, port, user_id, msg, ...)
+//		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(2),"INFO",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_RECV( ip, port, user_id, msg, ...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(2),"RECV",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_SEND( ip, port, user_id, msg, ...)\
@@ -53,8 +53,8 @@ namespace triones
 #define OUT_DISCONN( ip, port, user_id, msg, ...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(2),"DISCON",ip,port,user_id,msg,  ## __VA_ARGS__)
 
-// 涓夌骇鏃ュ織涓鸿皟璇曞鐞�#define OUT_RECV3( ip, port, user_id, msg, ...) \
-		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(3),"RECV",ip,port,user_id,msg,  ## __VA_ARGS__)
+//// 涓夌骇鏃ュ織涓鸿皟璇曞鐞�#define OUT_RECV3( ip, port, user_id, msg, ...)
+//		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(3),"RECV",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_SEND3( ip, port, user_id, msg, ... ) \
 		CLog::instance()->CLog::print_net_msg(LOG_NULL_LEVEL(3),"SEND",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_PRINT( ip, port, user_id,msg, ... ) \

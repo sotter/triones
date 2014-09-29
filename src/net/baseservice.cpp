@@ -11,14 +11,14 @@ namespace triones
 
 BaseService::BaseService()
 {
-	_packqueue   = new CDataQueue<BasePacket>(MAXQUEUE_LENGTH);
+	_packqueue   = new triones::CDataQueue<triones::BasePacket>(MAXQUEUE_LENGTH);
+	_queue_thread = new QueueThread(_packqueue, this);
 }
 
 BaseService::~BaseService()
 {
 	// TODO Auto-generated destructor stub
 }
-
 
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 bool BaseService::handlePacket(IOComponent *connection, Packet *packet)
@@ -32,11 +32,13 @@ bool BaseService::handlePacket(IOComponent *connection, Packet *packet)
 	 * （2）push失败时，packet是由这里负责释放的；
 	 * （3）如果push失败时，queue_thread是不负责释放base_pack的，需由这里进行释放。
 	 * *************************/
-	if(! _queue_thread.push((void*)base_pack))
+	if(! _queue_thread->push((void*)base_pack))
 	{
 		delete base_pack->_packet;
 		delete base_pack;
 	}
+
+	return true;
 }
 
 void BaseService::handle_queue(void *packet)
@@ -52,8 +54,8 @@ void BaseService::handle_queue(void *packet)
 //处理有同步业务层的处理，子类的service来实现
 void BaseService::handle_queue_packet(IOComponent *ioc, Packet *packet)
 {
-	printf("handle pack %s, %s", ioc->getSocket()->getAddr(), packet->_pdata);
-	return ;
+	printf("handle pack %s, %s", ioc->getSocket()->getAddr().c_str(), packet->_pdata);
+	return;
 }
 
 

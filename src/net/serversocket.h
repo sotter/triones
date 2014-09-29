@@ -7,8 +7,6 @@
 #ifndef SERVERSOCKET_H_
 #define SERVERSOCKET_H_
 
-#include "cnet.h"
-
 namespace triones
 {
 

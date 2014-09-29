@@ -17,7 +17,6 @@
 #include <sys/poll.h>
 #include "stats.h"
 
-
 namespace triones {
 
 triones::Mutex Socket::_dnsMutex;

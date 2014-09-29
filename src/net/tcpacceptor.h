@@ -7,8 +7,7 @@
 #ifndef TCPACCEPTOR_H_
 #define TCPACCEPTOR_H_
 
-#include "iocomponent.h"
-#include "iserveradapter.h"
+#include "../pack/tprotocol.h"
 
 namespace triones
 {
@@ -25,7 +24,7 @@ public:
     * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
     */
     TCPAcceptor(Transport *owner, Socket *socket,
-                IPacketStreamer *streamer, IServerAdapter *serverAdapter);
+    		triones::TransProtocol *streamer, IServerAdapter *serverAdapter);
 
     /*
      * 初始化
@@ -56,7 +55,7 @@ public:
     void checkTimeout(int64_t now);
 
 private:
-    IPacketStreamer *_streamer;      // 数据包解析器
+    TransProtocol *_streamer;      // 数据包解析器
     IServerAdapter  *_serverAdapter; // 服务器适配器
 };
 

@@ -16,25 +16,18 @@ TRIONES_HOME ?= ${shell readlink -n -e ../.. }
 
 MODULE = net
 
-#SRCS += connection.cpp
-#SRCS += connectionmanager.cpp
 SRCS += iocomponent.cpp
-SRCS += packetqueue.cpp
-SRCS += packetqueuethread.cpp
 SRCS += serversocket.cpp
 SRCS += socket.cpp
 SRCS += socketevent.cpp
 SRCS += tcpacceptor.cpp
 SRCS += tcpcomponent.cpp
-#SRCS += tcpconnection.cpp
 SRCS += udpacceptor.cpp
 SRCS += udpcomponent.cpp
-#SRCS += udpconnection.cpp
-SRCS += packetqueue.cpp
-SRCS += packetqueuethread.cpp
 SRCS += stats.cpp
 SRCS += tbtimeutil.cpp
 SRCS += transport.cpp
+SRCS += baseservice.cpp
 
 
 SLIB = libtrionesnet.a

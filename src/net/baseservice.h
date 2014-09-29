@@ -10,6 +10,7 @@
 #include "cnet.h"
 #include "../pack/pack.h"
 #include "../thread/queuethread.h"
+#include "dataqueue.h"
 
 namespace triones
 {
@@ -19,6 +20,9 @@ class BasePacket
 public:
 	Packet *_packet;
 	IOComponent *_ioc;
+
+	BasePacket *_next;
+	BasePacket *_pre;
 };
 
 class BaseService: public IServerAdapter, public IQueueHandler
@@ -37,16 +41,13 @@ public:
 	virtual void handle_queue(void *packet);
 
 	//处理有同步业务层的处理，子类的service来实现
-	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
-	{
-		printf("handle pack %s, %s", ioc->getSocket()->getAddr(), packet->_pdata);
-		return ;
-	}
+	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet);
 
 private:
 
 	int initialize_network(const char* app_name)
 	{
+		UNUSED(app_name);
 		return 0;
 	}
 
@@ -57,7 +58,7 @@ private:
 
 	CDataQueue<BasePacket>	* _packqueue ;
 	//packet线程队列
-	QueueThread _queue_thread;
+	QueueThread *_queue_thread;
 };
 
 } /* namespace triones */

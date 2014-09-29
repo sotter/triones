@@ -14,7 +14,8 @@
  */
 
 #include "cnet.h"
-#include "../comlog.h"
+#include "stats.h"
+#include "../log/comlog.h"
 
 namespace triones {
 

@@ -7,17 +7,11 @@
 #ifndef UDPCOMPONENT_H_
 #define UDPCOMPONENT_H_
 
-#include "cnet.h"
-
 namespace triones
 {
 
 class UDPComponent : public IOComponent
 {
-public:
-	UDPComponent();
-	virtual ~UDPComponent();
-
 public:
     /**
      * 构造函数，由Transport调用。
@@ -27,7 +21,7 @@ public:
      * @param streamer:   数据包的双向流，用packet创建，解包，组包。
      * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
      */
-    UDPComponent(Transport *owner, Socket *socket, IPacketStreamer *streamer, IServerAdapter *serverAdapter);
+    UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer, IServerAdapter *serverAdapter);
 
     /*
      * 析构函数
@@ -61,8 +55,8 @@ public:
     bool handleReadEvent();
 
 private:
-    __gnu_cxx::hash_map<int, UDPConnection*> _connections;  // UDP连接集合
-    IPacketStreamer *_streamer;                             // streamer
+//    __gnu_cxx::hash_map<int, UDPConnection*> _connections;  // UDP连接集合
+    TransProtocol *_streamer;                             // streamer
     IServerAdapter *_serverAdapter;
 };
 

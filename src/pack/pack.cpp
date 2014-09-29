@@ -17,41 +17,45 @@ Packet::~Packet()
 {
 }
 
-// 读取小于255字符串形的数据
+// 璇诲彇灏忎簬255瀛楃涓插舰鐨勬暟鎹�
 bool Packet::read_str(std::string& s)
 {
 	uint8_t n;
 
-	if (!read_int8(n))
-		return false;
+	n = readInt8();
+
+//	if (!readInt8(n))
+//		return false;
 
 	s.resize(n);
-	return read_block((char*)s.data(), n);
+	return readBytes((char*)s.data(), n);
 }
 
-// 写入小于255长度的数据
+// 鍐欏叆灏忎簬255闀垮害鐨勬暟鎹�
 bool Packet::write_str(const std::string& s)
 {
 	uint8_t n = (uint8_t) s.size();
-	write_int8(n);
+	writeInt8(n);
 
 	if (n > 0)
 	{
-		write_block(s.data(), (int)n);
+		writeBytes(s.data(), (int)n);
 	}
 
 	return true;
 }
 
-// 读字符串形的数据
+// 璇诲瓧绗︿覆褰㈢殑鏁版嵁
 bool Packet::read_string(std::string& s)
 {
 	uint32_t len;
 
-	if (!read_int32(len))
-		return false;
+//	if (!readInt32(len))
+//		return false;
 
-	// 注意：以下代码直接操作基类的底层数据
+	len = readInt32();
+
+	// 娉ㄦ剰锛氫互涓嬩唬鐮佺洿鎺ユ搷浣滃熀绫荤殑搴曞眰鏁版嵁
 	if (_pdata + len > _pfree)
 	{
 		return false;
@@ -63,34 +67,33 @@ bool Packet::read_string(std::string& s)
 	return true;
 }
 
-// 写入字符串形的数据
+// 鍐欏叆瀛楃涓插舰鐨勬暟鎹�
 bool Packet::write_string(const std::string &s)
 {
 	unsigned int n = s.length() ;
-	write_int32(n);
+	writeInt32(n);
 
 	if (n > 0)
 	{
-		write_block(s.c_str(), n);
+		writeBytes(s.c_str(), n);
 	}
 
 	return true;
 }
 
-// 读取时间
+// 璇诲彇鏃堕棿
 bool Packet::read_time(uint64_t& t)
 {
-	return read_int64(t);
-}
-
-// 写入时间的数据
-bool Packet::write_time(uint64_t n)
-{
-	write_int64(n);
+	t = readInt64();
 	return true;
 }
 
-
+// 鍐欏叆鏃堕棿鐨勬暟鎹�
+bool Packet::write_time(uint64_t n)
+{
+	writeInt64(n);
+	return true;
+}
 
 //////////////////////////////////////////////////////////////////////
 PacketQueue::PacketQueue()
@@ -194,7 +197,7 @@ void PacketQueue::moveto(PacketQueue *destQueue)
 	Guard g(*_mutex);
 
 	if (_head == NULL)
-	{ // 是空链
+	{ // 鏄┖閾�
 		return;
 	}
 	if (destQueue->_tail == NULL)

@@ -12,10 +12,10 @@
  *
  */
 #include "cnet.h"
-#include "../comlog.h"
+#include "../log/comlog.h"
+#include "tbtimeutil.h"
 
 namespace triones {
-
 /*
  * 构造函数
  */
@@ -200,7 +200,7 @@ void Transport::timeoutLoop() {
  *
  * @param arg: 运行时传入参数
  */
-void Transport::run(triones::Thread *thread, void *arg)
+void Transport::run(triones::TBThread *thread, void *arg)
 {
     if (thread == &_timeoutThread) {
         timeoutLoop();
@@ -249,7 +249,7 @@ int Transport::parseAddr(char *src, char **args, int cnt) {
  * @param serverAdapter: 用在服务器端，当Connection初始化及Channel创建时回调时用
  * @return IO组件一个对象的指针
  */
-IOComponent *Transport::listen(const char *spec, IPacketStreamer *streamer, IServerAdapter *serverAdapter) {
+IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streamer, IServerAdapter *serverAdapter) {
     char tmp[1024];
     char *args[32];
     strncpy(tmp, spec, 1024);
@@ -296,7 +296,7 @@ IOComponent *Transport::listen(const char *spec, IPacketStreamer *streamer, ISer
  * @param streamer: 数据包的双向流，用packet创建，解包，组包。
  * @return  返回一个Connectoion对象指针
  */
-Connection *Transport::connect(const char *spec, IPacketStreamer *streamer, bool autoReconn) {
+TCPComponent *Transport::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn) {
     char tmp[1024];
     char *args[32];
     strncpy(tmp, spec, 1024);
@@ -333,7 +333,8 @@ Connection *Transport::connect(const char *spec, IPacketStreamer *streamer, bool
         addComponent(component, true, true);
         component->addRef();
 
-        return component->getConnection();
+//        return component->getConnection();
+        return component;
 
     } else if (strcasecmp(args[0], "udp") == 0) {}
 
@@ -343,7 +344,7 @@ Connection *Transport::connect(const char *spec, IPacketStreamer *streamer, bool
 /**
  * 主动断开
  */
-bool Transport::disconnect(Connection *conn) {
+bool Transport::disconnect(TCPComponent *conn) {
     IOComponent *ioc = NULL;
     if (conn == NULL || (ioc = conn->getIOComponent()) == NULL) {
         return false;
@@ -403,7 +404,7 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn) {
 void Transport::removeComponent(IOComponent *ioc) {
     assert(ioc != NULL);
 
-    triones::Guard guard(&_iocsMutex);
+    triones::Guard guard(_iocsMutex);
     ioc->close();
     if (ioc->isAutoReconn()) { // 需要重连, 不从iocomponents去掉
         return;
@@ -451,7 +452,7 @@ void Transport::removeComponent(IOComponent *ioc) {
  */
 void Transport::destroy()
 {
-    triones::Guard guard(&_iocsMutex);
+    triones::Guard guard(_iocsMutex);
 
     IOComponent *list, *ioc;
     // 删除iocList

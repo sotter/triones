@@ -4,7 +4,8 @@
  *Description:
  *******************************************************/
 
-#include "UDPComponent.h"
+#include "cnet.h"
+#include "../pack/tprotocol.h"
 
 namespace triones
 {
@@ -16,7 +17,7 @@ namespace triones
   * @param streamer:    数据包的双向流，用packet创建，解包，组包。
   * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
   */
-UDPComponent::UDPComponent(Transport *owner, Socket *socket, IPacketStreamer *streamer,
+UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
                            IServerAdapter *serverAdapter) : IOComponent(owner, socket) {
     _streamer = streamer;
     _serverAdapter = serverAdapter;

@@ -36,7 +36,7 @@ public:
 
 };
 
-#define TBNET_GLOBAL_STAT tbnet::StatCounter::_gStatCounter
+#define TBNET_GLOBAL_STAT triones::StatCounter::_gStatCounter
 #define TBNET_COUNT_PACKET_READ(i) {TBNET_GLOBAL_STAT._packetReadCnt += (i);}
 #define TBNET_COUNT_PACKET_WRITE(i) {TBNET_GLOBAL_STAT._packetWriteCnt += (i);}
 #define TBNET_COUNT_DATA_READ(i) {TBNET_GLOBAL_STAT._dataReadCnt += (i);}

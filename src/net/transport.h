@@ -17,13 +17,14 @@
 #define TBNET_TRANSPORT_H_
 
 #include <sys/ptrace.h>
-#include "../thread.h"
+#include "../thread/thread.h"
 
 namespace triones {
 
-class Transport : public triones::Runnable {
+class Transport : public triones::TBRunnable {
 
 public:
+
     /*
      * 构造函数
      */
@@ -60,7 +61,7 @@ public:
      *
      * @param arg: 运行时传入参数
      */
-    void run(triones::Thread *thread, void *arg);
+    void run(triones::TBThread *thread, void *arg);
 
     /*
      * 起一个监听端口。
@@ -70,7 +71,7 @@ public:
      * @param serverAdapter: 用在服务器端，当Connection初始化及Channel创建时回调时用
      * @return IO组件一个对象的指针
      */
-    IOComponent *listen(const char *spec, IPacketStreamer *streamer, IServerAdapter *serverAdapter);
+    IOComponent *listen(const char *spec, triones::TransProtocol *streamer, IServerAdapter *serverAdapter);
 
     /*
      * 创建一个Connection，连接到指定的地址，并加入到Socket的监听事件中。
@@ -80,12 +81,12 @@ public:
      * @param autoReconn: 是否重连
      * @return  返回一个Connectoion对象指针
      */
-    Connection *connect(const char *spec, IPacketStreamer *streamer, bool autoReconn = false);
+    TCPComponent *connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn = false);
 
     /*
      * 主动断开
      */
-    bool disconnect(Connection *conn);
+    bool disconnect(TCPComponent *conn);
 
     /*
      * 加入到iocomponents中
@@ -136,7 +137,7 @@ private:
 
 private:
 
-    EPollSocketEvent _socketEvent;      // 读写socket事件
+    SocketEvent _socketEvent;      // 读写socket事件
     triones::TBThread _readWriteThread;    // 读写处理线程
     triones::TBThread _timeoutThread;      // 超时检查线程
     bool _stop;                         // 是否被停止

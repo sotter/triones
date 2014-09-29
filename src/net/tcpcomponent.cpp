@@ -7,8 +7,7 @@
 #include "cnet.h"
 #include "tcpcomponent.h"
 #include "tbtimeutil.h"
-#include "../../comlog.h"
-#include "databuffer.h"
+#include "../log/comlog.h"
 #include "stats.h"
 
 #define TBNET_MAX_TIME (1ll<<62)
@@ -27,7 +26,7 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 	_socket = socket;
 	_streamer = streamer;
 	_serverAdapter = serverAdapter;
-	_defaultPacketHandler = NULL;
+//	_defaultPacketHandler = NULL;
 	_iocomponent = NULL;
 	_queueTimeout = 5000;
 	_queueLimit = 50;
@@ -36,7 +35,7 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 	/**tcpconnection ****/
 	_gotHeader = false;
 	_writeFinishClose = false;
-	memset(&_packetHeader, 0, sizeof(_packetHeader));
+//	memset(&_packetHeader, 0, sizeof(_packetHeader));
 }
 
 //析构函数
@@ -142,17 +141,17 @@ void TCPComponent::close()
 		{
 			_socketEvent->removeEvent(_socket);
 		}
-		if (_connection && isConnectState())
+		if (isConnectState())
 		{
 			//将这个事件转化成一个socket转发出去
 			setDisconnState();
 		}
 		_socket->close();
 
-		if (_connection)
-		{
+//		if (_connection)
+//		{
 			clearInputBuffer(); // clear input buffer after socket closed
-		}
+//		}
 
 		_state = TRIONES_CLOSED;
 	}
@@ -244,130 +243,16 @@ void TCPComponent::checkTimeout(int64_t now)
 }
 
 /**** 原先connectiong的部分 *********************/
-void TCPComponent::disconnect()
-{
-	_output_mutex.lock();
-	_myQueue.moveto(&_outputQueue);
-	_output_mutex.unlock();
-	checkTimeout(TBNET_MAX_TIME);
-}
-
-/*
- * 发送packet到发送队列
- */
-bool TCPComponent::postPacket(Packet *packet,bool noblocking)
-{
-	if (!isConnectState())
-	{
-		if (_iocomponent == NULL || _iocomponent->isAutoReconn() == false)
-		{
-			return false;
-		}
-		else if (_outputQueue.size() > 10)
-		{
-			return false;
-		}
-		else
-		{
-			TCPComponent *ioc = dynamic_cast<TCPComponent*>(_iocomponent);
-			bool ret = false;
-			if (ioc != NULL)
-			{
-				_output_mutex.lock();
-				ret = ioc->init(false);
-				_output_mutex.unlock();
-			}
-			if (!ret) return false;
-		}
-	}
-
-//	// 如果是client, 并且有queue长度的限制
-//	_output_mutex.lock();
-//	_queueTotalSize = _outputQueue.size() + _channelPool.getUseListCount() + _myQueue.size();
-//	if (!_isServer && _queueLimit > 0 && noblocking && _queueTotalSize >= _queueLimit)
-//	{
-//		_output_mutex.unlock();
-//		return false;
-//	}
-//	_output_mutex.unlock();
-//	Channel *channel = NULL;
-//	packet->setExpireTime(_queueTimeout);           // 设置超时
-//	if (_streamer->existPacketHeader())
-//	{           // 存在包头
-//		uint32_t chid = packet->getChannelId();     // 从packet中取
-//		if (_isServer)
-//		{
-//			assert(chid != 0);                      // 不能为空
-//		}
-//		else
-//		{
-//			channel = _channelPool.allocChannel();
-//
-//			// channel没找到了
-//			if (channel == NULL)
-//			{
-//				OUT_ASSERT(NULL, 0, NULL, "分配channel出错, id: %u", chid);
-//				return false;
-//			}
-//
-//			channel->setHandler(packetHandler);
-//			channel->setArgs(args);
-//			packet->setChannel(channel);            // 设置回去
-//		}
-//	}
-//	_output_mutex.lock();
-//	// 写入到outputqueue中
-//	_outputQueue.push(packet);
-//	if (_iocomponent != NULL && _outputQueue.size() == 1U)
-//	{
-//		_iocomponent->enableWrite(true);
-//	}
-//	_output_mutex.unlock();
-//	if (!_isServer && _queueLimit > 0)
-//	{
-//		_output_mutex.lock();
-//		_queueTotalSize = _outputQueue.size() + _channelPool.getUseListCount() + _myQueue.size();
-//		if (_queueTotalSize > _queueLimit && noblocking == false)
-//		{
-//			bool *stop = NULL;
-//			if (_iocomponent && _iocomponent->getOwner())
-//			{
-//				stop = _iocomponent->getOwner()->getStop();
-//			}
-//			while (_queueTotalSize > _queueLimit && stop && *stop == false)
-//			{
-//				if (_outputCond.wait(1000) == false)
-//				{
-//					if (!isConnectState())
-//					{
-//						break;
-//					}
-//					_queueTotalSize = _outputQueue.size() + _channelPool.getUseListCount()
-//					        + _myQueue.size();
-//				}
-//			}
-//		}
-//		_output_mutex.unlock();
-//	}
-
-	if (_isServer && _iocomponent)
-	{
-		_iocomponent->subRef();
-	}
-
-	return true;
-}
 
 /*
  * handlePacket 数据
  */
-bool TCPComponent::handlePacket(DataBuffer *input)
+bool TCPComponent::handlePacket(Packet *packet)
 {
 	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
 	if (_iocomponent)
 		_iocomponent->addRef();
 
-	Packet *packet; //怎么得到的这个packet
 	return _serverAdapter->handlePacket(this, packet);
 }
 
@@ -426,7 +311,7 @@ bool TCPComponent::writeData()
 			//为什么将packet放入到_output中发送，如果发送有失败的情况，可以将未发送的数据放入到out_put中；
 			//而且是易扩展，如果packet不是继承DataBuffer,可以将packet序列成数据流。
 			//缺点是增加了一次内存拷贝。
-			_output.write_buffer(*(DataBuffer*)packet);
+			_output.writeBytes(packet->getData(), packet->getDataLen());
 			myQueueSize--;
 			delete packet;
 			TBNET_COUNT_PACKET_WRITE(1);

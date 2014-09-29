@@ -9,12 +9,14 @@
 
 #include <list>
 #include <pthread.h>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/syscall.h>
 #include "ref.h"
 
 namespace triones
 {
 
-// 绾跨▼杩愯瀵硅薄鎺ュ彛
 class Runnable
 {
 public:
@@ -25,107 +27,129 @@ public:
 	virtual void run(void *param) = 0;
 };
 
+class TBThread;
 
-//对linux线程的简单封装，用在非线程池的情况下
-class TBThread {
+class TBRunnable
+{
 
 public:
-    /**
-     * 构造函数
-     */
-	TBThread() {
-        tid = 0;
-        pid = 0;
-    }
+	virtual ~TBRunnable()
+	{
+	}
+	virtual void run(TBThread *thread, void *arg) = 0;
+};
 
-    /**
-     * 起一个线程，开始运行
-     */
-    bool start(Runnable *r, void *a) {
-        runnable = r;
-        args = a;
-        return 0 == pthread_create(&tid, NULL, CThread::hook, this);
-    }
+//对linux线程的简单封装，用在非线程池的情况下
+class TBThread
+{
 
-    /**
-     * 等待线程退出
-     */
-    void join() {
-        if (tid) {
-            pthread_join(tid, NULL);
-            tid = 0;
-            pid = 0;
-        }
-    }
+public:
+	/**
+	 * 构造函数
+	 */
+	TBThread()
+	{
+		tid = 0;
+		pid = 0;
+	}
 
-    /**
-     * 得到Runnable对象
-     *
-     * @return Runnable
-     */
-    Runnable *getRunnable() {
-        return runnable;
-    }
+	/**
+	 * 起一个线程，开始运行
+	 */
+	bool start(TBRunnable *r, void *a)
+	{
+		runnable = r;
+		args = a;
+		return 0 == pthread_create(&tid, NULL, TBThread::hook, this);
+	}
 
-    /**
-     * 得到回调参数
-     *
-     * @return args
-     */
-    void *getArgs() {
-        return args;
-    }
+	/**
+	 * 等待线程退出
+	 */
+	void join()
+	{
+		if (tid)
+		{
+			pthread_join(tid, NULL);
+			tid = 0;
+			pid = 0;
+		}
+	}
 
-    /***
-     * 得到线程的进程ID
-     */
-    int getpid() {
-        return pid;
-    }
+	/**
+	 * 得到Runnable对象
+	 *
+	 * @return Runnable
+	 */
+	TBRunnable *getRunnable()
+	{
+		return runnable;
+	}
 
-    /**
-     * 线程的回调函数
-     *
-     */
+	/**
+	 * 得到回调参数
+	 *
+	 * @return args
+	 */
+	void *getArgs()
+	{
+		return args;
+	}
 
-    static void *hook(void *arg) {
-        CThread *thread = (CThread*) arg;
-        thread->pid = gettid();
+	/***
+	 * 得到线程的进程ID
+	 */
+	int getpid()
+	{
+		return pid;
+	}
 
-        if (thread->getRunnable()) {
-            thread->getRunnable()->run(thread, thread->getArgs());
-        }
+	/**
+	 * 线程的回调函数
+	 *
+	 */
 
-        return (void*) NULL;
-    }
+	static void *hook(void *arg)
+	{
+		TBThread *thread = (TBThread*) arg;
+		thread->pid = gettid();
+
+		if (thread->getRunnable())
+		{
+			thread->getRunnable()->run(thread, thread->getArgs());
+		}
+
+		return (void*) NULL;
+	}
 
 private:
-    /**
-     * 得到tid号
-     */
-    #ifdef _syscall0
-    static _syscall0(pid_t,gettid)
-    #else
-    static pid_t gettid() { return static_cast<pid_t>(syscall(__NR_gettid));}
-    #endif
+	/**
+	 * 得到tid号
+	 */
+#ifdef _syscall0
+	static _syscall0(pid_t,gettid)
+#else
+	static pid_t gettid()
+	{
+		return static_cast<pid_t>(syscall(__NR_gettid));
+	}
+#endif
 
 private:
-    pthread_t tid;      // pthread_self() id
-    int pid;            // 线程的进程ID
-    Runnable *runnable;
-    void *args;
+	pthread_t tid;      // pthread_self() id
+	int pid;            // 线程的进程ID
+	TBRunnable *runnable;
+	void *args;
 };
 
 // 绾跨▼澶勭悊瀵硅薄
-class Thread : public Ref
+class Thread: public Ref
 {
 
 	// POSIX Thread scheduler policies
 	enum POLICY
 	{
-		OTHER,
-		FIFO,
-		ROUND_ROBIN
+		OTHER, FIFO, ROUND_ROBIN
 	};
 
 	// POSIX Thread scheduler relative priorities,
@@ -149,20 +173,17 @@ class Thread : public Ref
 
 	enum STATE
 	{
-		uninitialized,
-		starting,
-		started,
-		stopping,
-		stopped
+		uninitialized, starting, started, stopping, stopped
 	};
 
 	static const int MB = 1024 * 1024;
 
 public:
 	// 绾跨▼鏋勯�瀵硅薄
-	Thread( Runnable *runner , void *param = NULL ,  int policy = FIFO , int priority = NORMAL , int stack_size = 8 , bool detached = false ) ;
+	Thread(Runnable *runner, void *param = NULL, int policy = FIFO, int priority = NORMAL,
+	        int stack_size = 8, bool detached = false);
 
-	virtual ~Thread() ;
+	virtual ~Thread();
 
 	/**
 	 * Starts the thread. Does platform specific thread creation and
@@ -249,8 +270,8 @@ private:
 class ThreadManager
 {
 public:
-	ThreadManager() :
-			_thread_state(false)
+	ThreadManager()
+			: _thread_state(false)
 	{
 	}
 

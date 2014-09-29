@@ -4,8 +4,7 @@
  *Description:
  *******************************************************/
 
-#include "tcpacceptor.h"
-#include "iocomponent.h"
+#include "cnet.h"
 
 namespace triones
 {
@@ -18,7 +17,7 @@ namespace triones
  * @param streamer:   数据包的双向流，用packet创建，解包，组包。
  * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
  */
-TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, IPacketStreamer *streamer,
+TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, TransProtocol *streamer,
         IServerAdapter *serverAdapter)
 		: IOComponent(owner, socket)
 {
@@ -31,6 +30,7 @@ TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, IPacketStreamer *stre
  */
 bool TCPAcceptor::init(bool isServer)
 {
+	UNUSED(isServer);
 	_socket->setSoBlocking(false);
 	return ((ServerSocket*) _socket)->listen();
 }
@@ -69,6 +69,8 @@ bool TCPAcceptor::handleReadEvent()
  */
 void TCPAcceptor::checkTimeout(int64_t now)
 {
+	UNUSED(now);
+	return;
 }
 
 } /* namespace triones */

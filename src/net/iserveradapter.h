@@ -16,10 +16,6 @@
 #ifndef TBNET_ISERVERADAPTER_H
 #define TBNET_ISERVERADAPTER_H
 
-#ifndef UNUSED
-#define UNUSED(v) ((void)(v))
-#endif
-
 namespace triones {
 
 class IServerAdapter {

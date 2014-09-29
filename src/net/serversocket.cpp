@@ -4,7 +4,8 @@
  *Description:
  *******************************************************/
 
-#include "ServerSocket.h"
+#include "cnet.h"
+#include "../log/comlog.h"
 
 namespace triones
 {
@@ -38,7 +39,7 @@ Socket *ServerSocket::accept()
 		int error = getLastError();
 		if (error != EAGAIN)
 		{
-			TBSYS_LOG(ERROR, "%s(%d)", strerror(error), error);
+			OUT_ERROR(NULL, 0,  "%s(%d)", strerror(error), error);
 		}
 	}
 

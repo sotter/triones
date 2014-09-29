@@ -7,11 +7,6 @@
 #ifndef IOCOMPONENT_H_
 #define IOCOMPONENT_H_
 
-#include "atomic.h"
-#include "cnet.h"
-
-class SocketEvent;
-
 namespace triones
 {
 
@@ -22,6 +17,8 @@ public:
 	{
 		TRIONES_CONNECTING = 1, TRIONES_CONNECTED, TRIONES_CLOSED, TRIONES_UNCONNECTED
 	};
+
+	friend class Transport;
 
 public:
 	/*

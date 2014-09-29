@@ -9,6 +9,8 @@
 
 #include "../pack/tprotocol.h"
 #include "../thread/mutex.h"
+#include "../mem/databuffer.h"
+
 
 class IServerAdapter;
 
@@ -28,8 +30,6 @@ public:
 
 	virtual ~TCPComponent();
 
-	~TCPComponent();
-
 	bool init(bool isServer = false);
 
 	void close();
@@ -37,11 +37,6 @@ public:
 	bool handleWriteEvent();
 
 	bool handleReadEvent();
-
-	TCPConnection *get_connection()
-	{
-		return _connection;
-	}
 
 	void checkTimeout(int64_t now);
 
@@ -64,37 +59,21 @@ public:
     IOComponent *getIOComponent() {
         return _iocomponent;
     }
-    /*
-     * 设置默认的packetHandler
-     */
-    void setDefaultPacketHandler(IPacketHandler *ph) {
-        _defaultPacketHandler = ph;
-    }
-
-    /*
-     * 发送packet到发送队列
-     *
-     * @param packet: 数据包
-     * @param packetHandler: packet句柄
-     * @param args: 参数
-     * @param timeout: 超时时间
-     */
-    bool postPacket(Packet *packet, bool noblocking = true);
 
     /*
      * 当数据收到时的处理函数
      */
-    bool handlePacket(DataBuffer *input);
+    bool handlePacket(Packet *packet);
 
     /*
      * 写出数据
      */
-    bool writeData() = 0;
+    virtual bool writeData();
 
     /*
      * 读入数据
      */
-    bool readData() = 0;
+    virtual bool readData();
 
 
     /*
@@ -169,11 +148,10 @@ public:
 
 private:
 	// TCP连接
-	TCPConnection *_connection;
 	time_t _startConnectTime;
 
 	/**   原先connection的部分  ****************/
-    IPacketHandler *_defaultPacketHandler;  // connection的默认的packet handler
+//    IPacketHandler *_defaultPacketHandler;  // connection的默认的packet handler
     bool _isServer;                         // 是服务器端
     IOComponent *_iocomponent;
     Socket *_socket;                        // Socket句柄
@@ -186,7 +164,7 @@ private:
     triones::Mutex _output_mutex;           // 发送队列锁
 //    tbsys::CThreadCond _outputCond;       // 发送队列的条件变量
 
-    ChannelPool _channelPool;               // channel pool
+//    ChannelPool _channelPool;               // channel pool
     int _queueTimeout;                      // 队列超时时间
     int _queueTotalSize;                    // 队列总长度
     int _queueLimit;                        // 队列最长长度, 如果超过这个值post进来就会被wait
