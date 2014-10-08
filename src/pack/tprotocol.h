@@ -27,8 +27,6 @@ enum TRANS_PROTOCOL_TYPE
 	TPROTOCOL_TEXT, TPROTOCOL_808, TPROTOCOL_COMM, TPROTOCOL_NUM
 };
 
-extern TransProtocol * tprotocol_new(int TYPE);
-
 class TransProtocol
 {
 public:
@@ -43,6 +41,8 @@ public:
 	//socket 中读取到的数据，解析成的pakcet push到pack_queue中。
 	int decode(const char *data, size_t len, PacketQueue *pack_queue);
 };
+
+extern TransProtocol * tprotocol_new(int TYPE);
 
 class TransProtocolText: public TransProtocol
 {
@@ -92,8 +92,8 @@ private:
 	TransProtocol* _tp[TPROTOCOL_NUM];
 };
 
-extern TransProtocolFac __trans_protocol;
 
+extern TransProtocolFac __trans_protocol;
 } // namespace triones
 
 #endif // #ifndef __TRIONES_TPROTOCOL_H__

@@ -11,9 +11,6 @@
 #include "../thread/mutex.h"
 #include "../mem/databuffer.h"
 
-
-class IServerAdapter;
-
 #define READ_WRITE_SIZE 8192
 #ifndef UNUSED
 #define UNUSED(v) ((void)(v))

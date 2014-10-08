@@ -7,10 +7,12 @@
 #ifndef BASESERVICE_H_
 #define BASESERVICE_H_
 
-#include "cnet.h"
 #include "../pack/pack.h"
 #include "../thread/queuethread.h"
 #include "dataqueue.h"
+#include "../pack/tprotocol.h"
+
+using namespace triones;
 
 namespace triones
 {
@@ -35,6 +37,8 @@ public:
 
 	virtual ~BaseService();
 
+	bool init(int transproto = TPROTOCOL_TEXT);
+
 	//IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 	virtual bool handlePacket(IOComponent *connection, Packet *packet);
 
@@ -55,6 +59,8 @@ protected:
 	//网络模型
 	Transport* _transport;
 private:
+
+	TransProtocol *_stream;
 
 	CDataQueue<BasePacket>	* _packqueue ;
 	//packet线程队列

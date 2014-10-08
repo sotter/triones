@@ -72,6 +72,7 @@ class ConnectionManager;
 #include "udpacceptor.h"
 #include "udpcomponent.h"
 #include "transport.h"
+#include "baseservice.h"
 
 // Define C99 equivalent types.
 //typedef signed char int8_t;
