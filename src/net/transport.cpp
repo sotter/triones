@@ -12,7 +12,7 @@
  *
  */
 #include "cnet.h"
-#include "../log/comlog.h"
+#include "../comm/comlog.h"
 #include "tbtimeutil.h"
 
 namespace triones {

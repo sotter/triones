@@ -8,8 +8,8 @@
 #define TCPCOMPONENT_H_
 
 #include "../pack/tprotocol.h"
-#include "../thread/mutex.h"
-#include "../mem/databuffer.h"
+#include "../comm/mutex.h"
+#include "../comm/databuffer.h"
 
 #define READ_WRITE_SIZE 8192
 #ifndef UNUSED

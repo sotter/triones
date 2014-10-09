@@ -7,7 +7,7 @@
 #include "../utils/base64.h"
 #include "../utils/tools.h"
 #include "../utils/str.h"
-#include "../log/comlog.h"
+#include "../comm/comlog.h"
 #include "gbhandler.h"
 
 

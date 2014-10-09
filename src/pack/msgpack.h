@@ -6,7 +6,7 @@
 #ifndef __TRIONES_MSGPACK_H__
 #define __TRIONES_MSGPACK_H__
 
-#include "../thread/ref.h"
+#include "../comm/ref.h"
 #include "./pack.h"
 
 namespace triones

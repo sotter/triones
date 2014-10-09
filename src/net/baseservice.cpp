@@ -5,7 +5,6 @@
  *******************************************************/
 
 #include "baseservice.h"
-#include "cnet.h"
 
 namespace triones
 {
@@ -34,7 +33,7 @@ bool BaseService:: init(int transproto /* = TPROTOCOL_TEXT*/ )
 		return false;
 	}
 
-	_transport = new triones::TransPort();
+	_transport = new Transport();
 
 	return _stream != NULL;
 }

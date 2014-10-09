@@ -5,7 +5,7 @@
  *******************************************************/
 
 #include "cnet.h"
-#include "../log/comlog.h"
+#include "../comm/comlog.h"
 
 namespace triones
 {

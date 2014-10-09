@@ -5,8 +5,8 @@ RANLIB	 = ranlib
 
 TRIONES_HOME ?= ${shell readlink -n -e .. }
 
-SUB_DIRS =  log utils pack thread net mem 
-OBJ_DIRS =  log utils pack thread net 
+SUB_DIRS =  comm net pack utils 
+OBJ_DIRS =  comm net pack utils 
 
 all: 
 	@for dir in ${SUB_DIRS}; do \

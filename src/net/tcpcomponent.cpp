@@ -7,7 +7,7 @@
 #include "cnet.h"
 #include "tcpcomponent.h"
 #include "tbtimeutil.h"
-#include "../log/comlog.h"
+#include "../comm/comlog.h"
 #include "stats.h"
 
 #define TBNET_MAX_TIME (1ll<<62)

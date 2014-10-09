@@ -17,7 +17,7 @@
 #define TBNET_TRANSPORT_H_
 
 #include <sys/ptrace.h>
-#include "../thread/thread.h"
+#include "../comm/thread.h"
 
 namespace triones {
 

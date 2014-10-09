@@ -8,8 +8,8 @@
 
 #include <string>
 #include <stdint.h>
-#include "../thread/mutex.h"
-#include "../mem/databuffer.h"
+#include "../comm/mutex.h"
+#include "../comm/databuffer.h"
 
 namespace triones
 {

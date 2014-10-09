@@ -7,9 +7,10 @@
 #ifndef BASESERVICE_H_
 #define BASESERVICE_H_
 
+#include "cnet.h"
 #include "../pack/pack.h"
-#include "../thread/queuethread.h"
-#include "dataqueue.h"
+#include "../comm/queuethread.h"
+#include "../comm/dataqueue.h"
 #include "../pack/tprotocol.h"
 
 using namespace triones;

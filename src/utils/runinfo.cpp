@@ -4,7 +4,7 @@
  */
 #include <sys/time.h>
 #include <iostream>
-#include "../log/comlog.h"
+#include "../comm/comlog.h"
 #include "runinfo.h"
 
 namespace triones

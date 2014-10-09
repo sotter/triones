@@ -11,8 +11,8 @@
 #include <map>
 #include <vector>
 #include <iostream>
-#include "../thread/ref.h"
-#include "../mem/databuffer.h"
+#include "../comm/ref.h"
+#include "../comm/databuffer.h"
 #include "gbheader.h"
 
 namespace triones
