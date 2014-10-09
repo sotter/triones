@@ -13,8 +13,8 @@ BaseService::BaseService()
 {
 	_packqueue   = new triones::CDataQueue<triones::BasePacket>(MAXQUEUE_LENGTH);
 	_queue_thread = new QueueThread(_packqueue, this);
-	_transport = NULL;
-	_stream = NULL;
+	_transport = new Transport();
+	_stream = __trans_protocol.get(TPROTOCOL_TEXT);
 }
 
 BaseService::~BaseService()
@@ -22,22 +22,11 @@ BaseService::~BaseService()
 	// TODO Auto-generated destructor stub
 }
 
-
 bool BaseService:: init(int transproto /* = TPROTOCOL_TEXT*/ )
 {
 	_stream = __trans_protocol.get(transproto);
-
-	if(_stream == NULL)
-	{
-		printf("can not get stream \n");
-		return false;
-	}
-
-	_transport = new Transport();
-
 	return _stream != NULL;
 }
-
 
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 bool BaseService::handlePacket(IOComponent *connection, Packet *packet)

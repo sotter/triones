@@ -15,6 +15,10 @@ ServerSocket::ServerSocket()
 	_backLog = 256;
 }
 
+ServerSocket::~ServerSocket()
+{
+
+}
 /*
  * accept一个新的连接
  *

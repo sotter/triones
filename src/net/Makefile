@@ -16,6 +16,9 @@ TRIONES_HOME ?= ${shell readlink -n -e ../.. }
 
 MODULE = net
 
+INCS = cnet.h atomic.h iserveradapter.h socket.h serversocket.h socketevent.h iocomponent.h
+INCS += tcpacceptor.h tcpcomponent.h udpacceptor.h udpcomponent.h transport.h baseservice.h
+
 SRCS += iocomponent.cpp
 SRCS += serversocket.cpp
 SRCS += socket.cpp

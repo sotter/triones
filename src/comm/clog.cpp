@@ -26,8 +26,8 @@
 #  include <windows.h>
 #endif
 
-#include "../thread/monitor.h"
-#include "../thread/thread.h"
+#include "monitor.h"
+#include "thread.h"
 #include "clog.h"
 
 

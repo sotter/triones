@@ -1,7 +1,7 @@
 # Define source files
 
 CLIENT = client
-CLIENT_SRCS = baseclient.cpp testmain.cpp
+CLIENT_SRCS = baseclient.cpp main.cpp
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
 
 BIN = $(CLIENT)
@@ -23,7 +23,7 @@ CXX = g++
 LDFLAGS = -L../../lib
 
 # Define the -l library name(s)
-LIBS = -lpthread -ltrioneslog -ltrionesthread -ltrionesutils -ltrionespack -ltriones
+LIBS = -lpthread -ltriones -lrt
 
 LIB_FLAGS = $(CXXFLAGS) $(LDFLAGS) $(LIBS) -shared -Wl,-soname,$(DYNAMIC_LIB)
 

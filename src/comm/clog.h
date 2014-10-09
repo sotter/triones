@@ -24,7 +24,7 @@
 #endif
 
 #include "singleton.h"
-#include "../comm/mutex.h"
+#include "mutex.h"
 
 using namespace triones;
 

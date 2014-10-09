@@ -7,9 +7,7 @@
 #ifndef BASECLIENT_H_
 #define BASECLIENT_H_
 
-#include "baseservice.h"
-#include "pack.h"
-
+#include "net/cnet.h"
 
 namespace triones
 {
