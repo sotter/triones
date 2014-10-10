@@ -22,6 +22,7 @@ public:
 
 	void start(const char *host, int thread)
 	{
+		_transport->start();
 		_transport->connect(host, _tp, true);
 	}
 

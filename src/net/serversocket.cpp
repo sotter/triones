@@ -37,13 +37,14 @@ Socket *ServerSocket::accept()
 	{
 		handleSocket = new Socket();
 		handleSocket->setUp(fd, (struct sockaddr *) &addr);
+		OUT_INFO(NULL, 0, NULL,"accept %s , fd %d ", handleSocket->getAddr().c_str(), fd);
 	}
 	else
 	{
 		int error = getLastError();
 		if (error != EAGAIN)
 		{
-			OUT_ERROR(NULL, 0,  "%s(%d)", strerror(error), error);
+			OUT_ERROR(NULL, 0,  "accept error %s(%d)", strerror(error), error);
 		}
 	}
 
@@ -72,11 +73,13 @@ bool ServerSocket::listen()
 
 	if (::bind(_socketHandle, (struct sockaddr *) &_address, sizeof(_address)) < 0)
 	{
+		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->getAddr().c_str(), errno);
 		return false;
 	}
 
 	if (::listen(_socketHandle, _backLog) < 0)
 	{
+		OUT_INFO(NULL, 0, NULL, "listen %s error : %d", this->getAddr().c_str(), errno);
 		return false;
 	}
 

@@ -49,13 +49,13 @@ public:
         _isServer = isServer;
     }
 
-    void setIOComponent(IOComponent *ioc) {
-        _iocomponent = ioc;
-    }
-
-    IOComponent *getIOComponent() {
-        return _iocomponent;
-    }
+//    void setIOComponent(IOComponent *ioc) {
+//        _iocomponent = ioc;
+//    }
+//
+//    IOComponent *getIOComponent() {
+//        return _iocomponent;
+//    }
 
     /*
      * 当数据收到时的处理函数
@@ -90,7 +90,7 @@ public:
     /**
      * 连接状态
      */
-    bool isConnectState();
+//    bool isConnectState();
 
     /**
      * serverId
@@ -149,8 +149,9 @@ private:
 
 	/**   原先connection的部分  ****************/
 //    IPacketHandler *_defaultPacketHandler;  // connection的默认的packet handler
+	//这里的_isServer指的accpect出来的socket，而不是listen socket
     bool _isServer;                         // 是服务器端
-    IOComponent *_iocomponent;
+//    IOComponent *_iocomponent;
     Socket *_socket;                        // Socket句柄
     TransProtocol *_streamer;             // Packet解析
     IServerAdapter *_serverAdapter;         // 服务器适配器

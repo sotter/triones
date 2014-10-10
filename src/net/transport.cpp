@@ -346,7 +346,7 @@ TCPComponent *Transport::connect(const char *spec, triones::TransProtocol *strea
  */
 bool Transport::disconnect(TCPComponent *conn) {
     IOComponent *ioc = NULL;
-    if (conn == NULL || (ioc = conn->getIOComponent()) == NULL) {
+    if (conn == NULL) {
         return false;
     }
     ioc->setAutoReconn(false);

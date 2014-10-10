@@ -27,7 +27,7 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 	_streamer = streamer;
 	_serverAdapter = serverAdapter;
 //	_defaultPacketHandler = NULL;
-	_iocomponent = NULL;
+//	_iocomponent = NULL;
 	_queueTimeout = 5000;
 	_queueLimit = 50;
 	_queueTotalSize = 0;
@@ -41,17 +41,19 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 //析构函数
 TCPComponent::~TCPComponent()
 {
+	__INTO_FUN__
 	//将CONNECTION和TCPCONNECTION的析构函数放到这里
 	//tcpconnection 无内容
 	//connection内容
 	disconnect();
 	_socket = NULL;
-	_iocomponent = NULL;
+//	_iocomponent = NULL;
 }
 
 //连接断开，降所有发送队列中的packet全部超时
 void TCPComponent::disconnect()
 {
+	__INTO_FUN__
 	_output_mutex.lock();
 	_myQueue.moveto(&_outputQueue);
 	_output_mutex.unlock();
@@ -61,6 +63,7 @@ void TCPComponent::disconnect()
 //连接到指定的机器, isServer: 是否初始化一个服务器的Connection
 bool TCPComponent::init(bool isServer)
 {
+	__INTO_FUN__
 	_socket->setSoBlocking(false);
 	_socket->setSoLinger(false, 0);
 	_socket->setReuseAddress(true);
@@ -71,70 +74,85 @@ bool TCPComponent::init(bool isServer)
 
 	if (!isServer)
 	{
+		printf("%s %d \n", __FILE__, __LINE__);
 		if (!socket_connect() && _autoReconn == false)
 		{
+			printf("%s %d \n", __FILE__, __LINE__);
 			return false;
 		}
 	}
 	else
 	{
+		printf("%s %d \n", __FILE__, __LINE__);
 		_state = TRIONES_CONNECTED;
 	}
 
+	printf("%s %d \n", __FILE__, __LINE__);
 	setServer(isServer);
 	_isServer = isServer;
 
 	return true;
 }
 
+
 /*
  * 连接到socket
  */
 bool TCPComponent::socket_connect()
 {
+	__INTO_FUN__
+
+	printf("%s %d \n", __FILE__, __LINE__);
+
 	if (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING)
 	{
+		printf("%s %d \n", __FILE__, __LINE__);
 		return true;
 	}
 	_socket->setSoBlocking(false);
 
+	_startConnectTime = time(NULL);
 	if (_socket->connect())
 	{
+		printf("%s %d \n", __FILE__, __LINE__);
 		if (_socketEvent)
 		{
+			printf("%s %d \n", __FILE__, __LINE__);
 			_socketEvent->addEvent(_socket, true, true);
 		}
 		_state = TRIONES_CONNECTED;
-
-		_startConnectTime = time(NULL);
 	}
 	else
 	{
 		int error = Socket::getLastError();
-
 		if (error == EINPROGRESS || error == EWOULDBLOCK)
 		{
+			printf("%s %d \n", __FILE__, __LINE__);
 			_state = TRIONES_CONNECTING;
 
 			if (_socketEvent)
 			{
+				printf("%s %d \n", __FILE__, __LINE__);
 				_socketEvent->addEvent(_socket, true, true);
 			}
 		}
 		else
 		{
+			printf("%s %d \n", __FILE__, __LINE__);
 			_socket->close();
 			_state = TRIONES_CLOSED;
-			OUT_ERROR(NULL, 0, NULL, "连接到 %s 失败, %s(%d)", _socket->getAddr().c_str(),
+			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->getAddr().c_str(),
 			        strerror(error), error);
 			return false;
 		}
 	}
+	printf("%s %d \n", __FILE__, __LINE__);
 	return true;
 }
 
 void TCPComponent::close()
 {
+	__INTO_FUN__
 	if (_socket)
 	{
 		if (_socketEvent)
@@ -150,7 +168,7 @@ void TCPComponent::close()
 
 //		if (_connection)
 //		{
-			clearInputBuffer(); // clear input buffer after socket closed
+		clearInputBuffer(); // clear input buffer after socket closed
 //		}
 
 		_state = TRIONES_CLOSED;
@@ -164,6 +182,8 @@ void TCPComponent::close()
  */
 bool TCPComponent::handleWriteEvent()
 {
+	__INTO_FUN__
+
 	_lastUseTime = triones::CTimeUtil::getTime();
 	bool rc = true;
 	if (_state == TRIONES_CONNECTED)
@@ -201,6 +221,7 @@ bool TCPComponent::handleWriteEvent()
  */
 bool TCPComponent::handleReadEvent()
 {
+	__INTO_FUN__
 	_lastUseTime = triones::CTimeUtil::getTime();
 	bool rc = false;
 	if (_state == TRIONES_CONNECTED)
@@ -217,6 +238,7 @@ bool TCPComponent::handleReadEvent()
  */
 void TCPComponent::checkTimeout(int64_t now)
 {
+	__INTO_FUN__
 	// 检查是否连接超时
 	if (_state == TRIONES_CONNECTING)
 	{
@@ -238,8 +260,18 @@ void TCPComponent::checkTimeout(int64_t now)
 			_socket->shutdown();
 		}
 	}
-	// 超时检查
-	checkTimeout(now);
+	//需要重连的socket
+	else if(_state == TRIONES_CLOSED && _isServer == false && _autoReconn == true)
+	{
+		//每隔五秒钟重连一次
+		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(5000000)))
+		{
+			socket_connect();
+		}
+	}
+
+	// 原先connect的超时检查
+    // checkTimeout(now);
 }
 
 /**** 原先connectiong的部分 *********************/
@@ -249,23 +281,11 @@ void TCPComponent::checkTimeout(int64_t now)
  */
 bool TCPComponent::handlePacket(Packet *packet)
 {
+	__INTO_FUN__
 	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
-	if (_iocomponent)
-		_iocomponent->addRef();
+	this->addRef();
 
 	return _serverAdapter->handlePacket(this, packet);
-}
-
-/**
- * 连接状态
- */
-bool TCPComponent::isConnectState()
-{
-	if (_iocomponent != NULL)
-	{
-		return _iocomponent->isConnectState();
-	}
-	return false;
 }
 
 /*** 说明 2014-09-21
@@ -278,6 +298,7 @@ bool TCPComponent::isConnectState()
  *  *********/
 bool TCPComponent::writeData()
 {
+	__INTO_FUN__
 	// 把 _outputQueue copy到 _myQueue中, 从_myQueue中向外发送
 	_output_mutex.lock();
 	_outputQueue.moveto(&_myQueue);
@@ -285,7 +306,7 @@ bool TCPComponent::writeData()
 	//如果socket中的数据已经全部发送完毕了，置可写事件为false，然后退出来
 	if (_myQueue.size() == 0 && _output.getDataLen() == 0)
 	{
-		_iocomponent->enableWrite(false);
+		this->enableWrite(false);
 		_output_mutex.unlock();
 		return true;
 	}
@@ -304,8 +325,7 @@ bool TCPComponent::writeData()
 		while (_output.getDataLen() < READ_WRITE_SIZE)
 		{
 			// 队列空了就退出
-			if (myQueueSize == 0)
-				break;
+			if (myQueueSize == 0) break;
 			packet = _myQueue.pop();
 
 			//为什么将packet放入到_output中发送，如果发送有失败的情况，可以将未发送的数据放入到out_put中；
@@ -330,13 +350,13 @@ bool TCPComponent::writeData()
 		}
 		writeCnt++;
 		/*******
-		* _output.getDataLen() == 0 说明发送的数据都结束了
-		* 停止发送的条件：
-		* (1)发送的结果ret <= 0, 发送失败，或者写缓冲区已经满了。
-		* （2） _output.getDataLen() > 0 说明一次没有发送完，还有没有发送完的数据。就直接退出来停止发送了。
-		* 	 那么这块数据去了哪里？
-		* (3)最终myqueue和output中未发送完的数据都到哪里去了
-		**********/
+		 * _output.getDataLen() == 0 说明发送的数据都结束了
+		 * 停止发送的条件：
+		 * (1)发送的结果ret <= 0, 发送失败，或者写缓冲区已经满了。
+		 * （2） _output.getDataLen() > 0 说明一次没有发送完，还有没有发送完的数据。就直接退出来停止发送了。
+		 * 	 那么这块数据去了哪里？
+		 * (3)最终myqueue和output中未发送完的数据都到哪里去了
+		 **********/
 	} while (ret > 0 && _output.getDataLen() == 0 && myQueueSize > 0 && writeCnt < 10);
 
 	// 紧缩
@@ -344,10 +364,9 @@ bool TCPComponent::writeData()
 
 	_output_mutex.lock();
 	int queueSize = _outputQueue.size() + _myQueue.size() + (_output.getDataLen() > 0 ? 1 : 0);
-	if ((queueSize == 0 || _writeFinishClose)
-			&& _iocomponent != NULL)
+	if (queueSize == 0 || _writeFinishClose)
 	{
-		_iocomponent->enableWrite(false);
+		this->enableWrite(false);
 	}
 	_output_mutex.unlock();
 
@@ -365,6 +384,7 @@ bool TCPComponent::writeData()
  ***************************/
 bool TCPComponent::readData()
 {
+	__INTO_FUN__
 	//每个包设置为8K的大小，第一次读取出来最大是8K
 	_input.ensureFree(READ_WRITE_SIZE);
 
@@ -375,17 +395,16 @@ bool TCPComponent::readData()
 	bool broken = false;
 
 	//最大能连续读取10次，读任务便切换出来，给其他socket使用
-	while(ret  > 0 && ++read_cnt < 10)
+	while (ret > 0 && ++read_cnt < 10)
 	{
 		_input.pourData(ret);
 		int decode = _streamer->decode(_input.getData(), _input.getDataLen(), &_inputQueue);
 
 		//如果发生了断开事件，或是_input没有读满（说明缓冲区里面已经没有数据了）
-		if(broken || _input.getFreeLen() > 0)
-			break;
+		if (broken || _input.getFreeLen() > 0) break;
 
 		//如果判定读出来的包还没有解析完全说明，可能有未读出来的半包。
-		if(decode > 0 && decode < _input.getDataLen())
+		if (decode > 0 && decode < _input.getDataLen())
 		{
 			_input.ensureFree(READ_WRITE_SIZE);
 		}
@@ -395,16 +414,16 @@ bool TCPComponent::readData()
 	}
 
 	//对读到的数据业务回调处理，注意这个地方并不负责packet的释放，而是由外部来释放的
-	if(_inputQueue._size > 0)
+	if (_inputQueue._size > 0)
 	{
-		if(_serverAdapter->_batchPushPacket)
+		if (_serverAdapter->_batchPushPacket)
 		{
 			_serverAdapter->handleBatchPacket(this, _inputQueue);
 		}
 		else
 		{
 			Packet *pack = NULL;
-			while((pack = _inputQueue.pop()) != NULL)
+			while ((pack = _inputQueue.pop()) != NULL)
 			{
 				_serverAdapter->handlePacket(this, pack);
 			}
@@ -422,6 +441,7 @@ bool TCPComponent::readData()
 	{
 		if (ret == 0)
 		{
+			OUT_INFO(NULL, 0, NULL, "%s recv 0, disconnect", _socket->getAddr().c_str());
 			broken = true;
 		}
 		else if (ret < 0)
