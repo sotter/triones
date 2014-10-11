@@ -12,7 +12,6 @@ namespace triones
 BaseClient::BaseClient()
 {
 	// TODO Auto-generated constructor stub
-
 }
 
 BaseClient::~BaseClient()

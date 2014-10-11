@@ -18,25 +18,39 @@ public:
 	BaseClient();
 	virtual ~BaseClient();
 
-	void init();
-
 	void start(const char *host, int thread)
 	{
 		_transport->start();
-		_transport->connect(host, _tp, true);
+		init(thread);
+
+		TCPComponent *conn = _transport->connect(host, _stream, true);
+
+		Packet *pack = new Packet;
+		pack->writeBytes("NOOP \r\n", 7);
+		if (!conn->postPacket(pack))
+		{
+			delete pack;
+			pack = NULL;
+		}
 	}
 
 	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
 	{
-		printf("receive from %s len %d : %s \n",
-				ioc->getSocket()->getAddr().c_str(),
-				packet->getDataLen(),
-				packet->getData());
+		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
+		        packet->getDataLen(), packet->getData());
+
+		Packet *pack = new Packet;
+		pack->writeBytes("NOOP \r\n", 7);
+		if (!ioc->postPacket(pack))
+		{
+			delete pack;
+			pack = NULL;
+		}
 	}
+
 
 private:
 
-	TransProtocol *_tp;
 };
 
 } /* namespace triones */

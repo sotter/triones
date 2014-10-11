@@ -128,7 +128,7 @@ int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
 
 	int res = epoll_wait(_iepfd, events, cnt, timeout);
 
-	printf("%s %d res = %d \n", __FILE__, __LINE__, res);
+//	printf("%s %d res = %d \n", __FILE__, __LINE__, res);
 
 	// ³õÊ¼»¯
 	if (res > 0)

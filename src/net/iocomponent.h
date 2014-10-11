@@ -44,6 +44,11 @@ public:
 	{
 	}
 
+	virtual  bool postPacket(Packet *packet)
+	{
+		UNUSED(packet);
+		return false;
+	}
 	/*
 	 * 当有数据可写到时被Transport调用
 	 *

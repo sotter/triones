@@ -49,14 +49,8 @@ public:
         _isServer = isServer;
     }
 
-//    void setIOComponent(IOComponent *ioc) {
-//        _iocomponent = ioc;
-//    }
-//
-//    IOComponent *getIOComponent() {
-//        return _iocomponent;
-//    }
 
+    bool postPacket(Packet *packet);
     /*
      * 当数据收到时的处理函数
      */
@@ -157,7 +151,7 @@ private:
     IServerAdapter *_serverAdapter;         // 服务器适配器
 
     PacketQueue _outputQueue;               // 发送队列
-    PacketQueue _inputQueue;                // 发送队列
+    PacketQueue _inputQueue;                // 接收队列
     PacketQueue _myQueue;                   // 在write中处理时暂时用
     triones::Mutex _output_mutex;           // 发送队列锁
 //    tbsys::CThreadCond _outputCond;       // 发送队列的条件变量

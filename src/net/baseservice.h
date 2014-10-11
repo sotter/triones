@@ -38,7 +38,7 @@ public:
 
 	virtual ~BaseService();
 
-	bool init(int transproto = TPROTOCOL_TEXT);
+	bool init(int thread_num = 1, int transproto = TPROTOCOL_TEXT);
 
 	//IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 	virtual bool handlePacket(IOComponent *connection, Packet *packet);
@@ -59,9 +59,8 @@ private:
 protected:
 	//网络模型
 	Transport* _transport;
-private:
-
 	TransProtocol *_stream;
+private:
 
 	CDataQueue<BasePacket>	* _packqueue ;
 	//packet线程队列

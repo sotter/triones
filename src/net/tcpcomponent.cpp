@@ -102,11 +102,9 @@ bool TCPComponent::socket_connect()
 {
 	__INTO_FUN__
 
-	printf("%s %d \n", __FILE__, __LINE__);
-
+	//注意，这个函数必须是可重入的，可能有不同用户的线程调用这个接口，完全依靠state判断也不是很严密的；2014-10-11
 	if (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING)
 	{
-		printf("%s %d \n", __FILE__, __LINE__);
 		return true;
 	}
 	_socket->setSoBlocking(false);
@@ -114,10 +112,8 @@ bool TCPComponent::socket_connect()
 	_startConnectTime = time(NULL);
 	if (_socket->connect())
 	{
-		printf("%s %d \n", __FILE__, __LINE__);
 		if (_socketEvent)
 		{
-			printf("%s %d \n", __FILE__, __LINE__);
 			_socketEvent->addEvent(_socket, true, true);
 		}
 		_state = TRIONES_CONNECTED;
@@ -127,18 +123,15 @@ bool TCPComponent::socket_connect()
 		int error = Socket::getLastError();
 		if (error == EINPROGRESS || error == EWOULDBLOCK)
 		{
-			printf("%s %d \n", __FILE__, __LINE__);
 			_state = TRIONES_CONNECTING;
 
 			if (_socketEvent)
 			{
-				printf("%s %d \n", __FILE__, __LINE__);
 				_socketEvent->addEvent(_socket, true, true);
 			}
 		}
 		else
 		{
-			printf("%s %d \n", __FILE__, __LINE__);
 			_socket->close();
 			_state = TRIONES_CLOSED;
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->getAddr().c_str(),
@@ -146,7 +139,6 @@ bool TCPComponent::socket_connect()
 			return false;
 		}
 	}
-	printf("%s %d \n", __FILE__, __LINE__);
 	return true;
 }
 
@@ -166,10 +158,7 @@ void TCPComponent::close()
 		}
 		_socket->close();
 
-//		if (_connection)
-//		{
 		clearInputBuffer(); // clear input buffer after socket closed
-//		}
 
 		_state = TRIONES_CLOSED;
 	}
@@ -233,7 +222,6 @@ bool TCPComponent::handleReadEvent()
 
 /*
  * 超时检查
- *
  * @param    now 当前时间(单位us)
  */
 void TCPComponent::checkTimeout(int64_t now)
@@ -452,6 +440,57 @@ bool TCPComponent::readData()
 	}
 
 	return !broken;
+}
+
+//postPacket作为客户端，主动发送数据的接口，client可以不用等到conn success回调成功，就调用这个接口。
+//todo: 需要注意_outputQueue的实现中已经有锁了，外层又加了锁，后面要将这两个锁进行合并2014-10-11
+bool TCPComponent::postPacket(Packet *packet)
+{
+	if (!isConnectState())
+	{
+		//如果处于离线状态，而且不是自动重连的，那么直接返回
+		if (isAutoReconn() == false)
+		{
+			return false;
+		}
+		//离线状态的最大缓存的包的数据不能超过10
+		else if (_outputQueue.size() > 10)
+		{
+			return false;
+		}
+		else
+		{
+			//init内部有驱动连接的过程；
+			bool ret = init(false);
+			if (!ret) return false;
+		}
+	}
+
+	// 如果是client, 并且有queue长度的限制
+	_output_mutex.lock();
+	_queueTotalSize = _outputQueue.size() + _myQueue.size();
+	if (!_isServer && _queueLimit > 0 && _queueTotalSize >= _queueLimit)
+	{
+		_output_mutex.unlock();
+		return false;
+	}
+	_output_mutex.unlock();
+
+	_output_mutex.lock();
+	// 写入到outputqueue中
+	_outputQueue.push(packet);
+	if (_outputQueue.size() == 1U)
+	{
+		enableWrite(true);
+	}
+	_output_mutex.unlock();
+
+	if (_isServer)
+	{
+		subRef();
+	}
+
+	return true;
 }
 
 /**

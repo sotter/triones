@@ -19,10 +19,11 @@ public:
 	BaseServer();
 	virtual ~BaseServer();
 
-	void start(const char *host, int thread)
+	void start(const char *host, int thread = 1)
 	{
+		init(thread);
 		_transport->start();
-		_transport->listen(host, _tp, this);
+		_transport->listen(host, _stream, this);
 	}
 
 	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
