@@ -75,12 +75,9 @@ class ConnectionManager;
 #include "transport.h"
 #include "baseservice.h"
 
-//#ifndef __DEBUG_
-//#define __DEBUG_
-//#define __INTO_FUN__  	printf("into %s\n", __FUNCTION__);
-//#endif
+#define __INTO_FUN__  printf("into %s\n", __FUNCTION__);
 
-#define __INTO_FUN__   ;
+//#define __INTO_FUN__   ;
 
 #endif
 

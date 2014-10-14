@@ -254,6 +254,8 @@ void TCPComponent::checkTimeout(int64_t now)
 		//每隔五秒钟重连一次
 		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(5000000)))
 		{
+			//不管是否连接成功，都更新连接时间，时间间隔都是5000000
+			_startConnectTime = time(NULL);
 			socket_connect();
 		}
 	}
