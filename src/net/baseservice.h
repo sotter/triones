@@ -1,7 +1,7 @@
 /******************************************************
  *   FileName: baseservice.h
  *     Author: triones  2014-9-26
- *Description:
+ *Description: BaseService进行封装，封装为一个已经增加一个异步队列的transport
  *******************************************************/
 
 #ifndef BASESERVICE_H_
@@ -39,6 +39,8 @@ public:
 	virtual ~BaseService();
 
 	bool init(int thread_num = 1, int transproto = TPROTOCOL_TEXT);
+
+    TCPComponent *connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn = false);
 
 	//IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 	virtual bool handlePacket(IOComponent *connection, Packet *packet);

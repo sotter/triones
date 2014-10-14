@@ -33,6 +33,16 @@ bool BaseService:: init(int thread_num /* = 1 */ ,
 	return _stream != NULL;
 }
 
+TCPComponent *BaseService::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn)
+{
+	TCPComponent *tc = _transport->connect(spec, streamer, autoReconn);
+	if(tc != NULL)
+	{
+		tc->setServerAdapter(this);
+	}
+	return tc;
+}
+
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
 bool BaseService::handlePacket(IOComponent *connection, Packet *packet)
 {

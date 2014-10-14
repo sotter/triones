@@ -77,10 +77,10 @@ class ConnectionManager;
 
 //#ifndef __DEBUG_
 //#define __DEBUG_
-#define __INTO_FUN__  	printf("into %s\n", __FUNCTION__);
+//#define __INTO_FUN__  	printf("into %s\n", __FUNCTION__);
 //#endif
 
-//#define __INFO_FUN__    {}
+#define __INTO_FUN__   ;
 
 #endif
 

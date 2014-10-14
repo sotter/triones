@@ -20,10 +20,11 @@ public:
 
 	void start(const char *host, int thread)
 	{
-		_transport->start();
 		init(thread);
-
-		TCPComponent *conn = _transport->connect(host, _stream, true);
+		_transport->start();
+		TCPComponent *conn = connect(host, _stream, true);
+		if(conn == NULL)
+			return;
 
 		Packet *pack = new Packet;
 		pack->writeBytes("NOOP \r\n", 7);
@@ -36,8 +37,8 @@ public:
 
 	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
 	{
-		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
-		        packet->getDataLen(), packet->getData());
+//		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
+//		        packet->getDataLen(), packet->getData());
 
 		Packet *pack = new Packet;
 		pack->writeBytes("NOOP \r\n", 7);

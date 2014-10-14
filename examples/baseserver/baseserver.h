@@ -28,16 +28,23 @@ public:
 
 	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
 	{
-		printf("receive from %s len %d : %s \n",
-				ioc->getSocket()->getAddr().c_str(),
-				packet->getDataLen(),
-				packet->getData());
+//		printf("receive from %s len %d : %s \n",
+//				ioc->getSocket()->getAddr().c_str(),
+//				packet->getDataLen(),
+//				packet->getData());
+
+		Packet *pack = new Packet;
+		pack->writeBytes("ACK \r\n", 6);
+		if (!ioc->postPacket(pack))
+		{
+			delete pack;
+			pack = NULL;
+		}
 	}
 
 private:
 
 	TransProtocol *_tp;
-
 };
 
 } /* namespace triones */

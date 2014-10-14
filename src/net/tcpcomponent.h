@@ -81,9 +81,12 @@ public:
         _queueLimit = limit;
     }
 
-    /**
-     * 连接状态
-     */
+    //为了适配baseService的接口而增加的  2014-10-14
+    void setServerAdapter(IServerAdapter *sa)
+    {
+    	_serverAdapter = sa;
+    }
+
 //    bool isConnectState();
 
     /**
