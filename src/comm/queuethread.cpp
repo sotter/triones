@@ -54,7 +54,7 @@ bool QueueThread::push( void *packet )
 	}
 	_mutex.unlock() ;
 
-	_sem.post();
+//	_sem.post();
 
 	return true ;
 }
@@ -62,7 +62,7 @@ bool QueueThread::push( void *packet )
 // 处理数据
 void QueueThread::process(void)
 {
-	_sem.wait();
+//	_sem.wait();
 
 	void *p = NULL;
 

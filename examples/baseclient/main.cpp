@@ -9,7 +9,7 @@
 int main()
 {
 	BaseClient base_client;
-	base_client.start("tcp:127.0.0.1:7406", 4);
+	base_client.start("tcp:127.0.0.1:7406", 1);
 
 	while(1)
 	{

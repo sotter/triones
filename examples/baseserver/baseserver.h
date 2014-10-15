@@ -19,7 +19,7 @@ public:
 	BaseServer();
 	virtual ~BaseServer();
 
-	void start(const char *host, int thread = 4)
+	void start(const char *host, int thread = 1)
 	{
 		init(thread);
 		_transport->start();
