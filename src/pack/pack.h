@@ -38,6 +38,8 @@ public:
 	Packet *_next;
 	// 鏁版嵁绫诲瀷
 	int _type;
+
+	void *_ioc;
 };
 
 class PacketQueue

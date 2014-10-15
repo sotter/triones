@@ -19,7 +19,7 @@ public:
 	BaseServer();
 	virtual ~BaseServer();
 
-	void start(const char *host, int thread = 1)
+	void start(const char *host, int thread = 4)
 	{
 		init(thread);
 		_transport->start();
@@ -28,13 +28,14 @@ public:
 
 	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
 	{
+
 //		printf("receive from %s len %d : %s \n",
 //				ioc->getSocket()->getAddr().c_str(),
 //				packet->getDataLen(),
 //				packet->getData());
 
 		Packet *pack = new Packet;
-		pack->writeBytes("ACK \r\n", 6);
+		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!ioc->postPacket(pack))
 		{
 			delete pack;

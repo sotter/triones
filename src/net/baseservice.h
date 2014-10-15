@@ -62,14 +62,13 @@ protected:
 	//网络模型
 	Transport* _transport;
 	TransProtocol *_stream;
-private:
+	//做性能测试使用
+	char _send_buffer[1024 * 4];
 
-	CDataQueue<BasePacket>	* _packqueue ;
+private:
+	CDataQueue<Packet>	* _packqueue ;
 	//packet线程队列
 	QueueThread *_queue_thread;
-
-	//做性能测试使用
-	char _send_buffer[1024 * 1024 * 4];
 };
 
 } /* namespace triones */

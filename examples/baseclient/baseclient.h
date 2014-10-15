@@ -27,7 +27,7 @@ public:
 			return;
 
 		Packet *pack = new Packet;
-		pack->writeBytes("NOOP \r\n", 7);
+		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!conn->postPacket(pack))
 		{
 			delete pack;
@@ -40,7 +40,7 @@ public:
 //		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
 //		        packet->getDataLen(), packet->getData());
 		Packet *pack = new Packet;
-		pack->writeBytes("NOOP \r\n", 7);
+		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!ioc->postPacket(pack))
 		{
 			delete pack;
