@@ -67,6 +67,9 @@ private:
 	CDataQueue<BasePacket>	* _packqueue ;
 	//packet线程队列
 	QueueThread *_queue_thread;
+
+	//做性能测试使用
+	char _send_buffer[1024 * 1024 * 4];
 };
 
 } /* namespace triones */

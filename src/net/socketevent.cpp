@@ -30,7 +30,6 @@ SocketEvent::~SocketEvent()
  */
 bool SocketEvent::addEvent(Socket *socket, bool enableRead, bool enable_write)
 {
-printf("add event \n");
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
 	ev.data.ptr = socket->getIOComponent();
@@ -63,8 +62,6 @@ printf("add event \n");
  */
 bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
 {
-	printf("setEvent \n");
-
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
 	ev.data.ptr = socket->getIOComponent();
@@ -95,8 +92,6 @@ bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
  */
 bool SocketEvent::removeEvent(Socket *socket)
 {
-	printf("removeEvent \n");
-
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
 	ev.data.ptr = socket->getIOComponent();
@@ -128,8 +123,6 @@ int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
 
 	int res = epoll_wait(_iepfd, events, cnt, timeout);
 
-//	printf("%s %d res = %d \n", __FILE__, __LINE__, res);
-
 	// ³õÊ¼»¯
 	if (res > 0)
 	{
@@ -142,17 +135,23 @@ int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
 		ioevents[i]._ioc = (IOComponent*) events[i].data.ptr;
 		if (events[i].events & (EPOLLERR | EPOLLHUP))
 		{
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLERR|EPOLLHUP \n", __FILE__, __LINE__, res);
+#endif
 			ioevents[i]._errorOccurred = true;
 		}
 		if ((events[i].events & EPOLLIN) != 0)
 		{
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLIN \n", __FILE__, __LINE__, res);
+#endif
 			ioevents[i]._readOccurred = true;
 		}
 		if ((events[i].events & EPOLLOUT) != 0)
 		{
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLOUT \n", __FILE__, __LINE__, res);
+#endif
 			ioevents[i]._writeOccurred = true;
 		}
 	}

@@ -87,7 +87,6 @@ public:
     	_serverAdapter = sa;
     }
 
-//    bool isConnectState();
 
     /**
      * serverId

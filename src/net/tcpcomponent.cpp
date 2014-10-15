@@ -385,16 +385,24 @@ bool TCPComponent::readData()
 	bool broken = false;
 
 	//最大能连续读取10次，读任务便切换出来，给其他socket使用
-	while (ret > 0 && ++read_cnt < 10)
+	while (ret > 0 && ++read_cnt <= 10)
 	{
 		_input.pourData(ret);
 		int decode = _streamer->decode(_input.getData(), _input.getDataLen(), &_inputQueue);
+
+		//一定要调用drainData，因为decode时候没有将_input的读位置前移。
+		if(decode > 0)
+		{
+			_input.drainData(decode);
+		}
 
 		//如果发生了断开事件，或是_input没有读满（说明缓冲区里面已经没有数据了）
 		if (broken || _input.getFreeLen() > 0) break;
 
 		//如果判定读出来的包还没有解析完全说明，可能有未读出来的半包。
-		if (decode > 0 && decode < _input.getDataLen())
+		//原先的判断条件为decode > 0, 修改为decode >= 0, decode == 0时可能是一个大包
+		//数据包还没有完全接收完毕
+		if (decode >= 0 && decode < _input.getDataLen())
 		{
 			_input.ensureFree(READ_WRITE_SIZE);
 		}

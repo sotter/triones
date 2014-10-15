@@ -51,6 +51,7 @@ int TransProtocol::decode(const char *data, size_t len, PacketQueue *pack_queue)
 		pack_queue->push(pack);
 		offset += decode_len;
 	}
+
 	return offset;
 }
 

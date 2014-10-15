@@ -39,7 +39,6 @@ public:
 	{
 //		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
 //		        packet->getDataLen(), packet->getData());
-
 		Packet *pack = new Packet;
 		pack->writeBytes("NOOP \r\n", 7);
 		if (!ioc->postPacket(pack))

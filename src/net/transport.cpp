@@ -178,7 +178,8 @@ void Transport::timeoutLoop() {
             }
         }
 
-        usleep(500000);  // 最小间隔100ms
+//      usleep(500000);   // 最小间隔100ms
+        usleep(1000000);  // 最小间隔1s
     }
 
     // 写回到_delList上,让destroy销毁
