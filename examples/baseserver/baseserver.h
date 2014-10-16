@@ -8,6 +8,7 @@
 #define BASESERVER_H_
 
 #include "net/cnet.h"
+#include "tprotocol.h"
 
 namespace triones
 {
@@ -21,14 +22,11 @@ public:
 
 	void start(const char *host, int thread = 1)
 	{
-		init(thread);
-		_transport->start();
-		_transport->listen(host, _stream, this);
+		this->connect(host, triones::TPROTOCOL_TEXT, true);
 	}
 
-	virtual void handle_queue_packet(IOComponent *ioc, Packet *packet)
+	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-
 //		printf("receive from %s len %d : %s \n",
 //				ioc->getSocket()->getAddr().c_str(),
 //				packet->getDataLen(),

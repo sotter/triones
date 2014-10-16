@@ -1,79 +1,76 @@
 /**
  * author: Triones
  * date  : 2014-08-21
- * desc  : 数据处理队列线程对象
+ * desc  : 鏁版嵁澶勭悊闃熷垪绾跨▼瀵硅薄
  */
 
 #ifndef __TRIONES_QUEUETHREAD_H__
 #define __TRIONES_QUEUETHREAD_H__
 
-#include "mutex.h"
-#include "sem.h"
 #include "thread.h"
+#include "cond.h"
 
 namespace triones
 {
 
-// 数据包队列
+// 鏁版嵁鍖呴槦鍒�
 class IPackQueue
 {
 public:
 	virtual ~IPackQueue()
 	{
 	}
-	// 存放数据
+	// 瀛樻斁鏁版嵁
 	virtual bool push(void *packet) = 0;
-	// 弹出数据
+	// 寮瑰嚭鏁版嵁
 	virtual void * pop(void) = 0;
-	// 释放数据
+	// 閲婃斁鏁版嵁
 	virtual void free(void *packet) = 0;
-	// 取得当前队列长度
+	// 鍙栧緱褰撳墠闃熷垪闀垮害
 	virtual int size(void) = 0;
 };
 
-// 数据传送接口
+// 鏁版嵁浼犻�鎺ュ彛
 class IQueueHandler
 {
 public:
 	virtual ~IQueueHandler()
 	{
+
 	}
-	// 交出数据回调接口
+	// 浜ゅ嚭鏁版嵁鍥炶皟鎺ュ彛
 	virtual void handle_queue(void *packet) = 0;
 };
 
-// 线程数据处理队列
+// 绾跨▼鏁版嵁澶勭悊闃熷垪
 class QueueThread: public Runnable
 {
 public:
 	QueueThread(IPackQueue *queue, IQueueHandler *handler);
+
 	virtual ~QueueThread();
-	//  初始化
+	//  鍒濆鍖�
 	bool init(int thread);
-	// 停止
+	// 鍋滄
 	void stop(void);
-	// 存放数据
+	// 瀛樻斁鏁版嵁
 	bool push(void *packet);
 
 public:
-	// 线程运行接口对象
+	// 绾跨▼杩愯鎺ュ彛瀵硅薄
 	void run(void *param);
-	// 处理数据
-	void process(void);
 
 private:
-	// 数据存放队列
+	// 鏁版嵁瀛樻斁闃熷垪
 	IPackQueue *_queue;
-	// 数据回调接口
+	// 鏁版嵁鍥炶皟鎺ュ彛
 	IQueueHandler *_handler;
-	// 信号管理对象
-	Mutex _mutex;
-	//任务队列的信号量管理
-	Sem _sem;
-	// 线程管理对象
+	//
+	triones::CThreadCond _mutex;
+	// 绾跨▼绠＄悊瀵硅薄
 	ThreadManager _threadmgr;
-	// 是否初始化数据
-	bool _inited;
+	// 鏄惁鍒濆鍖栨暟鎹�
+	bool _stop;
 };
 
 } // namespace triones

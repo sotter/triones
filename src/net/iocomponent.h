@@ -88,6 +88,12 @@ public:
 		_socketEvent = socketEvent;
 	}
 
+    //为了适配baseService的接口而增加的  2014-10-14
+    void setServerAdapter(IServerAdapter *sa)
+    {
+    	_serverAdapter = sa;
+    }
+
 	/*
 	 * 设置能读写
 	 *
@@ -186,6 +192,8 @@ public:
 	 */
 	triones::Transport *getOwner();
 
+public:
+    IServerAdapter *_serverAdapter;         // 服务器适配器
 protected:
 	triones::Transport *_owner;
 	Socket *_socket;    // 一个Socket的文件句柄
@@ -196,7 +204,6 @@ protected:
 	bool _isServer;     // 是否为服务器端
 	bool _inUsed;       // 是否在用
 	int64_t _lastUseTime;   // 最近使用的系统时间
-
 private:
 	IOComponent *_prev; // 用于链表
 	IOComponent *_next; // 用于链表

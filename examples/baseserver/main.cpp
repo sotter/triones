@@ -11,9 +11,8 @@ int main()
 	BaseServer base_server;
 	base_server.start("tcp:127.0.0.1:7406", 1);
 
-	while(1)
-	{
-		sleep(100);
-	}
+	//100s将此服务关闭掉
+	sleep(100);
+	base_server.destroy();
 }
 

@@ -275,7 +275,7 @@ bool TCPComponent::handlePacket(Packet *packet)
 	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
 	this->addRef();
 
-	return _serverAdapter->handlePacket(this, packet);
+	return _serverAdapter->SynHandlePacket(this, packet);
 }
 
 /*** 说明 2014-09-21
@@ -423,7 +423,7 @@ bool TCPComponent::readData()
 			Packet *pack = NULL;
 			while ((pack = _inputQueue.pop()) != NULL)
 			{
-				_serverAdapter->handlePacket(this, pack);
+				_serverAdapter->SynHandlePacket(this, pack);
 			}
 		}
 	}

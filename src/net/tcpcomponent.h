@@ -81,13 +81,6 @@ public:
         _queueLimit = limit;
     }
 
-    //为了适配baseService的接口而增加的  2014-10-14
-    void setServerAdapter(IServerAdapter *sa)
-    {
-    	_serverAdapter = sa;
-    }
-
-
     /**
      * serverId
      */
@@ -144,21 +137,16 @@ private:
 	time_t _startConnectTime;
 
 	/**   原先connection的部分  ****************/
-//    IPacketHandler *_defaultPacketHandler;  // connection的默认的packet handler
 	//这里的_isServer指的accpect出来的socket，而不是listen socket
     bool _isServer;                         // 是服务器端
-//    IOComponent *_iocomponent;
     Socket *_socket;                        // Socket句柄
-    TransProtocol *_streamer;             // Packet解析
-    IServerAdapter *_serverAdapter;         // 服务器适配器
+    TransProtocol *_streamer;               // Packet解析
 
     PacketQueue _outputQueue;               // 发送队列
     PacketQueue _inputQueue;                // 接收队列
     PacketQueue _myQueue;                   // 在write中处理时暂时用
     triones::Mutex _output_mutex;           // 发送队列锁
-//    tbsys::CThreadCond _outputCond;       // 发送队列的条件变量
 
-//    ChannelPool _channelPool;               // channel pool
     int _queueTimeout;                      // 队列超时时间
     int _queueTotalSize;                    // 队列总长度
     int _queueLimit;                        // 队列最长长度, 如果超过这个值post进来就会被wait

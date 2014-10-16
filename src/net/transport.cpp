@@ -399,7 +399,6 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn) {
 
 /*
  * É¾³ýiocomponet
- *
  * @param ioc: IO×é¼þ
  */
 void Transport::removeComponent(IOComponent *ioc) {

@@ -8,13 +8,15 @@
 
 namespace triones
 {
+
 BaseService::BaseService()
+		: _inited(false)
 {
-	_packqueue   = new triones::CDataQueue<triones::Packet>(MAXQUEUE_LENGTH);
+	_packqueue = new triones::CDataQueue<triones::Packet>(MAXQUEUE_LENGTH);
 	_queue_thread = new QueueThread(_packqueue, this);
 	_transport = new Transport();
-	_stream = __trans_protocol.get(TPROTOCOL_TEXT);
 
+	//做乒乓测试时的性能测试数据
 	memset(_send_buffer, 0x31, sizeof(_send_buffer) - 2);
 	_send_buffer[sizeof(_send_buffer) - 2] = 0x0d;
 	_send_buffer[sizeof(_send_buffer) - 1] = 0x0a;
@@ -25,50 +27,62 @@ BaseService::~BaseService()
 	// TODO Auto-generated destructor stub
 }
 
-bool BaseService:: init(int thread_num /* = 1 */ ,
-		int transproto /* = TPROTOCOL_TEXT*/ )
+bool BaseService::init(int thread_num /* = 1 */)
 {
-	//实际上在这里面线程就已经启动了，而不用start
-	if(! _queue_thread->init(thread_num))
-		return false;
+	//函数可重入，但是后面初始化是thread_num不起作用了。用户如果不关心thread_num
+	//可直接调用后面的connect 和 listen
+	if (!_inited) return true;
 
-	_stream = __trans_protocol.get(transproto);
-	return _stream != NULL;
+	//实际上在这里面线程就已经启动了，而不用start
+	if (!_queue_thread->init(thread_num)) return false;
+
+	if (!_transport->start())
+	{
+		_queue_thread->stop();
+		return false;
+	}
+
+	return true;
 }
 
-TCPComponent *BaseService::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn)
+IOComponent *BaseService::connect(const char *spec, int streamer, bool autoReconn)
 {
-	TCPComponent *tc = _transport->connect(spec, streamer, autoReconn);
-	if(tc != NULL)
+	if(!init()) return false;
+
+	triones::TransProtocol *tp = __trans_protocol.get(streamer);
+	if (tp == NULL) return NULL;
+
+	IOComponent *tc = _transport->connect(spec, tp, autoReconn);
+	if (tc != NULL)
 	{
 		tc->setServerAdapter(this);
 	}
 	return tc;
 }
 
+IOComponent* BaseService::listen(const char *spec, int streamer)
+{
+	if(!init()) return false;
+
+	triones::TransProtocol *tp = __trans_protocol.get(streamer);
+	if (tp == NULL) return NULL;
+
+	return _transport->listen(spec, tp, this);
+}
+
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
-bool BaseService::handlePacket(IOComponent *connection, Packet *packet)
+bool BaseService::SynHandlePacket(IOComponent *connection, Packet *packet)
 {
 	__INTO_FUN__
 
-	packet->_ioc = (void*)connection;
+	packet->_ioc = (void*) connection;
 
-//	BasePacket *base_pack = new BasePacket;
-//	base_pack->_ioc = connection;
-//	base_pack->_packet = packet;
-
-	/* *************************
-	 * （1）BasePacket的析构函数不会释放connectiong和packet，connection由网络层管理释放，packet是由handle_queue主导释放的；
-	 * （2）push失败时，packet是由这里负责释放的；
-	 * （3）如果push失败时，queue_thread是不负责释放base_pack的，需由这里进行释放。
-	 * *************************/
-	if(! _queue_thread->push((void*)packet))
+	if (!_queue_thread->push((void*) packet))
 	{
-//		delete base_pack->_packet;
-//		delete base_pack;
 		delete packet;
 	}
 
+//  下面是直接回调时，乒乓测试的性能测试代码
 //	UNUSED(packet);
 //	static int count = 3;
 //
@@ -92,34 +106,51 @@ bool BaseService::handlePacket(IOComponent *connection, Packet *packet)
 	return true;
 }
 
-//queue Thread的回调函数
+//QueueThread异步队列的异步回调函数
 void BaseService::handle_queue(void *packet)
 {
 	__INTO_FUN__
-
-//	BasePacket *base_pack = (BasePacket*)packet;
-//
-//	handle_queue_packet(base_pack->_ioc, base_pack->_packet);
-//
-//	//在这里讲packet释放掉，base_pack的释放由queuethread来完成
-//	delete base_pack->_packet;
-
-	Packet *base_pack = (Packet*)packet;
-
-	handle_queue_packet((IOComponent*)(base_pack->_ioc), base_pack);
-
-	//在这里讲packet释放掉，base_pack的释放由queuethread来完成
-	//delete base_pack;
-
+	handle_packet((IOComponent*) (((Packet*) packet)->_ioc), (Packet*) packet);
 }
 
 //处理有同步业务层的处理，子类的service来实现
-void BaseService::handle_queue_packet(IOComponent *ioc, Packet *packet)
+void BaseService::handle_packet(IOComponent *ioc, Packet *packet)
 {
 	__INTO_FUN__
-	printf("handle pack %s, %s", ioc->getSocket()->getAddr().c_str(), packet->_pdata);
+	printf("BaseService handle pack %s, %s", ioc->getSocket()->getAddr().c_str(), packet->_pdata);
 	return;
 }
 
+bool BaseService::destroy_service()
+{
+	return true;
+}
+
+bool BaseService::destroy()
+{
+	if(_transport != NULL)
+	{
+		//只是transport置了stop标志位，线程还不能保证已经全部结束；
+		_transport->stop();
+	}
+
+	//放在_transport stop和wait的中间
+	destroy_service();
+
+	if(_queue_thread != NULL)
+	{
+		_queue_thread->stop();
+	}
+
+	if(_transport != NULL)
+	{
+		_transport->wait();
+	}
+
+	delete _transport;
+	_transport = NULL;
+
+	return true;
+}
 
 } /* namespace triones */

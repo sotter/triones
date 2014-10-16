@@ -145,8 +145,6 @@ public:
 private:
 	const RWMutex& _rw_mutex;
 };
-
-
 } // namespace triones
 
 #endif // #ifndef __TRIONES_MUTEX_H__

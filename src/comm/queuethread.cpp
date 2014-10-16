@@ -6,13 +6,14 @@
 #include "mutex.h"
 #include "sem.h"
 #include "thread.h"
+#include "cond.h"
 #include "queuethread.h"
 
 namespace triones
 {
 
 QueueThread::QueueThread(IPackQueue *queue, IQueueHandler *handler)
-:_queue(queue), _handler(handler), _inited(false)
+:_queue(queue), _handler(handler), _stop(false)
 {
 
 }
@@ -29,8 +30,6 @@ bool QueueThread::init(int thread)
 	{
 		return false;
 	}
-	_inited = true;
-	_sem.init();
 	_threadmgr.start();
 	return true;
 }
@@ -38,60 +37,72 @@ bool QueueThread::init(int thread)
 // 停止
 void QueueThread::stop( void )
 {
-	if ( ! _inited )
-		return ;
-	_inited = false ;
-	_threadmgr.stop() ;
+    _mutex.lock();
+    _stop = true;
+    _mutex.broadcast();
+    _mutex.unlock();
 }
 
 // 存放数据
 bool QueueThread::push( void *packet )
 {
+	if(packet == NULL)
+		return false;
+
+	if(_stop)
+	{
+		//方法类，不加锁
+		_queue->free(packet);
+		return true;
+	}
+
 	_mutex.lock() ;
 	if ( ! _queue->push( packet ) ) {
 		_mutex.unlock() ;
 		return false ;
 	}
+	_mutex.signal();
 	_mutex.unlock() ;
 
-//	_sem.post();
-
 	return true ;
-}
-
-// 处理数据
-void QueueThread::process(void)
-{
-//	_sem.wait();
-
-	void *p = NULL;
-
-	// 从数据队列中取数据
-	_mutex.lock();
-	p = _queue->pop();
-	if (p == NULL)
-	{
-		_mutex.unlock();
-		return;
-	}
-	_mutex.unlock();
-
-	// 回调数据处理对象
-	_handler->handle_queue(p);
-
-	// 释放数据
-	_queue->free(p);
 }
 
 // 线程运行接口对象
 void QueueThread::run(void *param)
 {
 	(void)param; // make compiler happy
+	void *p = NULL;
 
-	while (_inited)
+	_mutex.lock();
+	while (!_stop)
 	{
-		process();
+		while(_stop == false && _queue->size() <= 0)
+		{
+			_mutex.wait();
+		}
+
+		if(_stop)
+		{
+			break;
+		}
+
+		p = _queue->pop();
+		_mutex.unlock();
+
+		if(p != NULL)
+		{
+			_handler->handle_queue(p);
+		}
+
+		_mutex.lock();
 	}
+	//stop完毕后强行将所有的数据都释放掉；
+	while((p = _queue->pop()) != NULL)
+	{
+		_queue->free(p);
+	}
+
+	_mutex.unlock();
 }
 
 } // namespace triones
