@@ -19,5 +19,8 @@ int main()
 //	}
 	base_server.destroy();
 	LOGSTOP();
+
+//	IOComponent *ioc = new TCPAcceptor(NULL, NULL, NULL, NULL);
+//	delete ioc;
 }
 

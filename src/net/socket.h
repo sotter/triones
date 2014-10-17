@@ -31,7 +31,7 @@ public:
     /*
      * 析构函数
      */
-    ~Socket();
+    virtual ~Socket();
 
     /*
      * 设置地址
