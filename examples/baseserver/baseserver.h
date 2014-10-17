@@ -8,7 +8,7 @@
 #define BASESERVER_H_
 
 #include "net/cnet.h"
-#include "tprotocol.h"
+#include "pack/tprotocol.h"
 
 namespace triones
 {
@@ -22,7 +22,14 @@ public:
 
 	void start(const char *host, int thread = 1)
 	{
-		this->connect(host, triones::TPROTOCOL_TEXT, true);
+		init(thread);
+		IOComponent* ioc = this->listen(host, triones::TPROTOCOL_TEXT);
+		if(ioc == NULL)
+		{
+			printf("listen error \n");
+		}
+
+		return;
 	}
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)

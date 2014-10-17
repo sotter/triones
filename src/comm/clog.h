@@ -53,6 +53,8 @@ public:
 	CLog();
 	virtual ~CLog();
 
+	void stop();
+
 	// 输出日志信息
 	bool print_net_msg(unsigned short log_level, const char *file, int line,
 			const char *function, const char *key_word, const char * ip,
@@ -98,6 +100,7 @@ private:
 	void writedisk(void);
 
 private:
+	bool  _stop;              // 是否停止标志
 	std::string _file_name;   // 记录日志的的文件名
 	long  _log_size;          // 日志文件大小
 	int   _log_num;           // 最多记录日志文件个数

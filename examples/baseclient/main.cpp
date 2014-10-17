@@ -5,14 +5,20 @@
 *******************************************************/
 
 #include "baseclient.h"
+#include "comm/comlog.h"
 
 int main()
 {
 	BaseClient base_client;
 	base_client.start("tcp:127.0.0.1:7406", 1);
 
-	sleep(5);
+//	while(1)
+//	{
+		sleep(30);
+//	}
 	base_client.destroy();
 
+	LOGSTOP();
 }
+
 

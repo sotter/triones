@@ -28,6 +28,7 @@ namespace triones
 #define SETLOGSIZE(newsize)   CLog::instance()->set_log_size(newsize);
 #define SETLOGNUM(log_num)    CLog::instance()->set_log_num(log_num);
 #define SETLOGLEVEL(level)    CLog::instance()->set_log_level(level);
+#define LOGSTOP()             CLog::instance()->stop();
 #define LOG_NUM_LEVEL(level)  level, __FILE__, __LINE__, __FUNCTION__
 #define LOG_NULL_LEVEL(level) level, NULL, 0, NULL
 

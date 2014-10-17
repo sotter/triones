@@ -26,6 +26,7 @@ public:
     TCPAcceptor(Transport *owner, Socket *socket,
     		triones::TransProtocol *streamer, IServerAdapter *serverAdapter);
 
+    virtual ~TCPAcceptor(){}
     /*
      * ≥ı ºªØ
      *

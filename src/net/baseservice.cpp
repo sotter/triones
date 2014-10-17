@@ -24,14 +24,14 @@ BaseService::BaseService()
 
 BaseService::~BaseService()
 {
-	// TODO Auto-generated destructor stub
+	destroy();
 }
 
 bool BaseService::init(int thread_num /* = 1 */)
 {
 	//函数可重入，但是后面初始化是thread_num不起作用了。用户如果不关心thread_num
 	//可直接调用后面的connect 和 listen
-	if (!_inited) return true;
+	if (_inited) return true;
 
 	//实际上在这里面线程就已经启动了，而不用start
 	if (!_queue_thread->init(thread_num)) return false;
@@ -41,6 +41,8 @@ bool BaseService::init(int thread_num /* = 1 */)
 		_queue_thread->stop();
 		return false;
 	}
+
+	_inited = true;
 
 	return true;
 }
@@ -65,9 +67,16 @@ IOComponent* BaseService::listen(const char *spec, int streamer)
 	if(!init()) return false;
 
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
-	if (tp == NULL) return NULL;
+	if (tp == NULL)
+		return NULL;
 
-	return _transport->listen(spec, tp, this);
+	TCPAcceptor * acceptor = (TCPAcceptor*)_transport->listen(spec, tp, this);
+	if(acceptor != NULL)
+	{
+		acceptor->setServerAdapter(this);
+	}
+
+	return acceptor;
 }
 
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
@@ -140,15 +149,22 @@ bool BaseService::destroy()
 	if(_queue_thread != NULL)
 	{
 		_queue_thread->stop();
+		delete _queue_thread;
+		_queue_thread = NULL;
+	}
+
+	if(_packqueue != NULL)
+	{
+		delete _packqueue;
+		_packqueue = NULL;
 	}
 
 	if(_transport != NULL)
 	{
 		_transport->wait();
+		delete _transport;
+		_transport = NULL;
 	}
-
-	delete _transport;
-	_transport = NULL;
 
 	return true;
 }

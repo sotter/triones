@@ -173,6 +173,7 @@ private:
 //////////////////////////////////// 日志的类的处理  ///////////////////////////////////////////////
 CLog::CLog()
 {
+	_stop = false;
 	_log_size = 2000 * 2000;
 	_log_num = 20;
 	_log_level = 3;
@@ -186,14 +187,24 @@ CLog::CLog()
 
 CLog::~CLog(void)
 {
-	// 停止文件检测线程
-	if (_pthread != NULL)
+	stop();
+}
+
+//如果保证其它的线程都没有在里面调用；
+void CLog::stop()
+{
+	if (!_stop)
 	{
-		delete _pthread;
-		_pthread = NULL;
+		// 停止文件检测线程
+		if (_pthread != NULL)
+		{
+			delete _pthread;
+			_pthread = NULL;
+		}
+		writedisk();
+		closefile();
 	}
-	writedisk();
-	closefile();
+	_stop = true;
 }
 
 //安全性和效率的统一
@@ -201,6 +212,8 @@ bool CLog::print_net_msg(unsigned short log_level, const char *file, int line,
 		const char *function, const char *key_word, const char * ip, int port,
 		const char *user_id, const char *format, ...)
 {
+	if(!_stop)
+		return true;
 	//日志级别，1-7，数字越小日志日志级别越高。
 	if (_log_level == 0)
 		return false;
@@ -300,6 +313,9 @@ void CLog::print_net_hex(unsigned short log_level, const char *file, int line,
 		const char *function, const char * ip, int port, const char *user_id,
 		const char *data, const int len)
 {
+	if(!_stop)
+		return ;
+
 	// 如果关闭调试日志
 	if (log_level > _log_level)
 		return;
@@ -475,6 +491,9 @@ void CLog::closefile(void)
 
 void CLog::set_log_file(const char *s)
 {
+	if(!_stop)
+		return;
+
 	if (s == NULL)
 		return;
 	_file_name = s;

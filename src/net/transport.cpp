@@ -218,28 +218,27 @@ void Transport::run(triones::TBThread *thread, void *arg)
  * @param   cnt: 数组中最大个数
  * @return  返回的数组中个数
  */
-int Transport::parseAddr(char *src, char **args, int cnt) {
-    int index = 0;
-    char *prev = src;
+int Transport::parseAddr(char *src, char **args, int cnt)
+{
+	int index = 0;
+	char *prev = src;
 
-    while (*src) {
-        if (*src == ':') {
-            *src = '\0';
-            args[index++] = prev;
-
-            if (index >= cnt) { // 数组满了,返回
-                return index;
-            }
-
-            prev = src + 1;
-        }
-
-        src ++;
-    }
-
-    args[index++] = prev;
-
-    return index;
+	while (*src)
+	{
+		if (*src == ':')
+		{
+			*src = '\0';
+			args[index++] = prev;
+			if (index >= cnt)
+			{ // 数组满了,返回
+				return index;
+			}
+			prev = src + 1;
+		}
+		src++;
+	}
+	args[index++] = prev;
+	return index;
 }
 
 /*
@@ -480,9 +479,6 @@ void Transport::destroy()
     _delListHead = _delListTail = NULL;
 }
 
-/**
- * 是否为stop
- */
 bool* Transport::getStop()
 {
     return &_stop;
