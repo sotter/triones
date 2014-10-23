@@ -18,13 +18,23 @@ public:
 		TRIONES_CONNECTING = 1, TRIONES_CONNECTED, TRIONES_CLOSED, TRIONES_UNCONNECTED
 	};
 
+	enum
+	{
+		TRIONES_TCPACCETOR = 1, //TCP listen socket
+		TRIONES_TCPCONN ,       //TCP 主动发起连接的socket
+		TRIONES_TCPACTCONN,     //TCP 被动连接的socket，由Acceptor派生出来的
+		TRIONES_UDPACCETOR,     //UDP 服务端socket
+		TRIONES_UDPCONN,        //UDP 主动起连接的socket
+		TRIONES_UDPACTCONN      //UDP server派生出来的component
+	};
+
 	friend class Transport;
 
 public:
 	/*
 	 * 构造函数
 	 */
-	IOComponent(Transport *owner, Socket *socket);
+	IOComponent(Transport *owner, Socket *socket, int type = 0);
 	/*
 	 * 析构函数
 	 */
@@ -198,6 +208,7 @@ protected:
 	triones::Transport *_owner;
 	Socket *_socket;    // 一个Socket的文件句柄
 	SocketEvent *_socketEvent;
+	int _type;          //IOC类型
 	int _state;         // 连接状态
 	atomic_t _refcount; // 引用计数
 	bool _autoReconn;   // 是否重连

@@ -102,10 +102,14 @@ public:
      */
     int write(const void *data, int len);
 
+    int sendto(const void *data, int len, sockaddr_in &dest);
+
     /*
      * ¶ÁÊı¾İ
      */
-    int read(void *data, int len);
+    int read(void *data, int len, );
+
+    int recvfrom(void *data, int len, sockaddr_in &src);
 
     /*
      * SetSoKeepAlive

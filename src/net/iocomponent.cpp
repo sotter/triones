@@ -9,7 +9,7 @@
 
 namespace triones
 {
-IOComponent::IOComponent(triones::Transport *owner, Socket *socket)
+IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 {
 	assert(socket);
 	_owner = owner;
@@ -18,6 +18,7 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket)
 	_socketEvent = NULL;
 	atomic_set(&_refcount, 0);
 	_state = TRIONES_UNCONNECTED; // 正在连接
+	_type =  type;
 	_autoReconn = false; // 不要自动重连
 	_prev = _next = NULL;
 	_lastUseTime = triones::CTimeUtil::getTime();

@@ -205,6 +205,28 @@ int Socket::write (const void *data, int len) {
     return res;
 }
 
+int Socket::sendto(const void *data, int len, sockaddr_in &dest)
+{
+	if (_socketHandle == -1)
+	{
+		return -1;
+	}
+
+	int res;
+	int addr_len = sizeof(sockaddr_in);
+	do
+	{
+		res = ::sendto(_socketHandle, data, len, 0, (struct sockaddr *)&dest, addr_len);
+		if (res > 0)
+		{
+			TBNET_COUNT_DATA_WRITE(res);
+		}
+
+	} while (res < 0 && errno == EINTR);
+	return res;
+
+}
+
 /*
  * �����
  */
@@ -217,11 +239,32 @@ int Socket::read (void *data, int len) {
     do {
         res = ::read(_socketHandle, data, len);
         if (res > 0) {
-            //TBSYS_LOG(INFO, "�������, fd=%d, addr=%d", _socketHandle, res);
             TBNET_COUNT_DATA_READ(res);
         }
     } while (res < 0 && errno == EINTR);
     return res;
+}
+
+
+int Socket::recvfrom(void *data, int len, sockaddr_in &src)
+{
+	if (_socketHandle == -1)
+	{
+		return -1;
+	}
+
+	int res;
+	int addr_len = sizeof(sockaddr_in);
+	do
+	{
+		res = ::recvfrom(_socketHandle, (void*)data, len, 0, (struct sockaddr *)&src, &addr_len);
+		if (res > 0)
+		{
+			TBNET_COUNT_DATA_READ(res);
+		}
+	} while (res < 0 && errno == EINTR);
+
+	return res;
 }
 
 /*

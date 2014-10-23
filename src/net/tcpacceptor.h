@@ -57,7 +57,7 @@ public:
 
 private:
     TransProtocol *_streamer;      // 数据包解析器
-    IServerAdapter  *_serverAdapter; // 服务器适配器
+//    IServerAdapter  *_serverAdapter; // 服务器适配器
 };
 
 } /* namespace triones */
