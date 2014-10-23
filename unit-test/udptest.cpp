@@ -45,46 +45,50 @@ struct triones_sockaddr
 
 union seriaddr
 {
-	uint64_t seri;
+	uint64_t sockid;
 	triones_sockaddr sockaddr;
 };
 
-
-
-uint64_t seri_sockaddr(struct sockaddr_in *sockaddr)
+uint64_t sock_addr2id(struct sockaddr_in *sockaddr)
 {
+	seriaddr id;
+	id.sockaddr.family =  sockaddr->sin_family;
+	id.sockaddr.port = sockaddr->sin_port;
+	id.sockaddr.host = sockaddr->sin_addr.s_addr;
 
-//	uint64_t n = 0;
-//	n |= sockaddr->sin_family << 48;
-//	n |= sockaddr->sin_port << 32;
-//	n |= sockaddr->sin_addr.s_addr;
-
-
-	seriaddr addr;
-	addr.sockaddr.family =  sockaddr->sin_family;
-	addr.sockaddr.port = sockaddr->sin_port;
-	addr.sockaddr.host = sockaddr->sin_addr.s_addr;
-
-//	memcpy(&addr, &sockaddr, sizeof(addr));
-//	printf("sizeof(addr)= %d \n", sizeof(addr));
-//	printf("sizeof(addr)= %d \n", sizeof(sockaddr->sin_family));
-//	printf("sizeof(addr)= %d \n", sizeof(sockaddr->sin_port));
-//	printf("sizeof(addr)= %d \n", sizeof(sockaddr->sin_addr));
-
-	return addr.seri;
+	return id.sockid;
 }
 
-void reseri_sockaddr(uint64_t n, struct sockaddr_in *sockaddr)
+void sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
-//	sockaddr->sin_family = n >> 48;
-//	sockaddr->sin_port = (n >> 32) & (0xffff);
-//	sockaddr->sin_addr.s_addr = n & 0xffffffff;
-
 	seriaddr addr;
-	addr.seri = n;
+	addr.seri = sockid;
 	sockaddr->sin_family = addr.sockaddr.family;
 	sockaddr->sin_port = addr.sockaddr.port;
 	sockaddr->sin_addr.s_addr = addr.sockaddr.host;
+
+	return;
+}
+
+void sock_addr2str(struct sockaddr_in *sockaddr)
+{
+    char dest[32];
+    unsigned long ad = ntohl(sockaddr->sin_addr.s_addr);
+	const char *type = ntohs(sockaddr->sin_family) == AF_STREAM ? "tcp" : "udp";
+    sprintf(dest, "%d.%d.%d.%d:%d",
+            static_cast<int>((ad >> 24) & 255),
+            static_cast<int>((ad >> 16) & 255),
+            static_cast<int>((ad >> 8) & 255),
+            static_cast<int>(ad & 255),
+            ntohs(sockaddr->sin_port));
+    return dest;
+}
+
+string sock_id2str(uint64_t id)
+{
+	sockaddr_in sockaddr;
+	sock_id2addr(id, sockaddr)
+	return sock_addr2str(&id);
 }
 
 int main()
