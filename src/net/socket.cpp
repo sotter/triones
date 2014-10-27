@@ -257,7 +257,8 @@ int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 	int addr_len = sizeof(sockaddr_in);
 	do
 	{
-		res = ::recvfrom(_socketHandle, (void*)data, len, 0, (struct sockaddr *)&src, &addr_len);
+		res = ::recvfrom(_socketHandle, (void*)data, len, 0, (struct sockaddr *)&src,
+				(socklen_t*)&addr_len);
 		if (res > 0)
 		{
 			TBNET_COUNT_DATA_READ(res);

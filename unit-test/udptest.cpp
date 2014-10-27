@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <map>
+#include <string>
 
 using namespace std;
 //
@@ -62,7 +63,7 @@ uint64_t sock_addr2id(struct sockaddr_in *sockaddr)
 void sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
 	seriaddr addr;
-	addr.seri = sockid;
+	addr.sockid = sockid;
 	sockaddr->sin_family = addr.sockaddr.family;
 	sockaddr->sin_port = addr.sockaddr.port;
 	sockaddr->sin_addr.s_addr = addr.sockaddr.host;
@@ -70,12 +71,12 @@ void sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 	return;
 }
 
-void sock_addr2str(struct sockaddr_in *sockaddr)
+string sock_addr2str(struct sockaddr_in *sockaddr)
 {
     char dest[32];
     unsigned long ad = ntohl(sockaddr->sin_addr.s_addr);
-	const char *type = ntohs(sockaddr->sin_family) == AF_STREAM ? "tcp" : "udp";
-    sprintf(dest, "%d.%d.%d.%d:%d",
+	const char *type = ntohs(sockaddr->sin_family) == SOCK_STREAM ? "tcp" : "udp";
+    sprintf(dest, "%s:%d.%d.%d.%d:%d", type,
             static_cast<int>((ad >> 24) & 255),
             static_cast<int>((ad >> 16) & 255),
             static_cast<int>((ad >> 8) & 255),
@@ -87,8 +88,8 @@ void sock_addr2str(struct sockaddr_in *sockaddr)
 string sock_id2str(uint64_t id)
 {
 	sockaddr_in sockaddr;
-	sock_id2addr(id, sockaddr)
-	return sock_addr2str(&id);
+	sock_id2addr(id, &sockaddr);
+	return sock_addr2str(&sockaddr);
 }
 
 int main()
@@ -100,21 +101,23 @@ int main()
 	toAddr.sin_addr.s_addr = inet_addr("192.168.100.148");
 	toAddr.sin_port = htons(4000);
 
-	uint64_t n = seri_sockaddr(&toAddr);
+	uint64_t n = sock_addr2id(&toAddr);
 
 	printf("n = %llu \n", n);
 
 	struct sockaddr_in Addr;
 	memset(&Addr, 0, sizeof(sockaddr_in));
-	reseri_sockaddr(n, &Addr);
+	sock_id2addr(n, &Addr);
 
 	int cmp = memcmp(&toAddr, &Addr, sizeof(uint64_t));
 	printf("cmp = %d \n", cmp);
 
-	uint64_t n2  = seri_sockaddr(&Addr);
+	uint64_t n2  = sock_addr2id(&Addr);
 
 	printf("n2 = %llu \n", n2);
 
+	printf("n2 string : %s \n", sock_id2str(n2).c_str());
+	printf("addr string: %s \n", sock_addr2str(&Addr).c_str());
 
 //	pthread_t t1, t2;
 //	pthread_create(&t1, NULL, thd_server, NULL);

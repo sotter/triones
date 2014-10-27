@@ -9,15 +9,6 @@
 namespace triones
 {
 
-/**
- * 构造函数，由Transport调用。
- *
- * @param  owner:    运输层对象
- * @param  host:   监听ip地址或hostname
- * @param port:   监听端口
- * @param streamer:   数据包的双向流，用packet创建，解包，组包。
- * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
- */
 UDPAcceptor::UDPAcceptor(Transport *owner, Socket *socket, TransProtocol *streamer,
         IServerAdapter *serverAdapter)
 		: IOComponent(owner, socket, TRIONES_UDPACCETOR)
@@ -26,9 +17,6 @@ UDPAcceptor::UDPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 	_serverAdapter = serverAdapter;
 }
 
-/*
- * 初始化, 开始监听
- */
 bool UDPAcceptor::init(bool isServer)
 {
 	UNUSED(isServer);
@@ -36,31 +24,74 @@ bool UDPAcceptor::init(bool isServer)
 	return ((ServerSocket*) _socket)->listen();
 }
 
-/**
- * 当有数据可读时被Transport调用
- *
- * @return 是否成功
- */
+
 bool UDPAcceptor::handleReadEvent()
 {
-
+	return readData();
 }
 
 bool UDPAcceptor::readData()
 {
 	struct sockaddr_in read_addr;
 	int n = _socket->recvfrom(_read_buff, sizeof(_read_buff), read_addr);
+	if(n < 0)
+		return false;
 
+	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr);
+	UDPComponent *ioc = get(sockid);
+	ioc->_lastUseTime = triones::CTimeUtil::getTime();
+
+	int decode = _streamer->decode(_read_buff, n, &_inputQueue);
+
+	if (decode > 0)
+	{
+		Packet *pack = NULL;
+		while ((pack = _inputQueue.pop()) != NULL)
+		{
+			_serverAdapter->SynHandlePacket(ioc, pack);
+		}
+	}
+
+	return true;
 }
 
 bool UDPAcceptor::writeData()
 {
-
+	return true;
 }
 
 void UDPAcceptor::checkTimeout(int64_t now)
 {
+
 	UNUSED(now);
+	return;
+}
+
+//根据sockid获取对应的UDPComponent, 如果没有找到新建一个
+UDPComponent *UDPAcceptor::get(uint64_t sockid)
+{
+	UDPComponent *ioc = NULL;
+
+	_mutex.lock();
+	std::map<uint64_t, UDPComponent*>::iterator iter = _mpsock.find(sockid);
+	if(iter != NULL)
+	{
+		ioc = iter->second;
+		_mutex.unlock();
+	}
+
+	ioc = new UDPComponent(NULL, _socket, _streamer, _serverAdapter, TRIONES_UDPACTCONN);
+	_online.push(ioc);
+	_mpsock.insert(make_pair(sockid, ioc));
+
+	_mutex.unlock();
+
+	return ioc;
+}
+
+//将回收的ioc放回到池子中
+void UDPAcceptor::put(UDPComponent* ioc)
+{
 	return;
 }
 

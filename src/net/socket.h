@@ -107,7 +107,7 @@ public:
     /*
      * ¶ÁÊı¾İ
      */
-    int read(void *data, int len, );
+    int read(void *data, int len);
 
     int recvfrom(void *data, int len, sockaddr_in &src);
 

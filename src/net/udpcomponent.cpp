@@ -7,17 +7,12 @@
 #include "cnet.h"
 #include "../pack/tprotocol.h"
 #include "../comm/comlog.h"
+#include "tbtimeutil.h"
+#include "stats.h"
 
 namespace triones
 {
-/**
- * 构造函数，由Transport调用。
- *
- * @param owner:       Transport
- * @param socket:      Socket
- * @param streamer:    数据包的双向流，用packet创建，解包，组包。
- * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
- */
+
 UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
         IServerAdapter *serverAdapter, int type)
 		: IOComponent(owner, socket, type)
@@ -205,7 +200,7 @@ bool UDPComponent::writeData()
 		if(_type == TRIONES_UDPCONN)
 		{
 			// write data
-			ret = _socket->writeto(_output.getData(), _output.getDataLen(), _sock_addr);
+			ret = _socket->sendto(_output.getData(), _output.getDataLen(), _sock_addr);
 		}
 		else if(_type == TRIONES_UDPACTCONN)
 		{
@@ -238,11 +233,13 @@ bool UDPComponent::writeData()
 	}
 	_output_mutex.unlock();
 
-	if (_writeFinishClose)
-	{
-		OUT_ERROR(NULL, 0, NULL, "主动断开.");
-		return false;
-	}
+//	if (_writeFinishClose)
+//	{
+//		OUT_ERROR(NULL, 0, NULL, "主动断开.");
+//		return false;
+//	}
+
+	return true;
 }
 
 

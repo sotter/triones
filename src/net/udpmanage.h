@@ -18,14 +18,13 @@ public:
 	UDPManage(){}
 	virtual ~UDPManage(){}
 
-	IOComponent *get(int sockfd, const char *ip, unsigned short port, int ctype, bool connected = true)
+	UDPComponent *get(uint64_t sockid, Socket *socket, bool connected = true)
 	{
-		IOComponent *ioc = NULL;
-		char szid[128] = {0};
-		snprintf(szid, sizeof(szid) - 1, "%d_%s_%d", sockfd, ip, port);
+		UDPComponent *ioc = NULL;
 
 		_mutex.lock();
-		std::map<std::string, IOComponent *>::iterator iter = _mpsock.find(szid);
+		std::map<uint64_t, UDPComponent *>::iterator iter = _mpsock.find(sockid);
+
 		if(iter != _mpsock.end())
 		{
 			ioc = iter->second;
@@ -33,10 +32,11 @@ public:
 			return ioc;
 		}
 
-		ioc = (IOComponent*)_queue.pop() ;
+		ioc = (UDPComponent*)_queue.pop() ;
 		if ( ioc == NULL ) {
-			ioc = new IOComponent ;
+			ioc = new UDPComponent;
 		}
+
 
 		ioc->_type = FD_UDP ;
 		ioc->init( sockfd, ip, port , ctype ) ;
@@ -55,22 +55,22 @@ public:
 		_mutex.unlock() ;
 	}
 
-	void put(IOComponent *ioc)
+	void put(UDPComponent *ioc)
 	{
 
 	}
 
 private:
 	// 数据队列头
-	TQueue<IOComponent> _queue ;
+	TQueue<UDPComponent> _queue ;
 	// 在线队列查找索引
-	std::set<IOComponent*> _index ;
+	std::set<UDPComponent*> _index ;
 	// 在线队列管理
-	TQueue<IOComponent> _online ;
+	TQueue<UDPComponent> _online ;
 	// 数据同步操作锁
 	triones::Mutex _mutex ;
 	// 连接对象查找管理
-	std::map<std::string, IOComponent*> _mpsock;
+	std::map<uint64_t, UDPComponent*> _mpsock;
 };
 
 } /* namespace triones */

@@ -15,6 +15,8 @@ class UDPComponent : public IOComponent
 {
 public:
 
+	friend class UDPManage;
+
     UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
     		IServerAdapter *serverAdapter, int type = 0);
 

@@ -226,7 +226,7 @@ bool TCPComponent::handleReadEvent()
  */
 void TCPComponent::checkTimeout(int64_t now)
 {
-//	__INTO_FUN__
+	//	__INTO_FUN__
 	// 检查是否连接超时
 	if (_state == TRIONES_CONNECTING)
 	{

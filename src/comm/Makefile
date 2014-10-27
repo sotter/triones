@@ -16,9 +16,12 @@ TRIONES_HOME ?= ${shell readlink -n -e ../.. }
 
 MODULE = comm
 
-INCS = atomic.h comlog.h clog.h cond.h databuffer.h dataqueue.h netorder.h tqueue.h exception.h monitor.h mutex.h queuethread.h ref.h sem.h singleton.h thread.h util.h
+INCS = atomic.h comlog.h clog.h cond.h databuffer.h 
+INCS += dataqueue.h netorder.h tqueue.h exception.h monitor.h 
+INCS += mutex.h queuethread.h ref.h sem.h singleton.h thread.h util.h
 
-SRCS = clog.cpp  monitor.cpp mutex.cpp queuethread.cpp ref.cpp sem.cpp thread.cpp util.cpp
+SRCS = clog.cpp  monitor.cpp mutex.cpp queuethread.cpp ref.cpp 
+SRCS += sem.cpp thread.cpp util.cpp 
 
 SLIB = libcomm.a
 

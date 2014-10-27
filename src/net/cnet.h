@@ -30,6 +30,7 @@
 #include <string>
 #include <ext/hash_map>
 #include <sys/types.h>
+#include <arpa/inet.h>
 
 namespace triones
 {
