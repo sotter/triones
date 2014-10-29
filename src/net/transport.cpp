@@ -242,51 +242,81 @@ int Transport::parseAddr(char *src, char **args, int cnt)
 }
 
 /*
- * 起一个监听端口。
- *
  * @param spec: 格式 [upd|tcp]:ip:port
  * @param streamer: 数据包的双向流，用packet创建，解包，组包。
  * @param serverAdapter: 用在服务器端，当Connection初始化及Channel创建时回调时用
  * @return IO组件一个对象的指针
  */
-IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streamer, IServerAdapter *serverAdapter) {
-    char tmp[1024];
-    char *args[32];
-    strncpy(tmp, spec, 1024);
-    tmp[1023] = '\0';
 
-    if (parseAddr(tmp, args, 32) != 3) {
-        return NULL;
-    }
+IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streamer,
+        IServerAdapter *serverAdapter)
+{
+	char tmp[1024];
+	char *args[32];
+	strncpy(tmp, spec, 1024);
+	tmp[1023] = '\0';
 
-    if (strcasecmp(args[0], "tcp") == 0) {
-        char *host = args[1];
-        int port = atoi(args[2]);
+	if (parseAddr(tmp, args, 32) != 3)
+	{
+		return NULL;
+	}
 
-        // Server Socket
-        ServerSocket *socket = new ServerSocket();
+	char *host = args[1];
+	int port = atoi(args[2]);
 
-        if (!socket->setAddress(host, port)) {
-            delete socket;
-            return NULL;
-        }
+	if (strcasecmp(args[0], "tcp") == 0)
+	{
+		// Server Socket
+		ServerSocket *socket = new ServerSocket();
+		if (!socket->setAddress(host, port))
+		{
+			delete socket;
+			return NULL;
+		}
 
-        // TCPAcceptor
-        TCPAcceptor *acceptor = new TCPAcceptor(this, socket, streamer, serverAdapter);
+		// TCPAcceptor
+		TCPAcceptor *acceptor = new TCPAcceptor(this, socket, streamer, serverAdapter);
 
-        if (!acceptor->init()) {
-            delete acceptor;
-            return NULL;
-        }
+		if (!acceptor->init())
+		{
+			delete acceptor;
+			return NULL;
+		}
 
-        // 加入到iocomponents中，及注册可读到socketevent中
-        addComponent(acceptor, true, false);
+		// 加入到iocomponents中，及注册可读到socketevent中
+		addComponent(acceptor, true, false);
 
-        // 返回
-        return acceptor;
-    } else if (strcasecmp(args[0], "udp") == 0) {}
+		// 返回
+		return acceptor;
+	}
+	else if (strcasecmp(args[0], "udp") == 0)
+	{
+		Socket *socket = new Socket();
+		socket->createUDP();
+		if (!socket->setAddress(host, port))
+		{
+			delete socket;
+			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
+			return NULL;
+		}
 
-    return NULL;
+		// TCPAcceptor
+		UDPAcceptor *acceptor = new UDPAcceptor(this, socket, streamer, serverAdapter);
+
+		if (!acceptor->init())
+		{
+			delete acceptor;
+			return NULL;
+		}
+
+		// 加入到iocomponents中，及注册可读到socketevent中
+		addComponent(acceptor, true, false);
+
+		// 返回
+		return acceptor;
+	}
+
+	return NULL;
 }
 
 /*
@@ -332,6 +362,10 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			OUT_ERROR(NULL, 0, NULL, "初始化失败TCPComponent: %s:%d", host, port);
 			return NULL;
 		}
+
+		addComponent(component, true, true);
+		component->addRef();
+		return component;
 	}
 	else if (strcasecmp(args[0], "udp") == 0)
 	{
@@ -344,10 +378,10 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
-		UDPComponent *component = new UDPComponent(this, socket, streamer,
-				NULL, IOComponent::TRIONES_UDPCONN);
+		UDPComponent *component = new UDPComponent(this, socket, streamer, NULL,
+		        IOComponent::TRIONES_UDPCONN);
 
-		if(!component->init())
+		if (!component->init())
 		{
 			delete component;
 			OUT_ERROR(NULL, 0, NULL, "初始化失败TCPComponent: %s:%d", host, port);
@@ -410,7 +444,12 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn) {
     Socket *socket = ioc->getSocket();
     ioc->setSocketEvent(&_socketEvent);
     _socketEvent.addEvent(socket, readOn, writeOn);
+
      OUT_INFO(NULL, 0, NULL, "ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
+              socket->getSocketHandle(), ioc->getSocket()->getAddr().c_str(),
+              readOn, writeOn, _iocListCount, ioc);
+
+    printf("ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
               socket->getSocketHandle(), ioc->getSocket()->getAddr().c_str(),
               readOn, writeOn, _iocListCount, ioc);
 }

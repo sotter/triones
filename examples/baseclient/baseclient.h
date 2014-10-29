@@ -40,6 +40,7 @@ public:
 	{
 //		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
 //		        packet->getDataLen(), packet->getData());
+
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!ioc->postPacket(pack))

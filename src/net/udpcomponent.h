@@ -16,6 +16,7 @@ class UDPComponent : public IOComponent
 public:
 
 	friend class UDPManage;
+	friend class UDPAcceptor;
 
     UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
     		IServerAdapter *serverAdapter, int type = 0);
@@ -44,15 +45,12 @@ public:
     void checkTimeout(int64_t now);
 
 private:
-
-    IServerAdapter *_serverAdapter;
-
     int     _udp_type;
+
     struct  sockaddr_in      _sock_addr;
 
 	//这里的_isServer指的accpect出来的socket，而不是listen socket
     bool _isServer;                         // 是服务器端
-    Socket *_socket;                        // Socket句柄
     TransProtocol *_streamer;               // Packet解析
 
     PacketQueue _outputQueue;               // 发送队列

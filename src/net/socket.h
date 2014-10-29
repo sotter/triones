@@ -33,6 +33,8 @@ public:
      */
     virtual ~Socket();
 
+
+
     /*
      * 设置地址
      *
@@ -40,8 +42,9 @@ public:
      * @param port  端口号
      * @return 是否成功
      */
-
     bool setAddress (const char *address, const int port);
+
+    bool udpBind();
 
     /*
      * 连接到_address上

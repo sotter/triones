@@ -21,7 +21,8 @@ bool UDPAcceptor::init(bool isServer)
 {
 	UNUSED(isServer);
 	_socket->setSoBlocking(false);
-	return ((ServerSocket*) _socket)->listen();
+
+	return _socket->udpBind();
 }
 
 bool UDPAcceptor::handleReadEvent()
@@ -79,6 +80,9 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 	}
 
 	ioc = new UDPComponent(NULL, _socket, _streamer, _serverAdapter, TRIONES_UDPACTCONN);
+	//设置新建立的UDPComponent的地址；
+	sockutil::sock_id2addr(sockid, &(ioc->_sock_addr));
+
 	_online.push(ioc);
 	_mpsock.insert(make_pair(sockid, ioc));
 

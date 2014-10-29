@@ -16,32 +16,19 @@
 #include "cnet.h"
 #include <sys/poll.h>
 #include "stats.h"
+#include "../comm/comlog.h"
 
 namespace triones {
 
 triones::Mutex Socket::_dnsMutex;
 
-/*
- * ���캯��
- */
 Socket::Socket() {
     _socketHandle = -1;
 }
 
-/*
- * ��������
- */
 Socket::~Socket() {
     close();
 }
-
-/*
- * ���õ�ַ
- *
- * @param address  host��ip��ַ
- * @param port  �˿ں�
- * @return �Ƿ�ɹ�
- */
 
 bool Socket::setAddress (const char *address, const int port) {
     // ��ʼ��
@@ -92,9 +79,27 @@ bool Socket::setAddress (const char *address, const int port) {
     return rc;
 }
 
-/*
- * socket ����Ƿ񴴽�
- */
+bool  Socket::udpBind()
+{
+	if (!checkSocketHandle())
+	{
+		return false;
+	}
+
+	// 地址可重用
+	setReuseAddress(true);
+	setIntOption(SO_SNDBUF, 640000);
+	setIntOption(SO_RCVBUF, 640000);
+
+	if (::bind(_socketHandle, (struct sockaddr *) &_address, sizeof(_address)) < 0)
+	{
+		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->getAddr().c_str(), errno);
+		return false;
+	}
+
+	return true;
+}
+
 bool Socket::checkSocketHandle() {
     if (_socketHandle == -1 && (_socketHandle = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         return false;
@@ -102,11 +107,6 @@ bool Socket::checkSocketHandle() {
     return true;
 }
 
-/*
- * ���ӵ�_address��
- *
- * @return �Ƿ�ɹ�
- */
 bool Socket::connect() {
     if (!checkSocketHandle()) {
         return false;
@@ -115,9 +115,6 @@ bool Socket::connect() {
     return (0 == ::connect(_socketHandle, (struct sockaddr *)&_address, sizeof(_address)));
 }
 
-/**
- * �ر�����
- */
 void Socket::close() {
     if (_socketHandle != -1) {
 //        TBSYS_LOG(DEBUG, "�ر�, fd=%d, addr=%s", _socketHandle, getAddr().c_str());
@@ -126,32 +123,17 @@ void Socket::close() {
     }
 }
 
-/*
- * �رն�д
- */
 void Socket::shutdown() {
     if (_socketHandle != -1) {
         ::shutdown(_socketHandle, SHUT_WR);
     }
 }
 
-/**
- * ʹ��UDP��socket
- *
- * @return �Ƿ�ɹ�
- */
 bool Socket::createUDP() {
     close();
     _socketHandle = socket(AF_INET, SOCK_DGRAM, 0);
     return (_socketHandle != -1);
 }
-
-/*
- * ��socketHandle,��ipaddress���õ���socket��
- *
- * @param  socketHandle: socket���ļ����
- * @param hostAddress: ��������ַ
- */
 
 void Socket::setUp(int socketHandle, struct sockaddr *hostAddress) {
     close();
@@ -159,36 +141,18 @@ void Socket::setUp(int socketHandle, struct sockaddr *hostAddress) {
     memcpy(&_address, hostAddress, sizeof(_address));
 }
 
-/*
- * �����ļ����
- *
- * @return �ļ����
- */
 int Socket::getSocketHandle() {
     return _socketHandle;
 }
 
-/*
- * ����event attribute
- *
- * @return  IOComponent
- */
 IOComponent *Socket::getIOComponent() {
     return _iocomponent;
 }
 
-/*
- * ����IOComponent
- *
- * @param IOComponent
- */
 void Socket::setIOComponent(IOComponent *ioc) {
     _iocomponent = ioc;
 }
 
-/*
- * д���
- */
 int Socket::write (const void *data, int len) {
     if (_socketHandle == -1) {
         return -1;
@@ -216,33 +180,32 @@ int Socket::sendto(const void *data, int len, sockaddr_in &dest)
 	int addr_len = sizeof(sockaddr_in);
 	do
 	{
-		res = ::sendto(_socketHandle, data, len, 0, (struct sockaddr *)&dest, addr_len);
+		res = ::sendto(_socketHandle, data, len, 0, (struct sockaddr *) &dest, addr_len);
 		if (res > 0)
 		{
 			TBNET_COUNT_DATA_WRITE(res);
 		}
 
 	} while (res < 0 && errno == EINTR);
-	return res;
 
+	return res;
 }
 
-/*
- * �����
- */
-int Socket::read (void *data, int len) {
-    if (_socketHandle == -1) {
-        return -1;
-    }
+int Socket::read(void *data, int len)
+{
+	if (_socketHandle == -1) return -1;
 
-    int res;
-    do {
-        res = ::read(_socketHandle, data, len);
-        if (res > 0) {
-            TBNET_COUNT_DATA_READ(res);
-        }
-    } while (res < 0 && errno == EINTR);
-    return res;
+	int res;
+	do
+	{
+		res = ::read(_socketHandle, data, len);
+		if (res > 0)
+		{
+			TBNET_COUNT_DATA_READ(res);
+		}
+	} while (res < 0 && errno == EINTR);
+
+	return res;
 }
 
 
@@ -255,6 +218,7 @@ int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 
 	int res;
 	int addr_len = sizeof(sockaddr_in);
+
 	do
 	{
 		res = ::recvfrom(_socketHandle, (void*)data, len, 0, (struct sockaddr *)&src,
@@ -268,9 +232,6 @@ int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 	return res;
 }
 
-/*
- * ����int���͵�option
- */
 bool Socket::setIntOption (int option, int value) {
     bool rc=false;
     if (checkSocketHandle()) {
@@ -280,9 +241,6 @@ bool Socket::setIntOption (int option, int value) {
     return rc;
 }
 
-/*
- * ����time���͵�option
- */
 bool Socket::setTimeOption(int option, int milliseconds) {
     bool rc=false;
     if (checkSocketHandle()) {
@@ -328,9 +286,6 @@ bool Socket::setTcpQuickAck(bool quickAck) {
   return rc;
 }
 
-/*
- * �Ƿ�����
- */
 bool Socket::setSoBlocking(bool blockingEnabled) {
     bool rc=false;
 
@@ -352,9 +307,6 @@ bool Socket::setSoBlocking(bool blockingEnabled) {
     return rc;
 }
 
-/*
- * �õ�ip��ַ, д��tmp��
- */
 std::string Socket::getAddr() {
     char dest[32];
     unsigned long ad = ntohl(_address.sin_addr.s_addr);
@@ -367,9 +319,6 @@ std::string Socket::getAddr() {
     return dest;
 }
 
-/*
- * �õ�64λ���ֵ�ip��ַ
- */
 uint64_t Socket::getId() {
     uint64_t ip = ntohs(_address.sin_port);
     ip <<= 32;
@@ -397,9 +346,6 @@ uint64_t Socket::getPeerId() {
     return 0;
 }
 
-/**
- * �õ����ض˿�
- */
 int Socket::getLocalPort() {
     if (_socketHandle == -1) {
         return -1;
@@ -414,9 +360,6 @@ int Socket::getLocalPort() {
     return result;
 }
 
-/*
- * �õ�socket����
- */
 int Socket::getSoError () {
     if (_socketHandle == -1) {
         return EINVAL;

@@ -35,7 +35,9 @@ bool UDPComponent::init(bool isServer)
 			return false;
 		}
 	}
+
 	_isServer = isServer;
+
 	return true;
 }
 
@@ -50,12 +52,13 @@ bool UDPComponent::handleWriteEvent()
 	return true;
 }
 
+//UDPComponent只有TRIONES_UDPCONN才处理写事件
 bool UDPComponent::handleReadEvent()
 {
 	__INTO_FUN__
 	_lastUseTime = triones::CTimeUtil::getTime();
 	bool rc = false;
-	if (_state == TRIONES_CONNECTED)
+	if (_type == TRIONES_UDPCONN)
 	{
 		rc = readData();
 	}
@@ -99,6 +102,7 @@ bool UDPComponent::writeData()
 	return true;
 }
 
+//数据发送的同步接口
 bool UDPComponent::postPacket(Packet *packet)
 {
 	//TRIONES_UDPCONN和TRIONES_UDPACTCONN可以调用到这个地方
@@ -108,22 +112,40 @@ bool UDPComponent::postPacket(Packet *packet)
 		return false;
 	}
 
-	int send_len = min(packet->getDataLen(), TRIONES_UDP_MAX_PACK);
-	int ret = 0;
+	bool ret = false;
+	int len = packet->getDataLen();
+	int offset = 0;
+	int sendbytes = 0;
+	int send_len = 0;
 
-	//如果是已经调用connect的情况
-	if(_type == TRIONES_UDPCONN)
+	while (offset < len)
 	{
-		ret = _socket->write(packet->getData(), send_len);
-	}
-	else if(_type == TRIONES_UDPACTCONN)
-	{
-		ret = _socket->sendto(packet->getData(), send_len, _sock_addr);
+		//UDP包的最大发送长度TRIONES_UDP_MAX_PACK
+		send_len = min(len, TRIONES_UDP_MAX_PACK);
+
+		//如果是已经调用connect的情况
+		if (_type == TRIONES_UDPCONN)
+		{
+			sendbytes = _socket->write(packet->getData() + offset, send_len);
+		}
+		else if (_type == TRIONES_UDPACTCONN)
+		{
+			sendbytes = _socket->sendto(packet->getData() + offset, send_len, _sock_addr);
+		}
+
+		if(sendbytes < 0)
+		{
+			ret = false;
+			break;
+		}
+
+		offset += sendbytes;
 	}
 
-	delete packet;
+	if(ret)
+		delete packet;
 
-	return ret < 0 ? false : true;
+	return ret;
 }
 
 //todo : 2014-10-29

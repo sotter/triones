@@ -34,6 +34,7 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
+
 //		printf("receive from %s len %d : %s \n",
 //				ioc->getSocket()->getAddr().c_str(),
 //				packet->getDataLen(),
