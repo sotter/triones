@@ -25,6 +25,7 @@
 #include <time.h>
 
 #include <list>
+#include <map>
 #include <queue>
 #include <vector>
 #include <string>
@@ -63,6 +64,8 @@ class ConnectionManager;
 
 #include "atomic.h"
 #include "iserveradapter.h"
+#include "sockutil.h"
+#include "tbtimeutil.h"
 
 #include "socket.h"
 #include "serversocket.h"

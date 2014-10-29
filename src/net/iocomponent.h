@@ -204,6 +204,8 @@ public:
 
 public:
     IServerAdapter *_serverAdapter;         // 服务器适配器
+	IOComponent *_pre; // 用于链表
+	IOComponent *_next; // 用于链表
 protected:
 	triones::Transport *_owner;
 	Socket *_socket;    // 一个Socket的文件句柄
@@ -215,9 +217,6 @@ protected:
 	bool _isServer;     // 是否为服务器端
 	bool _inUsed;       // 是否在用
 	int64_t _lastUseTime;   // 最近使用的系统时间
-private:
-	IOComponent *_prev; // 用于链表
-	IOComponent *_next; // 用于链表
 };
 } /* namespace triones */
 #endif /* IOCOMPONENT_H_ */

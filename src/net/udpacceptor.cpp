@@ -24,7 +24,6 @@ bool UDPAcceptor::init(bool isServer)
 	return ((ServerSocket*) _socket)->listen();
 }
 
-
 bool UDPAcceptor::handleReadEvent()
 {
 	return readData();
@@ -39,7 +38,7 @@ bool UDPAcceptor::readData()
 
 	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr);
 	UDPComponent *ioc = get(sockid);
-	ioc->_lastUseTime = triones::CTimeUtil::getTime();
+	_lastUseTime = triones::CTimeUtil::getTime();
 
 	int decode = _streamer->decode(_read_buff, n, &_inputQueue);
 
@@ -62,7 +61,6 @@ bool UDPAcceptor::writeData()
 
 void UDPAcceptor::checkTimeout(int64_t now)
 {
-
 	UNUSED(now);
 	return;
 }
@@ -74,7 +72,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 
 	_mutex.lock();
 	std::map<uint64_t, UDPComponent*>::iterator iter = _mpsock.find(sockid);
-	if(iter != NULL)
+	if(iter != _mpsock.end())
 	{
 		ioc = iter->second;
 		_mutex.unlock();
@@ -92,6 +90,8 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 //将回收的ioc放回到池子中
 void UDPAcceptor::put(UDPComponent* ioc)
 {
+	//暂不实现
+	UNUSED(ioc);
 	return;
 }
 

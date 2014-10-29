@@ -81,7 +81,7 @@ public:
      * @param autoReconn: 是否重连
      * @return  返回一个Connectoion对象指针
      */
-    TCPComponent *connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn = false);
+    IOComponent *connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn = false);
 
     /*
      * 主动断开

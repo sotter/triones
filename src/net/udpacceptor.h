@@ -6,13 +6,16 @@
  *Description: 写操作由UDPComponent完成，同时写操作属于同步接口。
  *Description: （2） socket关闭的策略：立马标志socket的状态，清理网络层资源。业务层的packet包，可以通过packet包通知
  *Description:     而不是直接回调。
- *Description: （3）
+ *Description: （3）引用计数的策略，其他对象聚合A引用计数加1，解除聚合关系引用计数减1
  *******************************************************/
 
 #ifndef UDPACCEPTOR_H_
 #define UDPACCEPTOR_H_
 
+#include "../comm/tqueue.h"
+
 //UDP包的最大长度即为64KB
+#define TRIONES_UDP_MAX_PACK  (64 * 1024)
 #define TRIONES_UDP_RECV_SIZE (64 * 1024)
 
 namespace triones
@@ -80,13 +83,13 @@ private:
 
     //下面的部分，针对Acceptor UDP进行的用户管理
 	// 数据队列头
-	TQueue<UDPComponent> _queue ;
+	TQueue<IOComponent> _queue ;
 
-	// 在线队列查找索引
-	std::set<UDPComponent*> _index ;
+//	// 在线队列查找索引
+//	std::set<UDPComponent*> _index ;
 
 	// 在线队列管理
-	TQueue<UDPComponent> _online ;
+	TQueue<IOComponent> _online ;
 
 	// 数据同步操作锁
 	triones::Mutex _mutex ;

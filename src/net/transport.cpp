@@ -133,7 +133,7 @@ void Transport::timeoutLoop() {
                 mydelHead = _delListHead;
             } else {
                 mydelTail->_next = _delListHead;
-                _delListHead->_prev = mydelTail;
+                _delListHead->_pre = mydelTail;
             }
             mydelTail = _delListTail;
             // 清空delList
@@ -160,12 +160,12 @@ void Transport::timeoutLoop() {
                     mydelHead = tmpList->_next;
                 }
                 if (tmpList == mydelTail) { // tail
-                    mydelTail = tmpList->_prev;
+                    mydelTail = tmpList->_pre;
                 }
-                if (tmpList->_prev != NULL)
-                    tmpList->_prev->_next = tmpList->_next;
+                if (tmpList->_pre != NULL)
+                    tmpList->_pre->_next = tmpList->_next;
                 if (tmpList->_next != NULL)
-                    tmpList->_next->_prev = tmpList->_prev;
+                    tmpList->_next->_pre = tmpList->_pre;
 
                 IOComponent *ioc = tmpList;
                 tmpList = tmpList->_next;
@@ -189,7 +189,7 @@ void Transport::timeoutLoop() {
             _delListHead = mydelHead;
         } else {
             _delListTail->_next = mydelHead;
-            mydelHead->_prev = _delListTail;
+            mydelHead->_pre = _delListTail;
         }
         _delListTail = mydelTail;
     }
@@ -296,54 +296,73 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
  * @param streamer: 数据包的双向流，用packet创建，解包，组包。
  * @return  返回一个Connectoion对象指针
  */
-TCPComponent *Transport::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn) {
-    char tmp[1024];
-    char *args[32];
-    strncpy(tmp, spec, 1024);
-    tmp[1023] = '\0';
+IOComponent *Transport::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn)
+{
+	char tmp[1024];
+	char *args[32];
+	strncpy(tmp, spec, 1024);
+	tmp[1023] = '\0';
 
-    if (parseAddr(tmp, args, 32) != 3) {
-        return NULL;
-    }
+	if (parseAddr(tmp, args, 32) != 3)
+	{
+		return NULL;
+	}
 
-    if (strcasecmp(args[0], "tcp") == 0) {
-        char *host = args[1];
-        int port = atoi(args[2]);
+	char *host = args[1];
+	int port = atoi(args[2]);
 
-        // Socket
-        Socket *socket = new Socket();
+	if (strcasecmp(args[0], "tcp") == 0)
+	{
+		// Socket
+		Socket *socket = new Socket();
 
-        if (!socket->setAddress(host, port)) {
-            delete socket;
-            OUT_ERROR(NULL, 0, NULL,  "设置setAddress错误: %s:%d, %s", host, port, spec);
-            return NULL;
-        }
+		if (!socket->setAddress(host, port))
+		{
+			delete socket;
+			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
+			return NULL;
+		}
+		// TCPComponent
+		TCPComponent *component = new TCPComponent(this, socket, streamer, NULL);
+		// 设置是否自动重连
+		component->setAutoReconn(autoReconn);
+		if (!component->init())
+		{
+			delete component;
+			OUT_ERROR(NULL, 0, NULL, "初始化失败TCPComponent: %s:%d", host, port);
+			return NULL;
+		}
+	}
+	else if (strcasecmp(args[0], "udp") == 0)
+	{
+		Socket *socket = new Socket();
+		socket->createUDP();
+		if (!socket->setAddress(host, port))
+		{
+			delete socket;
+			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
+			return NULL;
+		}
 
-        // TCPComponent
-        TCPComponent *component = new TCPComponent(this, socket, streamer, NULL);
-        // 设置是否自动重连
-        component->setAutoReconn(autoReconn);
-        if (!component->init()) {
-            delete component;
-            OUT_ERROR(NULL, 0, NULL,  "初始化失败TCPComponent: %s:%d", host, port);
-            return NULL;
-        }
+		UDPComponent *component = new UDPComponent(this, socket, streamer,
+				NULL, IOComponent::TRIONES_UDPCONN);
 
-        // 加入到iocomponents中，及注册可写到socketevent中
-        addComponent(component, true, true);
-        component->addRef();
+		if(!component->init())
+		{
+			delete component;
+			OUT_ERROR(NULL, 0, NULL, "初始化失败TCPComponent: %s:%d", host, port);
+			return NULL;
+		}
 
-//        return component->getConnection();
-        return component;
+		//UDP写操作采用同步行为，所有的UDP ioc都不接收写事件。
+		addComponent(component, true, false);
+		component->addRef();
+		return component;
+	}
 
-    } else if (strcasecmp(args[0], "udp") == 0) {}
-
-    return NULL;
+	return NULL;
 }
 
-/**
- * 主动断开
- */
 bool Transport::disconnect(TCPComponent *conn) {
     IOComponent *ioc = NULL;
     if (conn == NULL) {
@@ -373,7 +392,7 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn) {
         return;
     }
     // 加入iocList上
-    ioc->_prev = _iocListTail;
+    ioc->_pre = _iocListTail;
     ioc->_next = NULL;
     if (_iocListTail == NULL) {
         _iocListHead = ioc;
@@ -418,16 +437,16 @@ void Transport::removeComponent(IOComponent *ioc) {
     }
 
     if (ioc == _iocListTail) { // tail
-        _iocListTail = ioc->_prev;
+        _iocListTail = ioc->_pre;
     }
 
-    if (ioc->_prev != NULL)
-        ioc->_prev->_next = ioc->_next;
+    if (ioc->_pre != NULL)
+        ioc->_pre->_next = ioc->_next;
     if (ioc->_next != NULL)
-        ioc->_next->_prev = ioc->_prev;
+        ioc->_next->_pre = ioc->_pre;
 
     // 加入到_delList
-    ioc->_prev = _delListTail;
+    ioc->_pre = _delListTail;
     ioc->_next = NULL;
     if (_delListTail == NULL) {
         _delListHead = ioc;

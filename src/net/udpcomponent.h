@@ -38,8 +38,13 @@ public:
 
     bool writeData();
 
+	bool postPacket(Packet *packet);
+
+    //检查超时，检查_online并回调超时处理函数
+    void checkTimeout(int64_t now);
+
 private:
-//    __gnu_cxx::hash_map<int, UDPConnection*> _connections;  // UDP连接集合
+
     IServerAdapter *_serverAdapter;
 
     int     _udp_type;
@@ -53,17 +58,9 @@ private:
     PacketQueue _outputQueue;               // 发送队列
     PacketQueue _inputQueue;                // 接收队列
     PacketQueue _myQueue;                   // 在write中处理时暂时用
-    triones::Mutex _output_mutex;           // 发送队列锁
 
-    int _queueTimeout;                      // 队列超时时间
-    int _queueTotalSize;                    // 队列总长度
-    int _queueLimit;                        // 队列最长长度, 如果超过这个值post进来就会被wait
-
-    /**  TCPCONNECTION 部分  ******************/
-    DataBuffer _output;      // 输出的buffer
-    DataBuffer _input;       // 读入的buffer
-    bool _gotHeader;            // packet header已经取过
-    bool _writeFinishClose;     // 写完断开
+    //UDP接收长度
+    char _read_buff[TRIONES_UDP_RECV_SIZE];
 };
 
 } /* namespace triones */

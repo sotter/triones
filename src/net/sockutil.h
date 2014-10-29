@@ -14,6 +14,7 @@ namespace triones
 
 class sockutil
 {
+private:
 	struct triones_sockaddr
 	{
 		unsigned short family;
@@ -27,6 +28,7 @@ class sockutil
 		triones_sockaddr sockaddr;
 	};
 
+public:
 	//将网络地址转换为一个64位的无符号整型的标识ID，方便key值的的操作,如果作为string性能很低
 	static uint64_t sock_addr2id(struct sockaddr_in *sockaddr);
 
