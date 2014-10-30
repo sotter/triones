@@ -1,8 +1,8 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: UDPComponent.h
  *     Author: triones  2014-9-18
- *Description: ¶ÔÓÚUDPÀ´Ëµ£¬¶ÔÓÚ·şÎñ¶Ë¶¼ÊÇÓÉUDPAcceptorÀ´´¦Àí£¬ËùÓĞµÄ·¢ËÍÉÏÀ´µÄ¿Í»§¶Ë¶¼Ê¹ÓÃÒ»¸ösocket¡£
- *Description: ¶ÔÓÚ¿Í»§¶ËÀ´Ëµ£¬Ã¿Ò»¸ö¿Í»§¶ËÎªÆä·ÖÅäÒ»¸ösocket
+ *Description: å¯¹äºUDPæ¥è¯´ï¼Œå¯¹äºæœåŠ¡ç«¯éƒ½æ˜¯ç”±UDPAcceptoræ¥å¤„ç†ï¼Œæ‰€æœ‰çš„å‘é€ä¸Šæ¥çš„å®¢æˆ·ç«¯éƒ½ä½¿ç”¨ä¸€ä¸ªsocketã€‚
+ *Description: å¯¹äºå®¢æˆ·ç«¯æ¥è¯´ï¼Œæ¯ä¸€ä¸ªå®¢æˆ·ç«¯ä¸ºå…¶åˆ†é…ä¸€ä¸ªsocket
  *******************************************************/
 
 #ifndef UDPCOMPONENT_H_
@@ -23,16 +23,16 @@ public:
 
     ~UDPComponent();
 
-    //³õÊ¼»¯
+    //åˆå§‹åŒ–
     bool init(bool isServer = false);
 
-    //¹Ø±Õ
+    //å…³é—­
     void close();
 
-    //TransPort¿ÉĞ´µÄ»Øµ÷º¯Êı
+    //TransPortå¯å†™çš„å›è°ƒå‡½æ•°
     bool handleWriteEvent();
 
-    //TransPort¿É¶ÁµÄ»Øµ÷º¯Êı
+    //TransPortå¯è¯»çš„å›è°ƒå‡½æ•°
     bool handleReadEvent();
 
     bool readData();
@@ -41,7 +41,7 @@ public:
 
 	bool postPacket(Packet *packet);
 
-    //¼ì²é³¬Ê±£¬¼ì²é_online²¢»Øµ÷³¬Ê±´¦Àíº¯Êı
+    //æ£€æŸ¥è¶…æ—¶ï¼Œæ£€æŸ¥_onlineå¹¶å›è°ƒè¶…æ—¶å¤„ç†å‡½æ•°
     void checkTimeout(int64_t now);
 
 private:
@@ -49,15 +49,15 @@ private:
 
     struct  sockaddr_in      _sock_addr;
 
-	//ÕâÀïµÄ_isServerÖ¸µÄaccpect³öÀ´µÄsocket£¬¶ø²»ÊÇlisten socket
-    bool _isServer;                         // ÊÇ·şÎñÆ÷¶Ë
-    TransProtocol *_streamer;               // Packet½âÎö
+	//è¿™é‡Œçš„_isServeræŒ‡çš„accpectå‡ºæ¥çš„socketï¼Œè€Œä¸æ˜¯listen socket
+    bool _isServer;                         // æ˜¯æœåŠ¡å™¨ç«¯
+    TransProtocol *_streamer;               // Packetè§£æ
 
-    PacketQueue _outputQueue;               // ·¢ËÍ¶ÓÁĞ
-    PacketQueue _inputQueue;                // ½ÓÊÕ¶ÓÁĞ
-    PacketQueue _myQueue;                   // ÔÚwriteÖĞ´¦ÀíÊ±ÔİÊ±ÓÃ
+    PacketQueue _outputQueue;               // å‘é€é˜Ÿåˆ—
+    PacketQueue _inputQueue;                // æ¥æ”¶é˜Ÿåˆ—
+    PacketQueue _myQueue;                   // åœ¨writeä¸­å¤„ç†æ—¶æš‚æ—¶ç”¨
 
-    //UDP½ÓÊÕ³¤¶È
+    //UDPæ¥æ”¶é•¿åº¦
     char _read_buff[TRIONES_UDP_RECV_SIZE];
 };
 

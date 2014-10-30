@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: UDPComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -46,13 +46,13 @@ void UDPComponent::close()
 
 }
 
-//UDPComponent²»´¦Àí¿ÉĞ´ÊÂ¼ş£¬UDPComponentµÄĞ´²Ù×÷ÊÇÍ¬²½½Ó¿Ú
+//UDPComponentä¸å¤„ç†å¯å†™äº‹ä»¶ï¼ŒUDPComponentçš„å†™æ“ä½œæ˜¯åŒæ­¥æ¥å£
 bool UDPComponent::handleWriteEvent()
 {
 	return true;
 }
 
-//UDPComponentÖ»ÓĞTRIONES_UDPCONN²Å´¦ÀíĞ´ÊÂ¼ş
+//UDPComponentåªæœ‰TRIONES_UDPCONNæ‰å¤„ç†å†™äº‹ä»¶
 bool UDPComponent::handleReadEvent()
 {
 	__INTO_FUN__
@@ -65,12 +65,12 @@ bool UDPComponent::handleReadEvent()
 	return rc;
 }
 
-//Ìá¹©¸øÒÑ¾­Á¬½ÓµÄUDPSocketÊ¹ÓÃ£»
+//æä¾›ç»™å·²ç»è¿æ¥çš„UDPSocketä½¿ç”¨ï¼›
 bool UDPComponent::readData()
 {
 	__INTO_FUN__
 
-	//Ö»ÓĞTRIONES_UDPCONNÀàĞÍµÄ²Å¿ÉÒÔµ÷ÓÃµ½Õâ¸öµØ·½
+	//åªæœ‰TRIONES_UDPCONNç±»å‹çš„æ‰å¯ä»¥è°ƒç”¨åˆ°è¿™ä¸ªåœ°æ–¹
 	if(_type != TRIONES_UDPCONN)
 	{
 		OUT_INFO(NULL, 0, NULL, "read type error, type %d", _type);
@@ -95,17 +95,17 @@ bool UDPComponent::readData()
 	return true;
 }
 
-//Ìá¹©¸øÒÑ¾­Á¬½ÓµÄUDPSocketÊ¹ÓÃ£»
+//æä¾›ç»™å·²ç»è¿æ¥çš„UDPSocketä½¿ç”¨ï¼›
 bool UDPComponent::writeData()
 {
 	__INTO_FUN__
 	return true;
 }
 
-//Êı¾İ·¢ËÍµÄÍ¬²½½Ó¿Ú
+//æ•°æ®å‘é€çš„åŒæ­¥æ¥å£
 bool UDPComponent::postPacket(Packet *packet)
 {
-	//TRIONES_UDPCONNºÍTRIONES_UDPACTCONN¿ÉÒÔµ÷ÓÃµ½Õâ¸öµØ·½
+	//TRIONES_UDPCONNå’ŒTRIONES_UDPACTCONNå¯ä»¥è°ƒç”¨åˆ°è¿™ä¸ªåœ°æ–¹
 	if(_type != TRIONES_UDPCONN && _type != TRIONES_UDPACTCONN)
 	{
 		OUT_INFO(NULL, 0, NULL, "write type error, type %d", _type);
@@ -120,10 +120,10 @@ bool UDPComponent::postPacket(Packet *packet)
 
 	while (offset < len)
 	{
-		//UDP°üµÄ×î´ó·¢ËÍ³¤¶ÈTRIONES_UDP_MAX_PACK
+		//UDPåŒ…çš„æœ€å¤§å‘é€é•¿åº¦TRIONES_UDP_MAX_PACK
 		send_len = min(len, TRIONES_UDP_MAX_PACK);
 
-		//Èç¹ûÊÇÒÑ¾­µ÷ÓÃconnectµÄÇé¿ö
+		//å¦‚æœæ˜¯å·²ç»è°ƒç”¨connectçš„æƒ…å†µ
 		if (_type == TRIONES_UDPCONN)
 		{
 			sendbytes = _socket->write(packet->getData() + offset, send_len);

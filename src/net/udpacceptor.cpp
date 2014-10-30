@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: UDPAcceptor.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -66,7 +66,7 @@ void UDPAcceptor::checkTimeout(int64_t now)
 	return;
 }
 
-//¸ù¾İsockid»ñÈ¡¶ÔÓ¦µÄUDPComponent, Èç¹ûÃ»ÓĞÕÒµ½ĞÂ½¨Ò»¸ö
+//æ ¹æ®sockidè·å–å¯¹åº”çš„UDPComponent, å¦‚æœæ²¡æœ‰æ‰¾åˆ°æ–°å»ºä¸€ä¸ª
 UDPComponent *UDPAcceptor::get(uint64_t sockid)
 {
 	UDPComponent *ioc = NULL;
@@ -80,7 +80,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 	}
 
 	ioc = new UDPComponent(NULL, _socket, _streamer, _serverAdapter, TRIONES_UDPACTCONN);
-	//ÉèÖÃĞÂ½¨Á¢µÄUDPComponentµÄµØÖ·£»
+	//è®¾ç½®æ–°å»ºç«‹çš„UDPComponentçš„åœ°å€ï¼›
 	sockutil::sock_id2addr(sockid, &(ioc->_sock_addr));
 
 	_online.push(ioc);
@@ -91,10 +91,10 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 	return ioc;
 }
 
-//½«»ØÊÕµÄioc·Å»Øµ½³Ø×ÓÖĞ
+//å°†å›æ”¶çš„iocæ”¾å›åˆ°æ± å­ä¸­
 void UDPAcceptor::put(UDPComponent* ioc)
 {
-	//Ôİ²»ÊµÏÖ
+	//æš‚ä¸å®ç°
 	UNUSED(ioc);
 	return;
 }

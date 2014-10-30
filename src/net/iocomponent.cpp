@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: IOComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -17,16 +17,16 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 	_socket->setIOComponent(this);
 	_socketEvent = NULL;
 	atomic_set(&_refcount, 0);
-	_state = TRIONES_UNCONNECTED; // ÕıÔÚÁ¬½Ó
+	_state = TRIONES_UNCONNECTED; // æ­£åœ¨è¿æ¥
 	_type =  type;
-	_autoReconn = false; // ²»Òª×Ô¶¯ÖØÁ¬
+	_autoReconn = false; // ä¸è¦è‡ªåŠ¨é‡è¿
 	_pre = _next = NULL;
 	_lastUseTime = triones::CTimeUtil::getTime();
 	_inUsed = false;
 }
 
 /*
- * Îö¹¹º¯Êı
+ * ææ„å‡½æ•°
  */
 IOComponent::~IOComponent()
 {

@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: TCPComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -38,19 +38,19 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 //	memset(&_packetHeader, 0, sizeof(_packetHeader));
 }
 
-//Îö¹¹º¯Êı
+//ææ„å‡½æ•°
 TCPComponent::~TCPComponent()
 {
 	__INTO_FUN__
-	//½«CONNECTIONºÍTCPCONNECTIONµÄÎö¹¹º¯Êı·Åµ½ÕâÀï
-	//tcpconnection ÎŞÄÚÈİ
-	//connectionÄÚÈİ
+	//å°†CONNECTIONå’ŒTCPCONNECTIONçš„ææ„å‡½æ•°æ”¾åˆ°è¿™é‡Œ
+	//tcpconnection æ— å†…å®¹
+	//connectionå†…å®¹
 	disconnect();
 	_socket = NULL;
 //	_iocomponent = NULL;
 }
 
-//Á¬½Ó¶Ï¿ª£¬½µËùÓĞ·¢ËÍ¶ÓÁĞÖĞµÄpacketÈ«²¿³¬Ê±
+//è¿æ¥æ–­å¼€ï¼Œé™æ‰€æœ‰å‘é€é˜Ÿåˆ—ä¸­çš„packetå…¨éƒ¨è¶…æ—¶
 void TCPComponent::disconnect()
 {
 	__INTO_FUN__
@@ -60,7 +60,7 @@ void TCPComponent::disconnect()
 	checkTimeout(TBNET_MAX_TIME);
 }
 
-//Á¬½Óµ½Ö¸¶¨µÄ»úÆ÷, isServer: ÊÇ·ñ³õÊ¼»¯Ò»¸ö·şÎñÆ÷µÄConnection
+//è¿æ¥åˆ°æŒ‡å®šçš„æœºå™¨, isServer: æ˜¯å¦åˆå§‹åŒ–ä¸€ä¸ªæœåŠ¡å™¨çš„Connection
 bool TCPComponent::init(bool isServer)
 {
 	__INTO_FUN__
@@ -96,13 +96,13 @@ bool TCPComponent::init(bool isServer)
 
 
 /*
- * Á¬½Óµ½socket
+ * è¿æ¥åˆ°socket
  */
 bool TCPComponent::socket_connect()
 {
 	__INTO_FUN__
 
-	//×¢Òâ£¬Õâ¸öº¯Êı±ØĞëÊÇ¿ÉÖØÈëµÄ£¬¿ÉÄÜÓĞ²»Í¬ÓÃ»§µÄÏß³Ìµ÷ÓÃÕâ¸ö½Ó¿Ú£¬ÍêÈ«ÒÀ¿¿stateÅĞ¶ÏÒ²²»ÊÇºÜÑÏÃÜµÄ£»2014-10-11
+	//æ³¨æ„ï¼Œè¿™ä¸ªå‡½æ•°å¿…é¡»æ˜¯å¯é‡å…¥çš„ï¼Œå¯èƒ½æœ‰ä¸åŒç”¨æˆ·çš„çº¿ç¨‹è°ƒç”¨è¿™ä¸ªæ¥å£ï¼Œå®Œå…¨ä¾é stateåˆ¤æ–­ä¹Ÿä¸æ˜¯å¾ˆä¸¥å¯†çš„ï¼›2014-10-11
 	if (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING)
 	{
 		return true;
@@ -153,7 +153,7 @@ void TCPComponent::close()
 		}
 		if (isConnectState())
 		{
-			//½«Õâ¸öÊÂ¼ş×ª»¯³ÉÒ»¸ösocket×ª·¢³öÈ¥
+			//å°†è¿™ä¸ªäº‹ä»¶è½¬åŒ–æˆä¸€ä¸ªsocketè½¬å‘å‡ºå»
 			setDisconnState();
 		}
 		_socket->close();
@@ -165,9 +165,9 @@ void TCPComponent::close()
 }
 
 /*
- * µ±ÓĞÊı¾İ¿ÉĞ´µ½Ê±±»Transportµ÷ÓÃ
+ * å½“æœ‰æ•°æ®å¯å†™åˆ°æ—¶è¢«Transportè°ƒç”¨
  *
- * @return ÊÇ·ñ³É¹¦, true - ³É¹¦, false - Ê§°Ü¡£
+ * @return æ˜¯å¦æˆåŠŸ, true - æˆåŠŸ, false - å¤±è´¥ã€‚
  */
 bool TCPComponent::handleWriteEvent()
 {
@@ -190,7 +190,7 @@ bool TCPComponent::handleWriteEvent()
 		}
 		else
 		{
-			OUT_ERROR(NULL, 0, NULL, "Á¬½Óµ½ %s Ê§°Ü: %s(%d)", _socket->getAddr().c_str(),
+			OUT_ERROR(NULL, 0, NULL, "è¿æ¥åˆ° %s å¤±è´¥: %s(%d)", _socket->getAddr().c_str(),
 			        strerror(error), error);
 			if (_socketEvent)
 			{
@@ -204,9 +204,9 @@ bool TCPComponent::handleWriteEvent()
 }
 
 /**
- * µ±ÓĞÊı¾İ¿É¶ÁÊ±±»Transportµ÷ÓÃ
+ * å½“æœ‰æ•°æ®å¯è¯»æ—¶è¢«Transportè°ƒç”¨
  *
- * @return ÊÇ·ñ³É¹¦, true - ³É¹¦, false - Ê§°Ü¡£
+ * @return æ˜¯å¦æˆåŠŸ, true - æˆåŠŸ, false - å¤±è´¥ã€‚
  */
 bool TCPComponent::handleReadEvent()
 {
@@ -221,79 +221,79 @@ bool TCPComponent::handleReadEvent()
 }
 
 /*
- * ³¬Ê±¼ì²é
- * @param    now µ±Ç°Ê±¼ä(µ¥Î»us)
+ * è¶…æ—¶æ£€æŸ¥
+ * @param    now å½“å‰æ—¶é—´(å•ä½us)
  */
 void TCPComponent::checkTimeout(int64_t now)
 {
 	//	__INTO_FUN__
-	// ¼ì²éÊÇ·ñÁ¬½Ó³¬Ê±
+	// æ£€æŸ¥æ˜¯å¦è¿æ¥è¶…æ—¶
 	if (_state == TRIONES_CONNECTING)
 	{
 		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(2000000)))
-		{ // Á¬½Ó³¬Ê± 2 Ãë
+		{ // è¿æ¥è¶…æ—¶ 2 ç§’
 			_state = TRIONES_CLOSED;
-			OUT_ERROR(NULL, 0, NULL, "Á¬½Óµ½ %s ³¬Ê±.", _socket->getAddr().c_str());
+			OUT_ERROR(NULL, 0, NULL, "è¿æ¥åˆ° %s è¶…æ—¶.", _socket->getAddr().c_str());
 			_socket->shutdown();
 		}
 	}
 	else if (_state == TRIONES_CONNECTED && _isServer == true && _autoReconn == false)
-	{ // Á¬½ÓµÄÊ±ºò, Ö»ÓÃÔÚ·şÎñÆ÷¶Ë
+	{ // è¿æ¥çš„æ—¶å€™, åªç”¨åœ¨æœåŠ¡å™¨ç«¯
 		int64_t idle = now - _lastUseTime;
 		if (idle > static_cast<int64_t>(900000000))
-		{ // ¿ÕÏĞ15min¶Ï¿ª
+		{ // ç©ºé—²15minæ–­å¼€
 			_state = TRIONES_CLOSED;
-			OUT_INFO(NULL, 0, NULL, "%s ¿ÕÏĞÁË: %d (s) ±»¶Ï¿ª.", _socket->getAddr().c_str(),
+			OUT_INFO(NULL, 0, NULL, "%s ç©ºé—²äº†: %d (s) è¢«æ–­å¼€.", _socket->getAddr().c_str(),
 			        (idle / static_cast<int64_t>(1000000)));
 			_socket->shutdown();
 		}
 	}
-	//ĞèÒªÖØÁ¬µÄsocket
+	//éœ€è¦é‡è¿çš„socket
 	else if(_state == TRIONES_CLOSED && _isServer == false && _autoReconn == true)
 	{
-		//Ã¿¸ôÎåÃëÖÓÖØÁ¬Ò»´Î
+		//æ¯éš”äº”ç§’é’Ÿé‡è¿ä¸€æ¬¡
 		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(5000000)))
 		{
-			//²»¹ÜÊÇ·ñÁ¬½Ó³É¹¦£¬¶¼¸üĞÂÁ¬½ÓÊ±¼ä£¬Ê±¼ä¼ä¸ô¶¼ÊÇ5000000
+			//ä¸ç®¡æ˜¯å¦è¿æ¥æˆåŠŸï¼Œéƒ½æ›´æ–°è¿æ¥æ—¶é—´ï¼Œæ—¶é—´é—´éš”éƒ½æ˜¯5000000
 			_startConnectTime = time(NULL);
 			socket_connect();
 		}
 	}
 
-	// Ô­ÏÈconnectµÄ³¬Ê±¼ì²é
+	// åŸå…ˆconnectçš„è¶…æ—¶æ£€æŸ¥
     // checkTimeout(now);
 }
 
-/**** Ô­ÏÈconnectiongµÄ²¿·Ö *********************/
+/**** åŸå…ˆconnectiongçš„éƒ¨åˆ† *********************/
 
 /*
- * handlePacket Êı¾İ
+ * handlePacket æ•°æ®
  */
 bool TCPComponent::handlePacket(Packet *packet)
 {
 	__INTO_FUN__
-	//¿Í»§¶ËµÄ·¢ËÍÃ»ÓĞÈ·ÈÏ·½Ê½£¬ËùÓĞclientºÍserver¶¼ÊÇ²ÉÓÃhandlerpacketµÄ·½Ê½
+	//å®¢æˆ·ç«¯çš„å‘é€æ²¡æœ‰ç¡®è®¤æ–¹å¼ï¼Œæ‰€æœ‰clientå’Œserveréƒ½æ˜¯é‡‡ç”¨handlerpacketçš„æ–¹å¼
 	this->addRef();
 
 	return _serverAdapter->SynHandlePacket(this, packet);
 }
 
-/*** ËµÃ÷ 2014-09-21
- * £¨1£©Õâ¸öµØ·½Ó¦¸ÃÏŞ¶¨Ğ´Èë´ÎÊı£¬Èç¹ûÔÚµ¥Ïß³ÌµÄÌõ¼şÏÂ£¬Ğ´ÈëµÄÊı¾İÁ¿¹ı´ó£¬µ¼ÖÂÆäËüµÄsocketµÄÈÎÎñÒ»Ö±´¦ÓÚµÈ´ı×´Ì¬ £¬
- * ÔÚÕâÀïÃæÄ¬ÈÏ×î´óÊÇÖ»Ğ´10´ÎµÄ¡£
- * £¨2£©¶ÔÓÚĞ´ÊÂ¼şÖĞ³öÏÖµÄÒì³££¬ÈçEPIPEµÈ£¬Ã»ÓĞ×÷ÌØÊâ´¦Àí£¬ÕâÑùµÄ»°Ö»ÄÜÍ¨¹ı¶ÁÊÂ¼şÀ´ÅĞ¶¨socketµÄ¶Ï¿ªÇé¿ö¡£
- * £¨3£©½«packetĞòÁĞ»¯ÎªÁ÷Êı¾İµÄ·½Ê½¡£ÔÚÌÔ±¦µÄ¿ò¼ÜÖĞ£¬ËùÓĞµÄÍ¨ĞÅÄÚ²¿¶¼ÊÇ²ÉÓÃÍ¬Ò»ÖÖĞ­Òé£¬
- * ÓÃÍ¬Ò»ÖÖĞ­Òé½øĞĞÁË·â×°£¬Êı¾İ´«Êä¶¼ÊÇÍ¨¹ıpacketµÄ·½Ê½¡£Õâ¸öpacketÊÇ´øÓĞchanelIDµÄ£¬ÕâÑù·¢ËÍ¶ËºÍ½ÓÊÕ¶ËµÄÒµÎñ¾ÍÄÜ¶ÔÓ¦ÆğÀ´¡£
- * ¶øÔÚÎÒÃÇµÄÒµÎñÖĞ£¬ÊµÏÖµÄÊÇ¸úÍ¨ÓÃ¿Í»§¶ËµÄÍ¨ĞÅ£¬ÕâÖÖ¿Í»§¶Ë¿ÉÄÜ²»cnetĞ´µÄ£¬¶øÊÇ×ßµÄĞ­Òé£¨transprotocol£©
+/*** è¯´æ˜ 2014-09-21
+ * ï¼ˆ1ï¼‰è¿™ä¸ªåœ°æ–¹åº”è¯¥é™å®šå†™å…¥æ¬¡æ•°ï¼Œå¦‚æœåœ¨å•çº¿ç¨‹çš„æ¡ä»¶ä¸‹ï¼Œå†™å…¥çš„æ•°æ®é‡è¿‡å¤§ï¼Œå¯¼è‡´å…¶å®ƒçš„socketçš„ä»»åŠ¡ä¸€ç›´å¤„äºç­‰å¾…çŠ¶æ€ ï¼Œ
+ * åœ¨è¿™é‡Œé¢é»˜è®¤æœ€å¤§æ˜¯åªå†™10æ¬¡çš„ã€‚
+ * ï¼ˆ2ï¼‰å¯¹äºå†™äº‹ä»¶ä¸­å‡ºç°çš„å¼‚å¸¸ï¼Œå¦‚EPIPEç­‰ï¼Œæ²¡æœ‰ä½œç‰¹æ®Šå¤„ç†ï¼Œè¿™æ ·çš„è¯åªèƒ½é€šè¿‡è¯»äº‹ä»¶æ¥åˆ¤å®šsocketçš„æ–­å¼€æƒ…å†µã€‚
+ * ï¼ˆ3ï¼‰å°†packetåºåˆ—åŒ–ä¸ºæµæ•°æ®çš„æ–¹å¼ã€‚åœ¨æ·˜å®çš„æ¡†æ¶ä¸­ï¼Œæ‰€æœ‰çš„é€šä¿¡å†…éƒ¨éƒ½æ˜¯é‡‡ç”¨åŒä¸€ç§åè®®ï¼Œ
+ * ç”¨åŒä¸€ç§åè®®è¿›è¡Œäº†å°è£…ï¼Œæ•°æ®ä¼ è¾“éƒ½æ˜¯é€šè¿‡packetçš„æ–¹å¼ã€‚è¿™ä¸ªpacketæ˜¯å¸¦æœ‰chanelIDçš„ï¼Œè¿™æ ·å‘é€ç«¯å’Œæ¥æ”¶ç«¯çš„ä¸šåŠ¡å°±èƒ½å¯¹åº”èµ·æ¥ã€‚
+ * è€Œåœ¨æˆ‘ä»¬çš„ä¸šåŠ¡ä¸­ï¼Œå®ç°çš„æ˜¯è·Ÿé€šç”¨å®¢æˆ·ç«¯çš„é€šä¿¡ï¼Œè¿™ç§å®¢æˆ·ç«¯å¯èƒ½ä¸cnetå†™çš„ï¼Œè€Œæ˜¯èµ°çš„åè®®ï¼ˆtransprotocolï¼‰
  *  *********/
 bool TCPComponent::writeData()
 {
 	__INTO_FUN__
-	// °Ñ _outputQueue copyµ½ _myQueueÖĞ, ´Ó_myQueueÖĞÏòÍâ·¢ËÍ
+	// æŠŠ _outputQueue copyåˆ° _myQueueä¸­, ä»_myQueueä¸­å‘å¤–å‘é€
 	_output_mutex.lock();
 	_outputQueue.moveto(&_myQueue);
 
-	//Èç¹ûsocketÖĞµÄÊı¾İÒÑ¾­È«²¿·¢ËÍÍê±ÏÁË£¬ÖÃ¿ÉĞ´ÊÂ¼şÎªfalse£¬È»ºóÍË³öÀ´
+	//å¦‚æœsocketä¸­çš„æ•°æ®å·²ç»å…¨éƒ¨å‘é€å®Œæ¯•äº†ï¼Œç½®å¯å†™äº‹ä»¶ä¸ºfalseï¼Œç„¶åé€€å‡ºæ¥
 	if (_myQueue.size() == 0 && _output.getDataLen() == 0)
 	{
 		this->enableWrite(false);
@@ -307,20 +307,20 @@ bool TCPComponent::writeData()
 	int writeCnt = 0;
 	int myQueueSize = _myQueue.size();
 
-	//todo:Õâ¿é´úÂëĞèÒªÖØĞ´£¬packet±¾Éí¾ÍÊÇ´Ó_output¼Ì³Ğ¹ıÀ´µÄ
-	//Èç¹ûwrite³öÏÖERRORAGAINµÄÇé¿ö£¬ÏÂÒ»¸ö°ü¼ÌĞø·¢ËÍ£»
+	//todo:è¿™å—ä»£ç éœ€è¦é‡å†™ï¼Œpacketæœ¬èº«å°±æ˜¯ä»_outputç»§æ‰¿è¿‡æ¥çš„
+	//å¦‚æœwriteå‡ºç°ERRORAGAINçš„æƒ…å†µï¼Œä¸‹ä¸€ä¸ªåŒ…ç»§ç»­å‘é€ï¼›
 
 	do
 	{
 		while (_output.getDataLen() < READ_WRITE_SIZE)
 		{
-			// ¶ÓÁĞ¿ÕÁË¾ÍÍË³ö
+			// é˜Ÿåˆ—ç©ºäº†å°±é€€å‡º
 			if (myQueueSize == 0) break;
 			packet = _myQueue.pop();
 
-			//ÎªÊ²Ã´½«packet·ÅÈëµ½_outputÖĞ·¢ËÍ£¬Èç¹û·¢ËÍÓĞÊ§°ÜµÄÇé¿ö£¬¿ÉÒÔ½«Î´·¢ËÍµÄÊı¾İ·ÅÈëµ½out_putÖĞ£»
-			//¶øÇÒÊÇÒ×À©Õ¹£¬Èç¹ûpacket²»ÊÇ¼Ì³ĞDataBuffer,¿ÉÒÔ½«packetĞòÁĞ³ÉÊı¾İÁ÷¡£
-			//È±µãÊÇÔö¼ÓÁËÒ»´ÎÄÚ´æ¿½±´¡£
+			//ä¸ºä»€ä¹ˆå°†packetæ”¾å…¥åˆ°_outputä¸­å‘é€ï¼Œå¦‚æœå‘é€æœ‰å¤±è´¥çš„æƒ…å†µï¼Œå¯ä»¥å°†æœªå‘é€çš„æ•°æ®æ”¾å…¥åˆ°out_putä¸­ï¼›
+			//è€Œä¸”æ˜¯æ˜“æ‰©å±•ï¼Œå¦‚æœpacketä¸æ˜¯ç»§æ‰¿DataBuffer,å¯ä»¥å°†packetåºåˆ—æˆæ•°æ®æµã€‚
+			//ç¼ºç‚¹æ˜¯å¢åŠ äº†ä¸€æ¬¡å†…å­˜æ‹·è´ã€‚
 			_output.writeBytes(packet->getData(), packet->getDataLen());
 			myQueueSize--;
 			delete packet;
@@ -340,16 +340,16 @@ bool TCPComponent::writeData()
 		}
 		writeCnt++;
 		/*******
-		 * _output.getDataLen() == 0 ËµÃ÷·¢ËÍµÄÊı¾İ¶¼½áÊøÁË
-		 * Í£Ö¹·¢ËÍµÄÌõ¼ş£º
-		 * (1)·¢ËÍµÄ½á¹ûret <= 0, ·¢ËÍÊ§°Ü£¬»òÕßĞ´»º³åÇøÒÑ¾­ÂúÁË¡£
-		 * £¨2£© _output.getDataLen() > 0 ËµÃ÷Ò»´ÎÃ»ÓĞ·¢ËÍÍê£¬»¹ÓĞÃ»ÓĞ·¢ËÍÍêµÄÊı¾İ¡£¾ÍÖ±½ÓÍË³öÀ´Í£Ö¹·¢ËÍÁË¡£
-		 * 	 ÄÇÃ´Õâ¿éÊı¾İÈ¥ÁËÄÄÀï£¿
-		 * (3)×îÖÕmyqueueºÍoutputÖĞÎ´·¢ËÍÍêµÄÊı¾İ¶¼µ½ÄÄÀïÈ¥ÁË
+		 * _output.getDataLen() == 0 è¯´æ˜å‘é€çš„æ•°æ®éƒ½ç»“æŸäº†
+		 * åœæ­¢å‘é€çš„æ¡ä»¶ï¼š
+		 * (1)å‘é€çš„ç»“æœret <= 0, å‘é€å¤±è´¥ï¼Œæˆ–è€…å†™ç¼“å†²åŒºå·²ç»æ»¡äº†ã€‚
+		 * ï¼ˆ2ï¼‰ _output.getDataLen() > 0 è¯´æ˜ä¸€æ¬¡æ²¡æœ‰å‘é€å®Œï¼Œè¿˜æœ‰æ²¡æœ‰å‘é€å®Œçš„æ•°æ®ã€‚å°±ç›´æ¥é€€å‡ºæ¥åœæ­¢å‘é€äº†ã€‚
+		 * 	 é‚£ä¹ˆè¿™å—æ•°æ®å»äº†å“ªé‡Œï¼Ÿ
+		 * (3)æœ€ç»ˆmyqueueå’Œoutputä¸­æœªå‘é€å®Œçš„æ•°æ®éƒ½åˆ°å“ªé‡Œå»äº†
 		 **********/
 	} while (ret > 0 && _output.getDataLen() == 0 && myQueueSize > 0 && writeCnt < 10);
 
-	// ½ôËõ
+	// ç´§ç¼©
 	_output.shrink();
 
 	_output_mutex.lock();
@@ -362,7 +362,7 @@ bool TCPComponent::writeData()
 
 	if (_writeFinishClose)
 	{
-		OUT_ERROR(NULL, 0, NULL, "Ö÷¶¯¶Ï¿ª.");
+		OUT_ERROR(NULL, 0, NULL, "ä¸»åŠ¨æ–­å¼€.");
 		return false;
 	}
 
@@ -370,48 +370,48 @@ bool TCPComponent::writeData()
 }
 
 /****************************
- *(1)socketÄÜ¹»¶ÁÈ¡µÄ×î´óµÄ°üÊÇ¶àÉÙ
+ *(1)socketèƒ½å¤Ÿè¯»å–çš„æœ€å¤§çš„åŒ…æ˜¯å¤šå°‘
  ***************************/
 bool TCPComponent::readData()
 {
 	__INTO_FUN__
-	//Ã¿¸ö°üÉèÖÃÎª8KµÄ´óĞ¡£¬µÚÒ»´Î¶ÁÈ¡³öÀ´×î´óÊÇ8K
+	//æ¯ä¸ªåŒ…è®¾ç½®ä¸º8Kçš„å¤§å°ï¼Œç¬¬ä¸€æ¬¡è¯»å–å‡ºæ¥æœ€å¤§æ˜¯8K
 	_input.ensureFree(READ_WRITE_SIZE);
 
-	//ret±íÊ¾ÒÑ¾­¶ÁÈ¡µ½µÄÊı¾İ
+	//retè¡¨ç¤ºå·²ç»è¯»å–åˆ°çš„æ•°æ®
 	int ret = _socket->read(_input.getFree(), _input.getFreeLen());
 
 	int read_cnt = 0;
 	bool broken = false;
 
-	//×î´óÄÜÁ¬Ğø¶ÁÈ¡10´Î£¬¶ÁÈÎÎñ±ãÇĞ»»³öÀ´£¬¸øÆäËûsocketÊ¹ÓÃ
+	//æœ€å¤§èƒ½è¿ç»­è¯»å–10æ¬¡ï¼Œè¯»ä»»åŠ¡ä¾¿åˆ‡æ¢å‡ºæ¥ï¼Œç»™å…¶ä»–socketä½¿ç”¨
 	while (ret > 0 && ++read_cnt <= 10)
 	{
 		_input.pourData(ret);
 		int decode = _streamer->decode(_input.getData(), _input.getDataLen(), &_inputQueue);
 
-		//Ò»¶¨Òªµ÷ÓÃdrainData£¬ÒòÎªdecodeÊ±ºòÃ»ÓĞ½«_inputµÄ¶ÁÎ»ÖÃÇ°ÒÆ¡£
+		//ä¸€å®šè¦è°ƒç”¨drainDataï¼Œå› ä¸ºdecodeæ—¶å€™æ²¡æœ‰å°†_inputçš„è¯»ä½ç½®å‰ç§»ã€‚
 		if(decode > 0)
 		{
 			_input.drainData(decode);
 		}
 
-		//Èç¹û·¢ÉúÁË¶Ï¿ªÊÂ¼ş£¬»òÊÇ_inputÃ»ÓĞ¶ÁÂú£¨ËµÃ÷»º³åÇøÀïÃæÒÑ¾­Ã»ÓĞÊı¾İÁË£©
+		//å¦‚æœå‘ç”Ÿäº†æ–­å¼€äº‹ä»¶ï¼Œæˆ–æ˜¯_inputæ²¡æœ‰è¯»æ»¡ï¼ˆè¯´æ˜ç¼“å†²åŒºé‡Œé¢å·²ç»æ²¡æœ‰æ•°æ®äº†ï¼‰
 		if (broken || _input.getFreeLen() > 0) break;
 
-		//Èç¹ûÅĞ¶¨¶Á³öÀ´µÄ°ü»¹Ã»ÓĞ½âÎöÍêÈ«ËµÃ÷£¬¿ÉÄÜÓĞÎ´¶Á³öÀ´µÄ°ë°ü¡£
-		//Ô­ÏÈµÄÅĞ¶ÏÌõ¼şÎªdecode > 0, ĞŞ¸ÄÎªdecode >= 0, decode == 0Ê±¿ÉÄÜÊÇÒ»¸ö´ó°ü
-		//Êı¾İ°ü»¹Ã»ÓĞÍêÈ«½ÓÊÕÍê±Ï
+		//å¦‚æœåˆ¤å®šè¯»å‡ºæ¥çš„åŒ…è¿˜æ²¡æœ‰è§£æå®Œå…¨è¯´æ˜ï¼Œå¯èƒ½æœ‰æœªè¯»å‡ºæ¥çš„åŠåŒ…ã€‚
+		//åŸå…ˆçš„åˆ¤æ–­æ¡ä»¶ä¸ºdecode > 0, ä¿®æ”¹ä¸ºdecode >= 0, decode == 0æ—¶å¯èƒ½æ˜¯ä¸€ä¸ªå¤§åŒ…
+		//æ•°æ®åŒ…è¿˜æ²¡æœ‰å®Œå…¨æ¥æ”¶å®Œæ¯•
 		if (decode >= 0 && decode < _input.getDataLen())
 		{
 			_input.ensureFree(READ_WRITE_SIZE);
 		}
 
-		//todo: Èç¹û·¢ËÍÊÇÒ»¸ö´ó°ü£¬ÒªÔÚencodeÌåÏÖ³öÀ´£¬¸æÖªÉÏ²ã£¬ÄÇÃ´_input¼ÌĞøÀ©´ó×Ô¼ºµÄ·¶Î§À´ÊÊÓ¦´ó°üµÄ·¢ËÍ¡£
+		//todo: å¦‚æœå‘é€æ˜¯ä¸€ä¸ªå¤§åŒ…ï¼Œè¦åœ¨encodeä½“ç°å‡ºæ¥ï¼Œå‘ŠçŸ¥ä¸Šå±‚ï¼Œé‚£ä¹ˆ_inputç»§ç»­æ‰©å¤§è‡ªå·±çš„èŒƒå›´æ¥é€‚åº”å¤§åŒ…çš„å‘é€ã€‚
 		ret = _socket->read(_input.getFree(), _input.getFreeLen());
 	}
 
-	//¶Ô¶Áµ½µÄÊı¾İÒµÎñ»Øµ÷´¦Àí£¬×¢ÒâÕâ¸öµØ·½²¢²»¸ºÔğpacketµÄÊÍ·Å£¬¶øÊÇÓÉÍâ²¿À´ÊÍ·ÅµÄ
+	//å¯¹è¯»åˆ°çš„æ•°æ®ä¸šåŠ¡å›è°ƒå¤„ç†ï¼Œæ³¨æ„è¿™ä¸ªåœ°æ–¹å¹¶ä¸è´Ÿè´£packetçš„é‡Šæ”¾ï¼Œè€Œæ˜¯ç”±å¤–éƒ¨æ¥é‡Šæ”¾çš„
 	if (_inputQueue._size > 0)
 	{
 		if (_serverAdapter->_batchPushPacket)
@@ -428,12 +428,12 @@ bool TCPComponent::readData()
 		}
 	}
 
-	//½«¶Á»º´æÇø»Ø¹éµ½³õÊ¼Î»ÖÃ
+	//å°†è¯»ç¼“å­˜åŒºå›å½’åˆ°åˆå§‹ä½ç½®
 	_input.shrink();
 
 	/*************
-	 * brokenÊÂ¼şÔÚ×îºó´¦Àí£¬ÇÒÊÇÔÚÊÂ¼şÔÚÍâ²ãµ÷ÓÃµÄ£¬ËùÒÔµ±¶ÁÈ¡¼¸¸ö°üºó£¬¶Áµ½¶Ï¿ªÊÂ¼şÊ±²¢²»Ó°ÏìÒÑ¾­¶Áµ½µÄÊı¾İµÄ´¦Àí¡£µ«ĞèÒªÒ»¸öÇ°ÌáÌõ¼ş£º
-	 * £¨1£©¶Ï¿ªÊÂ¼ş²»ÄÜ²ÉÓÃÖ±½Ó»Øµ÷µÄ·½Ê½£¬¶øÊÇ¸úÆäËüpacketÊı¾İÒ»Ñù½øĞĞ´¦ÀíÅÅ¶Ó£¬Õâ¸öµØ·½Òª¶Ôpacket½øĞĞ´¦Àí
+	 * brokenäº‹ä»¶åœ¨æœ€åå¤„ç†ï¼Œä¸”æ˜¯åœ¨äº‹ä»¶åœ¨å¤–å±‚è°ƒç”¨çš„ï¼Œæ‰€ä»¥å½“è¯»å–å‡ ä¸ªåŒ…åï¼Œè¯»åˆ°æ–­å¼€äº‹ä»¶æ—¶å¹¶ä¸å½±å“å·²ç»è¯»åˆ°çš„æ•°æ®çš„å¤„ç†ã€‚ä½†éœ€è¦ä¸€ä¸ªå‰ææ¡ä»¶ï¼š
+	 * ï¼ˆ1ï¼‰æ–­å¼€äº‹ä»¶ä¸èƒ½é‡‡ç”¨ç›´æ¥å›è°ƒçš„æ–¹å¼ï¼Œè€Œæ˜¯è·Ÿå…¶å®ƒpacketæ•°æ®ä¸€æ ·è¿›è¡Œå¤„ç†æ’é˜Ÿï¼Œè¿™ä¸ªåœ°æ–¹è¦å¯¹packetè¿›è¡Œå¤„ç†
 	 *************/
 	if (!broken)
 	{
@@ -452,31 +452,31 @@ bool TCPComponent::readData()
 	return !broken;
 }
 
-//postPacket×÷Îª¿Í»§¶Ë£¬Ö÷¶¯·¢ËÍÊı¾İµÄ½Ó¿Ú£¬client¿ÉÒÔ²»ÓÃµÈµ½conn success»Øµ÷³É¹¦£¬¾Íµ÷ÓÃÕâ¸ö½Ó¿Ú¡£
-//todo: ĞèÒª×¢Òâ_outputQueueµÄÊµÏÖÖĞÒÑ¾­ÓĞËøÁË£¬Íâ²ãÓÖ¼ÓÁËËø£¬ºóÃæÒª½«ÕâÁ½¸öËø½øĞĞºÏ²¢2014-10-11
+//postPacketä½œä¸ºå®¢æˆ·ç«¯ï¼Œä¸»åŠ¨å‘é€æ•°æ®çš„æ¥å£ï¼Œclientå¯ä»¥ä¸ç”¨ç­‰åˆ°conn successå›è°ƒæˆåŠŸï¼Œå°±è°ƒç”¨è¿™ä¸ªæ¥å£ã€‚
+//todo: éœ€è¦æ³¨æ„_outputQueueçš„å®ç°ä¸­å·²ç»æœ‰é”äº†ï¼Œå¤–å±‚åˆåŠ äº†é”ï¼Œåé¢è¦å°†è¿™ä¸¤ä¸ªé”è¿›è¡Œåˆå¹¶2014-10-11
 bool TCPComponent::postPacket(Packet *packet)
 {
 	if (!isConnectState())
 	{
-		//Èç¹û´¦ÓÚÀëÏß×´Ì¬£¬¶øÇÒ²»ÊÇ×Ô¶¯ÖØÁ¬µÄ£¬ÄÇÃ´Ö±½Ó·µ»Ø
+		//å¦‚æœå¤„äºç¦»çº¿çŠ¶æ€ï¼Œè€Œä¸”ä¸æ˜¯è‡ªåŠ¨é‡è¿çš„ï¼Œé‚£ä¹ˆç›´æ¥è¿”å›
 		if (isAutoReconn() == false)
 		{
 			return false;
 		}
-		//ÀëÏß×´Ì¬µÄ×î´ó»º´æµÄ°üµÄÊı¾İ²»ÄÜ³¬¹ı10
+		//ç¦»çº¿çŠ¶æ€çš„æœ€å¤§ç¼“å­˜çš„åŒ…çš„æ•°æ®ä¸èƒ½è¶…è¿‡10
 		else if (_outputQueue.size() > 10)
 		{
 			return false;
 		}
 		else
 		{
-			//initÄÚ²¿ÓĞÇı¶¯Á¬½ÓµÄ¹ı³Ì£»
+			//initå†…éƒ¨æœ‰é©±åŠ¨è¿æ¥çš„è¿‡ç¨‹ï¼›
 			bool ret = init(false);
 			if (!ret) return false;
 		}
 	}
 
-	// Èç¹ûÊÇclient, ²¢ÇÒÓĞqueue³¤¶ÈµÄÏŞÖÆ
+	// å¦‚æœæ˜¯client, å¹¶ä¸”æœ‰queueé•¿åº¦çš„é™åˆ¶
 	_output_mutex.lock();
 	_queueTotalSize = _outputQueue.size() + _myQueue.size();
 	if (!_isServer && _queueLimit > 0 && _queueTotalSize >= _queueLimit)
@@ -487,7 +487,7 @@ bool TCPComponent::postPacket(Packet *packet)
 	_output_mutex.unlock();
 
 	_output_mutex.lock();
-	// Ğ´Èëµ½outputqueueÖĞ
+	// å†™å…¥åˆ°outputqueueä¸­
 	_outputQueue.push(packet);
 	if (_outputQueue.size() == 1U)
 	{
@@ -504,7 +504,7 @@ bool TCPComponent::postPacket(Packet *packet)
 }
 
 /**
- * ·¢ËÍsetDisconnState, ¿Í»§¶ËµÄon_dis_connection
+ * å‘é€setDisconnState, å®¢æˆ·ç«¯çš„on_dis_connection
  */
 void TCPComponent::setDisconnState()
 {

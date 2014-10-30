@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : 多线程使用 Monitor对象需要配合Synchronized来使用，如果不进行同步而存在多线程数据错乱情况

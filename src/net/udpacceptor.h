@@ -1,12 +1,12 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: UDPAcceptor.h
  *     Author: triones  2014-9-18
- *Description: (1) UDPAcceptor À´¹ÜÀíÓĞÆäÅÉÉú³öÀ´µÄUDPComponent¶ø²»ÊÇÓÉTransportÖ±½Ó¹ÜÀí£»
- *Description: ËùÓĞµÄUDPComponent¹²ÓÃÒ»¸ösocket£¬ËùÓĞµÄ¶Á²Ù×÷UDPAcceptorÍê³É
- *Description: Ğ´²Ù×÷ÓÉUDPComponentÍê³É£¬Í¬Ê±Ğ´²Ù×÷ÊôÓÚÍ¬²½½Ó¿Ú¡£
- *Description: £¨2£© socket¹Ø±ÕµÄ²ßÂÔ£ºÁ¢Âí±êÖ¾socketµÄ×´Ì¬£¬ÇåÀíÍøÂç²ã×ÊÔ´¡£ÒµÎñ²ãµÄpacket°ü£¬¿ÉÒÔÍ¨¹ıpacket°üÍ¨Öª
- *Description:     ¶ø²»ÊÇÖ±½Ó»Øµ÷¡£
- *Description: £¨3£©ÒıÓÃ¼ÆÊıµÄ²ßÂÔ£¬ÆäËû¶ÔÏó¾ÛºÏAÒıÓÃ¼ÆÊı¼Ó1£¬½â³ı¾ÛºÏ¹ØÏµÒıÓÃ¼ÆÊı¼õ1
+ *Description: (1) UDPAcceptor æ¥ç®¡ç†æœ‰å…¶æ´¾ç”Ÿå‡ºæ¥çš„UDPComponentè€Œä¸æ˜¯ç”±Transportç›´æ¥ç®¡ç†ï¼›
+ *Description: æ‰€æœ‰çš„UDPComponentå…±ç”¨ä¸€ä¸ªsocketï¼Œæ‰€æœ‰çš„è¯»æ“ä½œUDPAcceptorå®Œæˆ
+ *Description: å†™æ“ä½œç”±UDPComponentå®Œæˆï¼ŒåŒæ—¶å†™æ“ä½œå±äºåŒæ­¥æ¥å£ã€‚
+ *Description: ï¼ˆ2ï¼‰ socketå…³é—­çš„ç­–ç•¥ï¼šç«‹é©¬æ ‡å¿—socketçš„çŠ¶æ€ï¼Œæ¸…ç†ç½‘ç»œå±‚èµ„æºã€‚ä¸šåŠ¡å±‚çš„packetåŒ…ï¼Œå¯ä»¥é€šè¿‡packetåŒ…é€šçŸ¥
+ *Description:     è€Œä¸æ˜¯ç›´æ¥å›è°ƒã€‚
+ *Description: ï¼ˆ3ï¼‰å¼•ç”¨è®¡æ•°çš„ç­–ç•¥ï¼Œå…¶ä»–å¯¹è±¡èšåˆAå¼•ç”¨è®¡æ•°åŠ 1ï¼Œè§£é™¤èšåˆå…³ç³»å¼•ç”¨è®¡æ•°å‡1
  *******************************************************/
 
 #ifndef UDPACCEPTOR_H_
@@ -14,7 +14,7 @@
 
 #include "../comm/tqueue.h"
 
-//UDP°üµÄ×î´ó³¤¶È¼´Îª64KB, Ã¿´ÎÖ±½Ó·¢ËÍ64KBÊÇÓĞÎÊÌâµÄ£¬¹ÊÃ¿´Î·¢ËÍ63KB£¬¾­²âÊÔÃ»ÓĞÎÊÌâ¡£
+//UDPåŒ…çš„æœ€å¤§é•¿åº¦å³ä¸º64KB, æ¯æ¬¡ç›´æ¥å‘é€64KBæ˜¯æœ‰é—®é¢˜çš„ï¼Œæ•…æ¯æ¬¡å‘é€63KBï¼Œç»æµ‹è¯•æ²¡æœ‰é—®é¢˜ã€‚
 #define TRIONES_UDP_MAX_PACK  (64 * 1024 - 1024)
 #define TRIONES_UDP_RECV_SIZE (64 * 1024)
 
@@ -28,71 +28,72 @@ public:
 
 	virtual ~UDPAcceptor()
 	{
+
 	}
 
 	bool init(bool isServer = false);
 
-	//´¦ÀíĞ´ÊÂ¼ş
+	//å¤„ç†å†™äº‹ä»¶
 	bool handleReadEvent();
 
-	//²»´¦ÀíĞ´ÊÂ¼ş
+	//ä¸å¤„ç†å†™äº‹ä»¶
 	bool handleWriteEvent()
 	{
 		return true;
 	}
 
-	//×î´ó°üÎª64KB£¬Ò²¾ÍÒ»¸öIP°üµÄ³¤¶È¡£²»´¦Àí¶à¸öUDP°ü×é³ÉÒ»¸öÓ¦ÓÃ°üµÄÇé¿ö£¬
-	//´¦ÀíÒ»¸öUDP°üÖĞ°üº¬¶à¸öÓ¦ÓÃ°üµÄÇé¿ö¡£
+	//æœ€å¤§åŒ…ä¸º64KBï¼Œä¹Ÿå°±ä¸€ä¸ªIPåŒ…çš„é•¿åº¦ã€‚ä¸å¤„ç†å¤šä¸ªUDPåŒ…ç»„æˆä¸€ä¸ªåº”ç”¨åŒ…çš„æƒ…å†µï¼Œ
+	//å¤„ç†ä¸€ä¸ªUDPåŒ…ä¸­åŒ…å«å¤šä¸ªåº”ç”¨åŒ…çš„æƒ…å†µã€‚
 	bool readData();
 
-	//²»²Ù×÷Ğ´²Ù×÷, ¶ÔUDPAcceptor²»»áµ÷ÓÃµ½writeData
+	//ä¸æ“ä½œå†™æ“ä½œ, å¯¹UDPAcceptorä¸ä¼šè°ƒç”¨åˆ°writeData
 	bool writeData();
 
-	//¼ì²é³¬Ê±£¬¼ì²é_online²¢»Øµ÷³¬Ê±´¦Àíº¯Êı
+	//æ£€æŸ¥è¶…æ—¶ï¼Œæ£€æŸ¥_onlineå¹¶å›è°ƒè¶…æ—¶å¤„ç†å‡½æ•°
 	void checkTimeout(int64_t now);
 
-	//¸ù¾İsockid»ñÈ¡¶ÔÓ¦µÄUDPComponent, Èç¹ûÃ»ÓĞÕÒµ½ĞÂ½¨Ò»¸ö
+	//æ ¹æ®sockidè·å–å¯¹åº”çš„UDPComponent, å¦‚æœæ²¡æœ‰æ‰¾åˆ°æ–°å»ºä¸€ä¸ª
 	UDPComponent *get(uint64_t sockid);
 
-	//½«»ØÊÕµÄioc·Å»Øµ½³Ø×ÓÖĞ
+	//å°†å›æ”¶çš„iocæ”¾å›åˆ°æ± å­ä¸­
 	void put(UDPComponent* ioc);
 
 private:
 
 	struct sockaddr_in _sock_addr;
 
-	//ÕâÀïµÄ_isServerÖ¸µÄaccpect³öÀ´µÄsocket£¬¶ø²»ÊÇlisten socket
+	//è¿™é‡Œçš„_isServeræŒ‡çš„accpectå‡ºæ¥çš„socketï¼Œè€Œä¸æ˜¯listen socket
 	bool _isServer;
 
-	// Packet½âÎö
+	// Packetè§£æ
 	TransProtocol *_streamer;
 
-	// ·¢ËÍ¶ÓÁĞËø
+	// å‘é€é˜Ÿåˆ—é”
 	triones::Mutex _output_mutex;
 
-	//UDP½ÓÊÕ³¤¶È
+	//UDPæ¥æ”¶é•¿åº¦
 	char _read_buff[TRIONES_UDP_RECV_SIZE];
 
-	//½ÓÊÕ¶ÓÁĞ£¬½â°üÊ±Ê¹ÓÃ
+	//æ¥æ”¶é˜Ÿåˆ—ï¼Œè§£åŒ…æ—¶ä½¿ç”¨
 	PacketQueue _inputQueue;
 
-	// packet headerÒÑ¾­È¡¹ı
+	// packet headerå·²ç»å–è¿‡
 	bool _gotHeader;
 
-	//ÏÂÃæµÄ²¿·Ö£¬Õë¶ÔAcceptor UDP½øĞĞµÄÓÃ»§¹ÜÀí
-	// Êı¾İ¶ÓÁĞÍ·
+	//ä¸‹é¢çš„éƒ¨åˆ†ï¼Œé’ˆå¯¹Acceptor UDPè¿›è¡Œçš„ç”¨æˆ·ç®¡ç†
+	// æ•°æ®é˜Ÿåˆ—å¤´
 	TQueue<IOComponent> _queue;
 
-//	// ÔÚÏß¶ÓÁĞ²éÕÒË÷Òı
+//	// åœ¨çº¿é˜Ÿåˆ—æŸ¥æ‰¾ç´¢å¼•
 //	std::set<UDPComponent*> _index ;
 
-	// ÔÚÏß¶ÓÁĞ¹ÜÀí
+	// åœ¨çº¿é˜Ÿåˆ—ç®¡ç†
 	TQueue<IOComponent> _online;
 
-	// Êı¾İÍ¬²½²Ù×÷Ëø
+	// æ•°æ®åŒæ­¥æ“ä½œé”
 	triones::Mutex _mutex;
 
-	// Á¬½Ó¶ÔÏó²éÕÒ¹ÜÀí
+	// è¿æ¥å¯¹è±¡æŸ¥æ‰¾ç®¡ç†
 	std::map<uint64_t, UDPComponent*> _mpsock;
 };
 

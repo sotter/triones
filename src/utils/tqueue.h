@@ -1,4 +1,4 @@
-#ifndef __TQUEUE_H__
+﻿#ifndef __TQUEUE_H__
 #define __TQUEUE_H__
 
 template<typename T>

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ public:
     uint64_t _dataWriteCnt;   // # bytes written
 
 public:
-    static StatCounter _gStatCounter; // ȫ��
+    static StatCounter _gStatCounter; // 全局
 
 };
 

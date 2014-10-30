@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: SocketEvent.h
  *     Author: triones  2014-9-18
  *Description:
@@ -7,8 +7,8 @@
 #ifndef SOCKETEVENT_H_
 #define SOCKETEVENT_H_
 
-#define MAX_EPOLL_EVENT         0xffffff  //³õÊ¼Ö§³ÖµÄsocketÊıÄ¿
-#define MAX_SOCKET_EVENTS       10240     //Ã¿´ÎÄÜ¼ì²âµÄ×î´óÊıÄ¿
+#define MAX_EPOLL_EVENT         0xffffff  //åˆå§‹æ”¯æŒçš„socketæ•°ç›®
+#define MAX_SOCKET_EVENTS       10240     //æ¯æ¬¡èƒ½æ£€æµ‹çš„æœ€å¤§æ•°ç›®
 
 namespace triones
 {

@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: sockutil.h
  *     Author: triones  2014-10-27
  *Description:
@@ -29,16 +29,16 @@ private:
 	};
 
 public:
-	//½«ÍøÂçµØÖ·×ª»»ÎªÒ»¸ö64Î»µÄÎŞ·ûºÅÕûĞÍµÄ±êÊ¶ID£¬·½±ãkeyÖµµÄµÄ²Ù×÷,Èç¹û×÷ÎªstringĞÔÄÜºÜµÍ
+	//å°†ç½‘ç»œåœ°å€è½¬æ¢ä¸ºä¸€ä¸ª64ä½çš„æ— ç¬¦å·æ•´å‹çš„æ ‡è¯†IDï¼Œæ–¹ä¾¿keyå€¼çš„çš„æ“ä½œ,å¦‚æœä½œä¸ºstringæ€§èƒ½å¾ˆä½
 	static uint64_t sock_addr2id(struct sockaddr_in *sockaddr);
 
-	//½«ID»Ø×ªÎªÍøÂçµØÖ·ÀàĞÍ
+	//å°†IDå›è½¬ä¸ºç½‘ç»œåœ°å€ç±»å‹
 	static void sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr);
 
-	//½«ÍøÂçµØÖ·×ªÎª×Ö·û´®
+	//å°†ç½‘ç»œåœ°å€è½¬ä¸ºå­—ç¬¦ä¸²
 	static std::string sock_addr2str(struct sockaddr_in *sockaddr);
 
-	//½«ÍøÂçID×ªÎª×Ö·û´® example:10692856960556924930 -> udp:192.168.100.148:4000
+	//å°†ç½‘ç»œIDè½¬ä¸ºå­—ç¬¦ä¸² example:10692856960556924930 -> udp:192.168.100.148:4000
 	static std::string sock_id2str(uint64_t id);
 };
 

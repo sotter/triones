@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -13,9 +13,7 @@ namespace triones
 {
 
 #pragma pack(1)
-const uint16_t MSG_VERSION = 0x0001; // 娑堟伅鐗堟湰鍙�
-
-// 娑堟伅鏁版嵁澶�
+const uint16_t MSG_VERSION = 0x0001;
 class MsgHeader
 {
 public:
@@ -29,7 +27,6 @@ public:
 	{
 	}
 
-	// 瑙ｅ寘鏁版嵁
 	bool unpack(Packet *pack)
 	{
 		if ((int) sizeof(MsgHeader) > pack->getDataLen())
@@ -50,7 +47,6 @@ public:
 		return true;
 	}
 
-	// 鎵撳寘鏁版嵁
 	void pack(Packet *pack)
 	{
 		pack->writeInt16(_ver);
@@ -60,34 +56,25 @@ public:
 	}
 
 public:
-	// 鍗忚鐨勭増鏈彿
 	uint16_t _ver;
-	// 鍗忚鐨勭被鍨�
 	uint16_t _type;
-	//銆�崗璁殑搴忓彿
 	uint32_t _seq;
-	// 鏁版嵁闀垮害
 	uint32_t _len;
 };
 
-// 鏁版嵁瑙ｅ寘瀵硅薄鎺ュ彛
 class MsgPacket: public Ref
 {
 public:
 	MsgPacket()
 	{
 	}
-	// 铏氭瀽鏋勫嚱鏁�
 	virtual ~MsgPacket()
 	{
 	}
-	// 鎵撳寘娑堟伅浣�
 	virtual void body(Packet *body) = 0;
-	// 瑙ｅ寘鏁版嵁浣�
 	virtual bool unbody(Packet *pack) = 0;
 
 public:
-	// 瑙ｅ寘鏁版嵁
 	bool unpack(Packet *pack)
 	{
 		if (!_header.unpack(pack))
@@ -98,7 +85,6 @@ public:
 		return unbody(pack);
 	}
 
-	// 鎵撳寘鏁版嵁
 	void pack(Packet *pack)
 	{
 		_header.pack(pack);
@@ -108,7 +94,6 @@ public:
 	}
 
 public:
-	// 鍩烘湰鐨勬暟鎹ご
 	MsgHeader _header;
 };
 

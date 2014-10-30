@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -17,7 +17,6 @@ Packet::~Packet()
 {
 }
 
-// 璇诲彇灏忎簬255瀛楃涓插舰鐨勬暟鎹�
 bool Packet::read_str(std::string& s)
 {
 	uint8_t n;
@@ -31,7 +30,6 @@ bool Packet::read_str(std::string& s)
 	return readBytes((char*)s.data(), n);
 }
 
-// 鍐欏叆灏忎簬255闀垮害鐨勬暟鎹�
 bool Packet::write_str(const std::string& s)
 {
 	uint8_t n = (uint8_t) s.size();
@@ -45,7 +43,6 @@ bool Packet::write_str(const std::string& s)
 	return true;
 }
 
-// 璇诲瓧绗︿覆褰㈢殑鏁版嵁
 bool Packet::read_string(std::string& s)
 {
 	uint32_t len;
@@ -55,7 +52,6 @@ bool Packet::read_string(std::string& s)
 
 	len = readInt32();
 
-	// 娉ㄦ剰锛氫互涓嬩唬鐮佺洿鎺ユ搷浣滃熀绫荤殑搴曞眰鏁版嵁
 	if (_pdata + len > _pfree)
 	{
 		return false;
@@ -67,7 +63,6 @@ bool Packet::read_string(std::string& s)
 	return true;
 }
 
-// 鍐欏叆瀛楃涓插舰鐨勬暟鎹�
 bool Packet::write_string(const std::string &s)
 {
 	unsigned int n = s.length() ;
@@ -81,14 +76,12 @@ bool Packet::write_string(const std::string &s)
 	return true;
 }
 
-// 璇诲彇鏃堕棿
 bool Packet::read_time(uint64_t& t)
 {
 	t = readInt64();
 	return true;
 }
 
-// 鍐欏叆鏃堕棿鐨勬暟鎹�
 bool Packet::write_time(uint64_t n)
 {
 	writeInt64(n);
@@ -197,7 +190,7 @@ void PacketQueue::moveto(PacketQueue *destQueue)
 	Guard g(*_mutex);
 
 	if (_head == NULL)
-	{ // 鏄┖閾�
+	{
 		return;
 	}
 	if (destQueue->_tail == NULL)

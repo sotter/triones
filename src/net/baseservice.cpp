@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: baseservice.cpp
  *     Author: triones  2014-9-26
  *Description:
@@ -16,7 +16,7 @@ BaseService::BaseService()
 	_queue_thread = new QueueThread(_packqueue, this);
 	_transport = new Transport();
 
-	//×öÆ¹ÅÒ²âÊÔÊ±µÄĞÔÄÜ²âÊÔÊı¾İ
+	//åšä¹’ä¹“æµ‹è¯•æ—¶çš„æ€§èƒ½æµ‹è¯•æ•°æ®
 	memset(_send_buffer, 0x31, sizeof(_send_buffer) - 2);
 	_send_buffer[sizeof(_send_buffer) - 2] = 0x0d;
 	_send_buffer[sizeof(_send_buffer) - 1] = 0x0a;
@@ -29,11 +29,11 @@ BaseService::~BaseService()
 
 bool BaseService::init(int thread_num /* = 1 */)
 {
-	//º¯Êı¿ÉÖØÈë£¬µ«ÊÇºóÃæ³õÊ¼»¯ÊÇthread_num²»Æğ×÷ÓÃÁË¡£ÓÃ»§Èç¹û²»¹ØĞÄthread_num
-	//¿ÉÖ±½Óµ÷ÓÃºóÃæµÄconnect ºÍ listen
+	//å‡½æ•°å¯é‡å…¥ï¼Œä½†æ˜¯åé¢åˆå§‹åŒ–æ˜¯thread_numä¸èµ·ä½œç”¨äº†ã€‚ç”¨æˆ·å¦‚æœä¸å…³å¿ƒthread_num
+	//å¯ç›´æ¥è°ƒç”¨åé¢çš„connect å’Œ listen
 	if (_inited) return true;
 
-	//Êµ¼ÊÉÏÔÚÕâÀïÃæÏß³Ì¾ÍÒÑ¾­Æô¶¯ÁË£¬¶ø²»ÓÃstart
+	//å®é™…ä¸Šåœ¨è¿™é‡Œé¢çº¿ç¨‹å°±å·²ç»å¯åŠ¨äº†ï¼Œè€Œä¸ç”¨start
 	if (!_queue_thread->init(thread_num)) return false;
 
 	if (!_transport->start())
@@ -79,7 +79,7 @@ IOComponent* BaseService::listen(const char *spec, int streamer)
 	return acceptor;
 }
 
-//IServerAdapterµÄ»Øµ÷º¯Êı£¬´¦Àíµ¥¸öpacketµÄÇé¿ö¡£Ö±½Ó¼ÓÈëÒµÎñ¶ÓÁĞÖĞ£¬ÕâÑù¾Í×öµ½ÁËÍøÂç²ãºÍÒµÎñ²ãµÄ°şÀë£»
+//IServerAdapterçš„å›è°ƒå‡½æ•°ï¼Œå¤„ç†å•ä¸ªpacketçš„æƒ…å†µã€‚ç›´æ¥åŠ å…¥ä¸šåŠ¡é˜Ÿåˆ—ä¸­ï¼Œè¿™æ ·å°±åšåˆ°äº†ç½‘ç»œå±‚å’Œä¸šåŠ¡å±‚çš„å‰¥ç¦»ï¼›
 bool BaseService::SynHandlePacket(IOComponent *connection, Packet *packet)
 {
 	__INTO_FUN__
@@ -91,7 +91,7 @@ bool BaseService::SynHandlePacket(IOComponent *connection, Packet *packet)
 		delete packet;
 	}
 
-//  ÏÂÃæÊÇÖ±½Ó»Øµ÷Ê±£¬Æ¹ÅÒ²âÊÔµÄĞÔÄÜ²âÊÔ´úÂë
+//  ä¸‹é¢æ˜¯ç›´æ¥å›è°ƒæ—¶ï¼Œä¹’ä¹“æµ‹è¯•çš„æ€§èƒ½æµ‹è¯•ä»£ç 
 //	UNUSED(packet);
 //	static int count = 3;
 //
@@ -115,14 +115,14 @@ bool BaseService::SynHandlePacket(IOComponent *connection, Packet *packet)
 	return true;
 }
 
-//QueueThreadÒì²½¶ÓÁĞµÄÒì²½»Øµ÷º¯Êı
+//QueueThreadå¼‚æ­¥é˜Ÿåˆ—çš„å¼‚æ­¥å›è°ƒå‡½æ•°
 void BaseService::handle_queue(void *packet)
 {
 	__INTO_FUN__
 	handle_packet((IOComponent*) (((Packet*) packet)->_ioc), (Packet*) packet);
 }
 
-//´¦ÀíÓĞÍ¬²½ÒµÎñ²ãµÄ´¦Àí£¬×ÓÀàµÄserviceÀ´ÊµÏÖ
+//å¤„ç†æœ‰åŒæ­¥ä¸šåŠ¡å±‚çš„å¤„ç†ï¼Œå­ç±»çš„serviceæ¥å®ç°
 void BaseService::handle_packet(IOComponent *ioc, Packet *packet)
 {
 	__INTO_FUN__
@@ -139,11 +139,11 @@ bool BaseService::destroy()
 {
 	if(_transport != NULL)
 	{
-		//Ö»ÊÇtransportÖÃÁËstop±êÖ¾Î»£¬Ïß³Ì»¹²»ÄÜ±£Ö¤ÒÑ¾­È«²¿½áÊø£»
+		//åªæ˜¯transportç½®äº†stopæ ‡å¿—ä½ï¼Œçº¿ç¨‹è¿˜ä¸èƒ½ä¿è¯å·²ç»å…¨éƒ¨ç»“æŸï¼›
 		_transport->stop();
 	}
 
-	//·ÅÔÚ_transport stopºÍwaitµÄÖĞ¼ä
+	//æ”¾åœ¨_transport stopå’Œwaitçš„ä¸­é—´
 	destroy_service();
 
 	if(_queue_thread != NULL)

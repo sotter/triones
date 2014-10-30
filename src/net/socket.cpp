@@ -1,4 +1,4 @@
-/*
+﻿/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,14 +31,12 @@ Socket::~Socket() {
 }
 
 bool Socket::setAddress (const char *address, const int port) {
-    // ��ʼ��
     memset(static_cast<void *>(&_address), 0, sizeof(_address));
 
     _address.sin_family = AF_INET;
     _address.sin_port = htons(static_cast<short>(port));
 
     bool rc = true;
-    // �ǿ��ַ����ó�INADDR_ANY
 
     if (address == NULL || address[0] == '\0') {
         _address.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -60,7 +58,6 @@ bool Socket::setAddress (const char *address, const int port) {
         if (isIPAddr) {
             _address.sin_addr.s_addr = inet_addr(address);
         } else {
-            // ���������һ��
             _dnsMutex.lock();
 
             struct hostent *myHostEnt = gethostbyname(address);
@@ -111,13 +108,11 @@ bool Socket::connect() {
     if (!checkSocketHandle()) {
         return false;
     }
-//    TBSYS_LOG(DEBUG, "��, fd=%d, addr=%s", _socketHandle, getAddr().c_str());
     return (0 == ::connect(_socketHandle, (struct sockaddr *)&_address, sizeof(_address)));
 }
 
 void Socket::close() {
     if (_socketHandle != -1) {
-//        TBSYS_LOG(DEBUG, "�ر�, fd=%d, addr=%s", _socketHandle, getAddr().c_str());
         ::close(_socketHandle);
         _socketHandle = -1;
     }
@@ -162,7 +157,6 @@ int Socket::write (const void *data, int len) {
     do {
         res = ::write(_socketHandle, data, len);
         if (res > 0) {
-            //TBSYS_LOG(INFO, "д�����, fd=%d, addr=%d", _socketHandle, res);
             TBNET_COUNT_DATA_WRITE(res);
         }
     } while (res < 0 && errno == EINTR);

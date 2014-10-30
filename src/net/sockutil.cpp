@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: sockutil.cpp
  *     Author: triones  2014-10-27
  *Description:
@@ -10,7 +10,7 @@
 namespace triones
 {
 
-//½«ÍøÂçµØÖ·×ª»»ÎªÒ»¸ö64Î»µÄÎŞ·ûºÅÕûĞÍ£¬·½±ãkeyÖµµÄµÄ²Ù×÷
+//å°†ç½‘ç»œåœ°å€è½¬æ¢ä¸ºä¸€ä¸ª64ä½çš„æ— ç¬¦å·æ•´å‹ï¼Œæ–¹ä¾¿keyå€¼çš„çš„æ“ä½œ
 uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr)
 {
 	seriaddr id;
@@ -21,7 +21,7 @@ uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr)
 	return id.sockid;
 }
 
-//½«ID»Ø×ªÎªÍøÂçµØÖ·ÀàĞÍ
+//å°†IDå›è½¬ä¸ºç½‘ç»œåœ°å€ç±»å‹
 void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
 	seriaddr addr;
@@ -33,7 +33,7 @@ void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 	return;
 }
 
-//½«ÍøÂçµØÖ·×ªÎª×Ö·û´®
+//å°†ç½‘ç»œåœ°å€è½¬ä¸ºå­—ç¬¦ä¸²
 std::string sockutil::sock_addr2str(struct sockaddr_in *sockaddr)
 {
     char dest[32];
@@ -48,7 +48,7 @@ std::string sockutil::sock_addr2str(struct sockaddr_in *sockaddr)
     return dest;
 }
 
-//½«ÍøÂçID×ªÎª×Ö·û´® example:10692856960556924930 -> udp:192.168.100.148:4000
+//å°†ç½‘ç»œIDè½¬ä¸ºå­—ç¬¦ä¸² example:10692856960556924930 -> udp:192.168.100.148:4000
 std::string sockutil::sock_id2str(uint64_t id)
 {
 	sockaddr_in sockaddr;

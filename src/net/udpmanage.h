@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: udpmanage.h
  *     Author: triones  2014-10-23
  *Description:
@@ -40,13 +40,13 @@ public:
 
 		ioc->_type = FD_UDP ;
 		ioc->init( sockfd, ip, port , ctype ) ;
-		ioc->_last = time(NULL) ;  // ×îºóÒ»´ÎÊ¹ÓÃÊ±¼ä
-		ioc->_ptr  = NULL ; // µÚÈı·½À©Õ¹Êı¾İ
+		ioc->_last = time(NULL) ;  // æœ€åä¸€æ¬¡ä½¿ç”¨æ—¶é—´
+		ioc->_ptr  = NULL ; // ç¬¬ä¸‰æ–¹æ‰©å±•æ•°æ®
 		ioc->_next = NULL ;
 		ioc->_pre  = NULL ;
-		ioc->_activity = ( connected ) ? SOCKET_CONNECTED: SOCKET_CONNECTING; // ÊÇ·ñÒÑÁ¬½Ó³É¹¦
+		ioc->_activity = ( connected ) ? SOCKET_CONNECTED: SOCKET_CONNECTING; // æ˜¯å¦å·²è¿æ¥æˆåŠŸ
 
-		// Õë¶Ô·şÎñÆ÷µÄFD×ÊÔ´µ¥¶À×Ô¼º¹ÜÀí
+		// é’ˆå¯¹æœåŠ¡å™¨çš„FDèµ„æºå•ç‹¬è‡ªå·±ç®¡ç†
 		if ( queue ) {
 			_online.push( p ) ;
 			_index.insert( std::set<socket_t*>::value_type(p) ) ;
@@ -61,15 +61,15 @@ public:
 	}
 
 private:
-	// Êı¾İ¶ÓÁĞÍ·
+	// æ•°æ®é˜Ÿåˆ—å¤´
 	TQueue<UDPComponent> _queue ;
-	// ÔÚÏß¶ÓÁĞ²éÕÒË÷Òı
+	// åœ¨çº¿é˜Ÿåˆ—æŸ¥æ‰¾ç´¢å¼•
 	std::set<UDPComponent*> _index ;
-	// ÔÚÏß¶ÓÁĞ¹ÜÀí
+	// åœ¨çº¿é˜Ÿåˆ—ç®¡ç†
 	TQueue<UDPComponent> _online ;
-	// Êı¾İÍ¬²½²Ù×÷Ëø
+	// æ•°æ®åŒæ­¥æ“ä½œé”
 	triones::Mutex _mutex ;
-	// Á¬½Ó¶ÔÏó²éÕÒ¹ÜÀí
+	// è¿æ¥å¯¹è±¡æŸ¥æ‰¾ç®¡ç†
 	std::map<uint64_t, UDPComponent*> _mpsock;
 };
 

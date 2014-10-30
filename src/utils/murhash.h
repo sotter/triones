@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // mur_mur_hash2, by Austin Appleby
 
 // Note - This code makes a few assumptions about how your machine behaves -

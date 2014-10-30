@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : 绾跨▼绠＄悊瀵硅薄锛岄儴鍒嗗弬鑰僡pache绾跨▼姹犲疄鐜帮紝鍏朵腑锛宎pache瀵圭嚎绋嬪璞＄鐞嗕娇鐢╞oost涓櫤鑳芥寚閽堬紝
@@ -142,7 +142,6 @@ private:
 	void *args;
 };
 
-// 绾跨▼澶勭悊瀵硅薄
 class Thread: public Ref
 {
 
@@ -179,7 +178,6 @@ class Thread: public Ref
 	static const int MB = 1024 * 1024;
 
 public:
-	// 绾跨▼鏋勯�瀵硅薄
 	Thread(Runnable *runner, void *param = NULL, int policy = FIFO, int priority = NORMAL,
 	        int stack_size = 8, bool detached = false);
 
@@ -207,37 +205,20 @@ public:
 	}
 
 public:
-	/**
-	 * 鎵ц绾跨▼鐨勪富鍑芥暟
-	 */
 	static void * ThreadMain(void *param);
 
-	/**
-	 * 鍙栧緱杩愯瀵硅薄
-	 */
 	Runnable * runable(void)
 	{
 		return _runner;
 	}
 
 private:
-	/**
-	 *  绾跨▼杩愯瀵硅薄
-	 */
 	Runnable *_runner;
 
-	/**
-	 *  绾跨▼ID
-	 */
 	pthread_t _pthread;
 
-	/**
-	 *  甯﹁繃鐨勫弬鏁�	 */
 	void * _param;
 
-	/**
-	 * 绾跨▼鐘舵�
-	 */
 	STATE _state;
 
 	/**
@@ -245,28 +226,15 @@ private:
 	 */
 	int _policy;
 
-	/**
-	 *  绾跨▼浼樺厛绾�	 */
 	int _priority;
 
-	/**
-	 * 鏍堢┖闂村ぇ灏�	 */
 	int _stackSize;
 
-	/**
-	 * 绫诲瀷
-	 */
 	bool _detached;
 
-	/**
-	 * 绾跨▼瀵硅薄
-	 */
 	Thread *_selfRef;
 };
 
-/**
- * 绾跨▼绠＄悊瀵硅薄
- */
 class ThreadManager
 {
 public:
@@ -276,34 +244,17 @@ public:
 	}
 
 	virtual ~ThreadManager();
-	/**
-	 *  鍒濆鍖栫嚎绋嬪璞�	 */
 	virtual bool init(unsigned int nthread, void *param, Runnable *runner);
 
-	/**
-	 *  寮�杩愯绾跨▼
-	 */
 	virtual void start(void);
 
-	/**
-	 *  鍋滄绾跨▼
-	 */
 	virtual void stop(void);
 
 private:
-	/**
-	 * 绾跨▼瀵硅薄鍒楄〃
-	 */
 	typedef std::list<Thread*> ThreadList;
 
-	/**
-	 * 绾跨▼瀛樻斁瀵硅薄
-	 */
 	ThreadList _thread_lst;
 
-	/**
-	 * 绾跨▼姹犵殑鐘舵�
-	 */
 	bool _thread_state;
 };
 

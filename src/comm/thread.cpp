@@ -1,8 +1,7 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-08-21
- * desc  : 线程管理对象，部分参考apache线程池实现
- */
+ * desc  : */
 
 #include <assert.h>
 #include <pthread.h>
@@ -13,9 +12,6 @@
 namespace triones
 {
 
-/**
- * 线程数据初始化
- */
 Thread::Thread( Runnable *runner , void *param,  int policy , int priority , int stackSize , bool detached )
 :_runner(runner)
 {
@@ -113,7 +109,7 @@ void Thread::join()
 }
 
 /**
- * 线程运行对象
+ * 绾跨▼杩愯瀵硅薄
  */
 void * Thread::ThreadMain(void *param)
 {
@@ -129,7 +125,7 @@ void * Thread::ThreadMain(void *param)
 		return (void*) 0;
 	}
 
-	// 进行线程添加引用
+	// 杩涜绾跨▼娣诲姞寮曠敤
 	thread->add_ref();
 	thread->_state = starting;
 	thread->runable()->run(thread->_param);
@@ -138,13 +134,13 @@ void * Thread::ThreadMain(void *param)
 	{
 		thread->_state = stopping;
 	}
-	// 线程结束减少引用
+	// 绾跨▼缁撴潫鍑忓皯寮曠敤
 	thread->release();
 
 	return (void*) 0;
 }
 
-//===================================== 线程管理对象 =========================================//
+//===================================== 绾跨▼绠＄悊瀵硅薄 =========================================//
 
 ThreadManager::~ThreadManager()
 {
@@ -168,8 +164,7 @@ ThreadManager::~ThreadManager()
 }
 
 /**
- *  初始化线程对象
- */
+ *  鍒濆鍖栫嚎绋嬪璞� */
 bool ThreadManager::init(unsigned int nthread, void *param, Runnable *runner)
 {
 	if (nthread == 0)
@@ -186,7 +181,7 @@ bool ThreadManager::init(unsigned int nthread, void *param, Runnable *runner)
 }
 
 /**
- *  开始运行线程
+ *  寮�杩愯绾跨▼
  */
 void ThreadManager::start(void)
 {
@@ -202,7 +197,7 @@ void ThreadManager::start(void)
 }
 
 /**
- *  停止线程
+ *  鍋滄绾跨▼
  */
 void ThreadManager::stop(void)
 {

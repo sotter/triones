@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-08-21
  */
@@ -98,7 +98,6 @@ private:
 	int _value;
 };
 
-//瀹忓畾涔夛紝鎻愪緵绫讳技C璇█鐨勬帴鍙�#define ATOMIC_INC(x)   ((x)->atomic_inc())
 #define ATOMIC_DEC(x)   ((x)->atomic_dec())
 #define ATOMIC_ADD(x,y) ((x)->atomic_add(y))
 #define ATOMIC_SUB(x,y) ((x)->atomic_sub(y))

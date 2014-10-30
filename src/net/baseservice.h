@@ -1,9 +1,9 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: baseservice.h
  *     Author: triones  2014-9-26
- *Description: £¨1£©BaseService½øĞĞ·â×°£¬·â×°ÎªÒ»¸öÒÑ¾­Ôö¼ÓÒ»¸öÒì²½¶ÓÁĞµÄtransport
- *Description: £¨2£©·Ö°üÆ÷µÄÅäÖÃÁ£¶ÈÎª£ºÍ³Ò»¸öserver acceptµÄclient¹²Í¬Ò»¸ö·Ö°üÆ÷£»
- *Description: 	  Ö÷¶¯·¢ÆğÁ¬½ÓµÄclient£¬¿ÉÒÔÅäÖÃ×Ô¼ºµÄ·Ö°üÆ÷¡£
+ *Description: ï¼ˆ1ï¼‰BaseServiceè¿›è¡Œå°è£…ï¼Œå°è£…ä¸ºä¸€ä¸ªå·²ç»å¢åŠ ä¸€ä¸ªå¼‚æ­¥é˜Ÿåˆ—çš„transport
+ *Description: ï¼ˆ2ï¼‰åˆ†åŒ…å™¨çš„é…ç½®ç²’åº¦ä¸ºï¼šç»Ÿä¸€ä¸ªserver acceptçš„clientå…±åŒä¸€ä¸ªåˆ†åŒ…å™¨ï¼›
+ *Description: 	  ä¸»åŠ¨å‘èµ·è¿æ¥çš„clientï¼Œå¯ä»¥é…ç½®è‡ªå·±çš„åˆ†åŒ…å™¨ã€‚
  *Description:
  *******************************************************/
 
@@ -35,27 +35,27 @@ class BaseService: public IServerAdapter, public IQueueHandler
 {
 public:
 
-#define MAXQUEUE_LENGTH        102400    // ×î´ó¶ÓÁĞ³¤¶È
+#define MAXQUEUE_LENGTH        102400    // æœ€å¤§é˜Ÿåˆ—é•¿åº¦
 
-	//queuethread Òì²½¶ÓÁĞ£¬ÒµÎñÏß³ÌµÄ´¦ÀíÊı¾İ, thread_num
+	//queuethread å¼‚æ­¥é˜Ÿåˆ—ï¼Œä¸šåŠ¡çº¿ç¨‹çš„å¤„ç†æ•°æ®, thread_num
 	bool init(int thread_num = 1);
 
-	//spec:Á¬½ÓµØÖ· tcp:127.0.0.1:7008, streamer·Ö°üÆ÷
+	//spec:è¿æ¥åœ°å€ tcp:127.0.0.1:7008, streameråˆ†åŒ…å™¨
 	IOComponent* connect(const char *spec, int streamer, bool autoReconn = false);
 
-	//spec:Á¬½ÓµØÖ· tcp:127.0.0.1:7008, streamer·Ö°üÆ÷
+	//spec:è¿æ¥åœ°å€ tcp:127.0.0.1:7008, streameråˆ†åŒ…å™¨
 	IOComponent* listen(const char *spec, int streamer);
 
-	//QueueThreadÒì²½¶ÓÁĞµÄÒì²½»Øµ÷º¯Êı
+	//QueueThreadå¼‚æ­¥é˜Ÿåˆ—çš„å¼‚æ­¥å›è°ƒå‡½æ•°
 	virtual void handle_queue(void *packet);
 
-	//´¦ÀíÓĞÍ¬²½ÒµÎñ²ãµÄ´¦Àí£¬×ÓÀàµÄserviceÀ´ÊµÏÖ
+	//å¤„ç†æœ‰åŒæ­¥ä¸šåŠ¡å±‚çš„å¤„ç†ï¼Œå­ç±»çš„serviceæ¥å®ç°
 	virtual void handle_packet(IOComponent *ioc, Packet *packet);
 
-	//ÉÏ²ãÒµÎñÏú»ÙµÄ»Øµ÷º¯Êı£¬·Ç±ØĞëÊµÏÖ£»
+	//ä¸Šå±‚ä¸šåŠ¡é”€æ¯çš„å›è°ƒå‡½æ•°ï¼Œéå¿…é¡»å®ç°ï¼›
 	virtual bool destroy_service();
 
-	//Í£Ö¹Ïß³Ì£¬ÊÍ·ÅÏà¹Ø×ÊÔ´£»
+	//åœæ­¢çº¿ç¨‹ï¼Œé‡Šæ”¾ç›¸å…³èµ„æºï¼›
 	bool destroy();
 
 public:
@@ -64,23 +64,23 @@ public:
 
 	virtual ~BaseService();
 
-	//IServerAdapterµÄ»Øµ÷º¯Êı£¬´¦Àíµ¥¸öpacketµÄÇé¿ö¡£Ö±½Ó¼ÓÈëÒµÎñ¶ÓÁĞÖĞ£¬ÕâÑù¾Í×öµ½ÁËÍøÂç²ãºÍÒµÎñ²ãµÄ°şÀë£»
+	//IServerAdapterçš„å›è°ƒå‡½æ•°ï¼Œå¤„ç†å•ä¸ªpacketçš„æƒ…å†µã€‚ç›´æ¥åŠ å…¥ä¸šåŠ¡é˜Ÿåˆ—ä¸­ï¼Œè¿™æ ·å°±åšåˆ°äº†ç½‘ç»œå±‚å’Œä¸šåŠ¡å±‚çš„å‰¥ç¦»ï¼›
 	virtual bool SynHandlePacket(IOComponent *connection, Packet *packet);
 
 protected:
-	//ÍøÂçÄ£ĞÍ£¬ ÉèÖÃ³Éprotected, ×ÓÀàÓĞ¿ÉÄÜ»áµ÷ÓÃ
+	//ç½‘ç»œæ¨¡å‹ï¼Œ è®¾ç½®æˆprotected, å­ç±»æœ‰å¯èƒ½ä¼šè°ƒç”¨
 	Transport* _transport;
 
-	//×öĞÔÄÜ²âÊÔÊ¹ÓÃ
+	//åšæ€§èƒ½æµ‹è¯•ä½¿ç”¨
 	char _send_buffer[1024 * 64 - 1024];
 private:
-	//ÊÇ·ñÒÑ¾­¾­¹ı³õÊ¼»¯
+	//æ˜¯å¦å·²ç»ç»è¿‡åˆå§‹åŒ–
 	bool _inited;
 
-	//Òì²½¶ÓÁĞ£¬ ¹©_queue_threadÊ¹ÓÃ
+	//å¼‚æ­¥é˜Ÿåˆ—ï¼Œ ä¾›_queue_threadä½¿ç”¨
 	CDataQueue<Packet>	* _packqueue;
 
-	//packetÏß³Ì¶ÓÁĞ
+	//packetçº¿ç¨‹é˜Ÿåˆ—
 	QueueThread *_queue_thread;
 };
 

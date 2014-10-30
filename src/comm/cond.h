@@ -1,7 +1,7 @@
-/******************************************************
+ï»¿/******************************************************
 *   FileName: cond.h
 *     Author: triones  2014-10-16
-*Description: ÒÆÖ²ÌÔ±¦µÄ´úÂë
+*Description: ç§»æ¤æ·˜å®çš„ä»£ç 
 *******************************************************/
 
 /*
@@ -30,17 +30,17 @@ namespace triones {
 /*
  * author cjxrobot
  *
- * LinuxÏß³ÌËø
+ * Linuxçº¿ç¨‹é”
  */
 
 /**
-* @brief linuxÏß³ÌËø»¥³âËø¼òµ¥·â×°
+* @brief linuxçº¿ç¨‹é”äº’æ–¥é”ç®€å•å°è£…
 */
 class CThreadMutex {
 
 public:
     /*
-     * ¹¹Ôìº¯Êı
+     * æ„é€ å‡½æ•°
      */
     CThreadMutex() {
         //assert(pthread_mutex_init(&_mutex, NULL) == 0);
@@ -50,14 +50,14 @@ public:
     }
 
     /*
-     * ÎöÔìº¯Êı
+     * æé€ å‡½æ•°
      */
     ~CThreadMutex() {
         pthread_mutex_destroy(&_mutex);
     }
 
     /**
-     * ¼ÓËø
+     * åŠ é”
      */
 
     void lock () {
@@ -65,7 +65,7 @@ public:
     }
 
     /**
-     * trylock¼ÓËø
+     * trylockåŠ é”
      */
 
     int trylock () {
@@ -73,7 +73,7 @@ public:
     }
 
     /**
-     * ½âËø
+     * è§£é”
      */
     void unlock() {
         pthread_mutex_unlock(&_mutex);
@@ -85,7 +85,7 @@ protected:
 };
 
 /**
- * @brief Ïß³ÌµÄGuard
+ * @brief çº¿ç¨‹çš„Guard
  */
 class CThreadGuard
 {
@@ -109,35 +109,35 @@ private:
 };
 
 /**
- * @brief  LinuxÏß³ÌÌõ¼ş±äÁ¿
+ * @brief  Linuxçº¿ç¨‹æ¡ä»¶å˜é‡
  */
 class CThreadCond : public CThreadMutex {
 
 public:
 
     /**
-     * ¹¹Ôìº¯Êı
+     * æ„é€ å‡½æ•°
      */
     CThreadCond() {
         pthread_cond_init(&_cond, NULL);
     }
 
     /**
-     * ÎöÔìº¯Êı
+     * æé€ å‡½æ•°
      */
     ~CThreadCond() {
         pthread_cond_destroy(&_cond);
     }
 
     /**
-     * µÈ´ıĞÅºÅ
+     * ç­‰å¾…ä¿¡å·
      *
-     * @param  milliseconds  µÈ´ı³¬Ê±¼ä(µ¥Î»:ms), 0 = ÓÀ¾ÃµÈ´ı£¬
+     * @param  milliseconds  ç­‰å¾…è¶…æ—¶é—´(å•ä½:ms), 0 = æ°¸ä¹…ç­‰å¾…ï¼Œ
      */
     bool wait(int milliseconds = 0) {
         bool ret = true;
 
-        if (milliseconds == 0) { // ÓÀ¾ÃµÈ´ı
+        if (milliseconds == 0) { // æ°¸ä¹…ç­‰å¾…
             pthread_cond_wait(&_cond, &_mutex);
         } else {
 
@@ -161,14 +161,14 @@ public:
     }
 
     /**
-     * »½ĞÑÒ»¸ö
+     * å”¤é†’ä¸€ä¸ª
      */
     void signal() {
         pthread_cond_signal(&_cond);
     }
 
     /**
-     * »½ĞÑËùÓĞ
+     * å”¤é†’æ‰€æœ‰
      */
     void broadcast() {
         pthread_cond_broadcast(&_cond);

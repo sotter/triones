@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,20 +22,20 @@ namespace triones {
 StatCounter StatCounter::_gStatCounter;
 
 /*
- * ¹¹Ôìº¯Êı
+ * æ„é€ å‡½æ•°
  */
 StatCounter::StatCounter() {
     clear();
 }
 
 /*
- * Îö¹¹º¯Êı
+ * ææ„å‡½æ•°
  */
 StatCounter::~StatCounter() {
 }
 
 /*
- * °ÑstatĞ´µ½logÖĞ
+ * æŠŠstatå†™åˆ°logä¸­
  */
 void StatCounter::log() {
     OUT_INFO(NULL, 0, NULL,  "_packetReadCnt: %u, _packetWriteCnt: %u, _dataReadCnt: %u, _dataWriteCnt: %u",
@@ -43,7 +43,7 @@ void StatCounter::log() {
 }
 
 /*
- * Çå¿Õ
+ * æ¸…ç©º
  */
 void StatCounter::clear() {
     _packetReadCnt = 0;

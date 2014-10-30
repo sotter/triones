@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,10 +24,10 @@ class IServerAdapter
 	friend class TCPComponent;
 	friend class UDPComponent;
 public:
-	// µ¥¸öpacket»Øµ÷£¬ Ö±½Ó´ÓÕû¸öÍøÂç²ã£¬Ö±½Ó»Øµ÷ÉÏÈ¥µÄ
+	// å•ä¸ªpacketå›è°ƒï¼Œ ç›´æ¥ä»æ•´ä¸ªç½‘ç»œå±‚ï¼Œç›´æ¥å›è°ƒä¸Šå»çš„
 	virtual bool SynHandlePacket(IOComponent *connection, Packet *packet) = 0;
 
-	// ÅúÁ¿packet»Øµ÷, ¿ÉÒÔ²»ÓÃÊµÏÖ
+	// æ‰¹é‡packetå›è°ƒ, å¯ä»¥ä¸ç”¨å®ç°
 	virtual bool handleBatchPacket(IOComponent *connection, PacketQueue &packetQueue)
 	{
 		UNUSED(packetQueue);
@@ -35,7 +35,7 @@ public:
 		return false;
 	}
 
-	// ¹¹Ôìº¯Êı
+	// æ„é€ å‡½æ•°
 	IServerAdapter()
 	{
 		_batchPushPacket = false;
@@ -50,7 +50,7 @@ public:
 		_batchPushPacket = value;
 	}
 private:
-	bool _batchPushPacket;          // ÅúÁ¿post packet
+	bool _batchPushPacket;          // æ‰¹é‡post packet
 };
 }
 

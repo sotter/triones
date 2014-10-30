@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,21 +36,21 @@ class DataBuffer {
 
 public:
     /*
-     * ¹¹Ôìº¯Êı
+     * æ„é€ å‡½æ•°
      */
     DataBuffer() {
         _pend = _pfree = _pdata = _pstart = NULL;
     }
 
     /*
-     * Îö¹¹º¯Êı
+     * ææ„å‡½æ•°
      */
     ~DataBuffer() {
         destroy();
     }
 
     /**
-     * »ØÊÕÄÚ´æ
+     * å›æ”¶å†…å­˜
      */
     void destroy() {
         if (_pstart) {
@@ -125,7 +125,7 @@ public:
 
 
     /*
-     * Ğ´º¯Êı
+     * å†™å‡½æ•°
      */
     void writeInt8(uint8_t n) {
         expand(1);
@@ -141,7 +141,7 @@ public:
     }
 
     /*
-     * Ğ´³öÕûĞÍ
+     * å†™å‡ºæ•´å‹
      */
     void writeInt32(uint32_t n) {
         expand(4);
@@ -182,7 +182,7 @@ public:
     }
 
     /*
-     * ÔÚÄ³Ò»Î»ÖÃĞ´Ò»ÕûĞÍ
+     * åœ¨æŸä¸€ä½ç½®å†™ä¸€æ•´å‹
      */
     void fillInt8(unsigned char *dst, uint8_t n) {
         *dst = n;
@@ -222,8 +222,8 @@ public:
         dst[0] = (unsigned char)n;
     }
 
-    //todo: ÏÂÃæ¼¸¸öº¯ÊıÊÇ´ÓÔ­ÏÈµÄ¿½±´¹ıÀ´µÄ£¬ºóĞøĞèÒªÕû¸Ä
-	// Ìî³äÖ¸¶¨µÄ×Ö·ûÊı¾İ
+    //todo: ä¸‹é¢å‡ ä¸ªå‡½æ•°æ˜¯ä»åŸå…ˆçš„æ‹·è´è¿‡æ¥çš„ï¼Œåç»­éœ€è¦æ•´æ”¹
+	// å¡«å……æŒ‡å®šçš„å­—ç¬¦æ•°æ®
 	void write_fill(int c, int len)
 	{
 		expand(len);
@@ -232,13 +232,13 @@ public:
 	}
 
 
-	// Ğ´Ö¸¶¨µÄÎ»ÖÃÊı¾İ
+	// å†™æŒ‡å®šçš„ä½ç½®æ•°æ®
 	void fill_int8(uint8_t n, int offset)
 	{
 		*(_pstart + offset) = n;
 	}
 
-	// Ğ´Ö¸¶¨Î»ÖÃµÄ¶ÌÕûÊı¾İ
+	// å†™æŒ‡å®šä½ç½®çš„çŸ­æ•´æ•°æ®
 	void fill_int16(uint16_t n, int offset)
 	{
 		n = htons(n);
@@ -257,14 +257,14 @@ public:
 //		memcpy(_pstart + offset, &n, 8);
 //	}
 
-	// Ğ´Ö¸¶¨Î»ÖÃµÄÄÚ´æ¿é
+	// å†™æŒ‡å®šä½ç½®çš„å†…å­˜å—
 	void fill_block(const void *src, int len, int offset)
 	{
 		memcpy(_pstart + offset, src, len);
 	}
 
     /*
-     * Ğ´×Ö·û´®
+     * å†™å­—ç¬¦ä¸²
      */
     void writeString(const char *str) {
         int len = (str ? static_cast<int32_t>(strlen(str)) : 0);
@@ -282,7 +282,7 @@ public:
     }
 
     /**
-     *Ğ´Ò»¸öintÁĞ±í
+     *å†™ä¸€ä¸ªintåˆ—è¡¨
      */
     void writeVector(const std::vector<int32_t>& v) {
         const uint32_t iLen = static_cast<uint32_t>(v.size());
@@ -318,7 +318,7 @@ public:
 
 
     /*
-     * ¶Áº¯Êı
+     * è¯»å‡½æ•°
      */
     uint8_t readInt8() {
         return (*_pdata++);
@@ -405,7 +405,7 @@ public:
     }
 
     /*
-     * Ğ´×Ö·û´®
+     * å†™å­—ç¬¦ä¸²
      */
     bool readString(char *&str, int len) {
         if (_pdata + sizeof(int) > _pfree) {
@@ -432,7 +432,7 @@ public:
     }
 
     /**
-     * ¶ÁÈ¡Ò»ÁĞ±í
+     * è¯»å–ä¸€åˆ—è¡¨
      */
     bool readVector(std::vector<int32_t>& v) {
          const uint32_t len = readInt32();
@@ -467,14 +467,14 @@ public:
     }
 
     /*
-     * È·±£ÓĞlenµÄ¿ÕÓà¿Õ¼ä
+     * ç¡®ä¿æœ‰lençš„ç©ºä½™ç©ºé—´
      */
     void ensureFree(int len) {
         expand(len);
     }
 
     /*
-     * Ñ°ÕÒ×Ö·û´®
+     * å¯»æ‰¾å­—ç¬¦ä¸²
      */
     int findBytes(const char *findstr, int len) {
         int dLen = static_cast<int32_t>(_pfree - _pdata - len + 1);
@@ -494,7 +494,7 @@ public:
             while (len < need) len <<= 1;
             _pfree = _pdata = _pstart = (unsigned char*)malloc(len);
             _pend = _pstart + len;
-        } else if (_pend - _pfree < need) { // ¿Õ¼ä²»¹»
+        } else if (_pend - _pfree < need) { // ç©ºé—´ä¸å¤Ÿ
             int flen = static_cast<int32_t>((_pend - _pfree) + (_pdata - _pstart));
             int dlen = static_cast<int32_t>(_pfree - _pdata);
 
@@ -525,10 +525,10 @@ public:
         }
     }
 
-    unsigned char *_pstart;      // buffer¿ªÊ¼
-    unsigned char *_pend;        // buffer½áÊø
-    unsigned char *_pfree;        // free²¿·Ö
-    unsigned char *_pdata;        // data²¿·Ö
+    unsigned char *_pstart;      // bufferå¼€å§‹
+    unsigned char *_pend;        // bufferç»“æŸ
+    unsigned char *_pfree;        // freeéƒ¨åˆ†
+    unsigned char *_pdata;        // dataéƒ¨åˆ†
 };
 
 }

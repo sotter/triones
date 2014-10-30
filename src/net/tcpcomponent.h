@@ -1,4 +1,4 @@
-/******************************************************
+ï»¿/******************************************************
  *   FileName: TCPComponent.h
  *     Author: triones  2014-9-18
  *Description:
@@ -39,11 +39,11 @@ public:
 
 	bool socket_connect();
 
-	//connectionµÄdisconn
+	//connectionçš„disconn
 	void disconnect();
 
     /*
-     * ÉèÖÃÊÇ·ñÎª·şÎñÆ÷¶Ë
+     * è®¾ç½®æ˜¯å¦ä¸ºæœåŠ¡å™¨ç«¯
      */
     void setServer(bool isServer) {
         _isServer = isServer;
@@ -52,30 +52,30 @@ public:
 
     bool postPacket(Packet *packet);
     /*
-     * µ±Êı¾İÊÕµ½Ê±µÄ´¦Àíº¯Êı
+     * å½“æ•°æ®æ”¶åˆ°æ—¶çš„å¤„ç†å‡½æ•°
      */
     bool handlePacket(Packet *packet);
 
     /*
-     * Ğ´³öÊı¾İ
+     * å†™å‡ºæ•°æ®
      */
     virtual bool writeData();
 
     /*
-     * ¶ÁÈëÊı¾İ
+     * è¯»å…¥æ•°æ®
      */
     virtual bool readData();
 
 
     /*
-     * ÉèÖÃ¶ÔÁĞµÄ³¬Ê±Ê±¼ä
+     * è®¾ç½®å¯¹åˆ—çš„è¶…æ—¶æ—¶é—´
      */
     void setQueueTimeout(int queueTimeout) {
         _queueTimeout = queueTimeout;
     }
 
     /*
-     * ÉèÖÃqueue×î´ó³¤¶È, 0 - ²»ÏŞÖÆ
+     * è®¾ç½®queueæœ€å¤§é•¿åº¦, 0 - ä¸é™åˆ¶
      */
     void setQueueLimit(int limit) {
         _queueLimit = limit;
@@ -114,7 +114,7 @@ public:
     }
 
     /*
-     * Çå¿ÕoutputµÄbuffer
+     * æ¸…ç©ºoutputçš„buffer
      */
     void clearOutputBuffer() {
         _output.clear();
@@ -128,34 +128,34 @@ public:
     }
 
     /**
-     * ·¢ËÍsetDisconnState
+     * å‘é€setDisconnState
      */
     void setDisconnState();
 
 private:
-	// TCPÁ¬½Ó
+	// TCPè¿æ¥
 	time_t _startConnectTime;
 
-	/**   Ô­ÏÈconnectionµÄ²¿·Ö  ****************/
-	//ÕâÀïµÄ_isServerÖ¸µÄaccpect³öÀ´µÄsocket£¬¶ø²»ÊÇlisten socket
-    bool _isServer;                         // ÊÇ·şÎñÆ÷¶Ë
-    Socket *_socket;                        // Socket¾ä±ú
-    TransProtocol *_streamer;               // Packet½âÎö
+	/**   åŸå…ˆconnectionçš„éƒ¨åˆ†  ****************/
+	//è¿™é‡Œçš„_isServeræŒ‡çš„accpectå‡ºæ¥çš„socketï¼Œè€Œä¸æ˜¯listen socket
+    bool _isServer;                         // æ˜¯æœåŠ¡å™¨ç«¯
+    Socket *_socket;                        // Socketå¥æŸ„
+    TransProtocol *_streamer;               // Packetè§£æ
 
-    PacketQueue _outputQueue;               // ·¢ËÍ¶ÓÁĞ
-    PacketQueue _inputQueue;                // ½ÓÊÕ¶ÓÁĞ
-    PacketQueue _myQueue;                   // ÔÚwriteÖĞ´¦ÀíÊ±ÔİÊ±ÓÃ
-    triones::Mutex _output_mutex;           // ·¢ËÍ¶ÓÁĞËø
+    PacketQueue _outputQueue;               // å‘é€é˜Ÿåˆ—
+    PacketQueue _inputQueue;                // æ¥æ”¶é˜Ÿåˆ—
+    PacketQueue _myQueue;                   // åœ¨writeä¸­å¤„ç†æ—¶æš‚æ—¶ç”¨
+    triones::Mutex _output_mutex;           // å‘é€é˜Ÿåˆ—é”
 
-    int _queueTimeout;                      // ¶ÓÁĞ³¬Ê±Ê±¼ä
-    int _queueTotalSize;                    // ¶ÓÁĞ×Ü³¤¶È
-    int _queueLimit;                        // ¶ÓÁĞ×î³¤³¤¶È, Èç¹û³¬¹ıÕâ¸öÖµpost½øÀ´¾Í»á±»wait
+    int _queueTimeout;                      // é˜Ÿåˆ—è¶…æ—¶æ—¶é—´
+    int _queueTotalSize;                    // é˜Ÿåˆ—æ€»é•¿åº¦
+    int _queueLimit;                        // é˜Ÿåˆ—æœ€é•¿é•¿åº¦, å¦‚æœè¶…è¿‡è¿™ä¸ªå€¼postè¿›æ¥å°±ä¼šè¢«wait
 
-    /**  TCPCONNECTION ²¿·Ö  ******************/
-    DataBuffer _output;      // Êä³öµÄbuffer
-    DataBuffer _input;       // ¶ÁÈëµÄbuffer
-    bool _gotHeader;            // packet headerÒÑ¾­È¡¹ı
-    bool _writeFinishClose;     // Ğ´Íê¶Ï¿ª
+    /**  TCPCONNECTION éƒ¨åˆ†  ******************/
+    DataBuffer _output;      // è¾“å‡ºçš„buffer
+    DataBuffer _input;       // è¯»å…¥çš„buffer
+    bool _gotHeader;            // packet headerå·²ç»å–è¿‡
+    bool _writeFinishClose;     // å†™å®Œæ–­å¼€
 };
 
 } /* namespace triones */

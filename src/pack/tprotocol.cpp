@@ -27,7 +27,7 @@ TransProtocol::~TransProtocol()
 {
 }
 
-//data, len, 闇�缂栫爜鐨勬暟鎹紝pack 缂栫爜鍚庣殑缁撴灉銆�
+//data, len, 需要编码的数据，pack 编码后的结果。
 bool TransProtocol::encode(const char *data, size_t len, PacketQueue *pack_queue)
 {
 	Packet *pack = encode_pack(data, len);
@@ -39,7 +39,7 @@ bool TransProtocol::encode(const char *data, size_t len, PacketQueue *pack_queue
 	return false;
 }
 
-//socket 涓鍙栧埌鐨勬暟鎹紝瑙ｆ瀽鎴愮殑pakcet push鍒皃ack_queue涓�
+//socket 中读取到的数据，解析成的pakcet push到pack_queue中。
 int TransProtocol::decode(const char *data, size_t len, PacketQueue *pack_queue)
 {
 	size_t decode_len;
@@ -51,7 +51,6 @@ int TransProtocol::decode(const char *data, size_t len, PacketQueue *pack_queue)
 		pack_queue->push(pack);
 		offset += decode_len;
 	}
-
 	return offset;
 }
 
@@ -82,18 +81,18 @@ Packet *TransProtocolText::decode_pack(const char *data, size_t len, size_t &dec
 		return NULL;
 	}
 
-	size_t offset = 0;				// 褰撳墠姝ｅ湪澶勭悊浣嶇疆
-	size_t start_pos = 0;			// 鏂板寘璧峰浣嶇疆
+	size_t offset = 0;				// 当前正在处理位置
+	size_t start_pos = 0;			// 新包起始位置
 
 	while (offset < len - 1)
 	{
 		if (data[offset] == '\r' && data[offset + 1] == '\n')
 		{
-			// 绉诲姩涓嬫澶勭悊浣嶇疆
+			// 移动下次处理位置
 			offset += 2;
 			decode_len = offset;
 
-			// 姝ゆ鍒嗗寘鐨勯暱搴�
+			// 此次分包的长度
 			int pack_len = offset - start_pos;
 
 			// 璺宠繃棣栭儴鐨�\r\n"锛屽垎鍖呭簲璇ュぇ浜�涓瓧鑺�
@@ -103,14 +102,14 @@ Packet *TransProtocolText::decode_pack(const char *data, size_t len, size_t &dec
 				continue;
 			}
 
-			// 鍒涘缓鍒嗗寘
+			// 创建分包
 			Packet *pack = new Packet;
 			if (NULL == pack)
 			{
 				return NULL;
 			}
 
-			// 濉啓鍒嗗寘
+			// 填写分包
 			pack->writeBytes(data + start_pos, pack_len);
 
 			return pack;
@@ -121,26 +120,26 @@ Packet *TransProtocolText::decode_pack(const char *data, size_t len, size_t &dec
 	return NULL;
 }
 
-//鍔犲瘑绛夋斁鍦ㄤ竴璧蜂簡銆傛妸7d->7d 01, 7e->7e 02
+//加密等放在一起了。把7d->7d 01, 7e->7e 02
 Packet *TransProtocol808::encode_pack(const char *data, size_t len)
 {
-	// 鍥犱负涓嬫枃鐢ㄥ埌浜哾ata[0]鍜宒ata[len -1]锛屾墍浠ヨ嚦灏�涓瓧鑺�
+	// 因为下文用到了data[0]和data[len -1]，所以至少2个字节
 	if (data == NULL || len <= 2 || len > MAX_PACK_LEN)
 	{
 		return NULL;
 	}
 
-	// 鍒涘缓鏁版嵁鍖�
+	// 创建数据包
 	Packet *pack = new Packet();
 	if (NULL == pack)
 	{
 		return NULL;
 	}
 
-	// 鍋囪绗�涓瓧鑺備负0x7e锛屼笉鍔ㄥ畠
+	// 假设第0个字节为0x7e，不动它
 	pack->writeInt8(data[0]);
 
-	// 浠庣1涓瓧鑺傚紑濮嬪鐞�
+	// 从第1个字节开始处理
 	for (size_t i = 1; i < len - 1; i++)
 	{
 		if (data[i] == 0x7e)
@@ -159,7 +158,7 @@ Packet *TransProtocol808::encode_pack(const char *data, size_t len)
 		}
 	}
 
-	// 鍋囪鏈熬瀛楄妭涓�x7e,涓嶅姩瀹冪洿鎺ユ坊鍔�
+	// 假设末尾字节为0x7e,不动它直接添加
 	pack->writeInt8(data[len - 1]);
 
 	return pack;
@@ -178,17 +177,17 @@ Packet *TransProtocol808::decode808(const char *begin, const char *end)
 		return NULL;
 	}
 
-	// 鍒涘缓鍒嗗寘
+	// 创建分包
 	Packet *pack = new Packet();
 	if (NULL == pack)
 	{
 		return NULL;
 	}
 
-	// 璁剧疆鍖呭ご
+	// 设置包头
 	pack->writeInt8(begin[0]);
 
-	// 濉厖鍖呭唴瀹�
+	// 填充包内容
 	unsigned char crc = 0;
 	for (int i = 0; i < len - 1; i++)
 	{
@@ -211,14 +210,14 @@ Packet *TransProtocol808::decode808(const char *begin, const char *end)
 		}
 	}
 
-	// 璁剧疆鍖呭熬
+	// 设置包尾
 	pack->writeInt8(begin[len - 1]);
 
-	// 杩斿洖鍒嗗寘
+	// 返回分包
 	return pack;
 }
 
-//鍒嗗寘鍜岃В鍖呮斁鍦ㄤ竴璧蜂簡
+//分包和解包放在一起了
 Packet *TransProtocol808::decode_pack(const char *data, size_t len, size_t &decode_len)
 {
 	decode_len = 0;
@@ -232,7 +231,7 @@ Packet *TransProtocol808::decode_pack(const char *data, size_t len, size_t &deco
 	const char *end = NULL;
 	const char *pbuf = data;
 
-	//鍏堝垎鍖咃紝鍦ㄩ獙璇佸寘, 杩欐牱浼氶亶鍘嗕袱閬� 濡傛灉鍦ㄥ簳灞傚垎鍖咃紝涓婇潰鍦ㄦ帴瑙ｅ寘锛屼竴鏍蜂細閬嶅巻涓ら亶銆�
+	//先分包，在验证包, 这样会遍历两遍, 如果在底层分包，上面在接解包，一样会遍历两遍。
 	while (offset++ < len)
 	{
 		if (pbuf[offset] == 0x7e)
@@ -249,19 +248,19 @@ Packet *TransProtocol808::decode_pack(const char *data, size_t len, size_t &deco
 		}
 	}
 
-	//鎵惧埌浜嗗寘澶达紝涔熸壘鍒颁簡鍖呭熬
+	//找到了包头，也找到了包尾
 	if (begin != NULL && end != NULL)
 	{
 		decode_len = offset;
 		return decode808(begin, end);
 	}
-	//鎵句簡鍖呭ご锛屾病鏈夋壘鍒板寘灏�
+	//找了包头，没有找到包尾
 	else if (begin != NULL && end == NULL)
 	{
 		decode_len = begin - pbuf;
 		return NULL;
 	}
-	//鍗虫病鏈夋壘鍒板寘澶达紝涔熸病鎵惧埌鍖呭熬, 璁や负鏄瀮鍦炬暟鎹�
+	//即没有找到包头，也没找到包尾, 认为是垃圾数据
 	else
 	{
 		decode_len = offset;
@@ -363,10 +362,10 @@ Packet *TransProtocolCtfo::decode_pack(const char *data, size_t len, size_t &dec
 		}
 	}
 
-	//璁剧疆宸茬粡瑙ｆ瀽浜嗙殑鏁版嵁鐨勪綅缃�
+	//设置已经解析了的数据的位置
 	decode_len = offset;
 
-	//娌℃湁鎵惧埌鏁版嵁鍖呭ご锛岀洿鎺ヨ繑鍥�
+	//没有找到数据包头，直接返回
 	if (offset == len - sizeof(CTFOHEADER))
 	{
 		return NULL;
@@ -375,7 +374,7 @@ Packet *TransProtocolCtfo::decode_pack(const char *data, size_t len, size_t &dec
 	header = (CTFOHEADER*) (data + offset);
 	size_t data_len = ntohl(header->len);
 
-	//涓�釜鍖呰繕娌℃湁瀹屽叏瑙ｆ瀽瀹岋紝鐩存帴杩斿洖
+	//一个包还没有完全解析完，直接返回
 	if (len - decode_len < sizeof(CTFOHEADER) + data_len)
 	{
 		return NULL;
@@ -420,7 +419,7 @@ Packet *TransProtocolComm::decode_pack(const char *data, size_t len, size_t &dec
 	size_t offset = 0;
 	size_t start_pos = 0;
 	size_t body_len = 0;
-	unsigned short msg_ver = 0;			// 娑堟伅鐗堟湰鍙�
+	unsigned short msg_ver = 0;			// 消息版本号
 
 	while (offset < len - sizeof(MsgHeader))
 	{
@@ -428,7 +427,7 @@ Packet *TransProtocolComm::decode_pack(const char *data, size_t len, size_t &dec
 		msg_ver = ntohs(header->_ver);
 		body_len = ntohl(header->_len);
 
-		// 妫�祴鐗堟湰鍜岄暱搴﹀悎娉曟�
+		// 检测版本和长度合法性
 		if (MSG_VERSION == msg_ver && body_len < COMM_MAX_PACK_LEN)
 		{
 			start_pos = offset;
@@ -439,19 +438,19 @@ Packet *TransProtocolComm::decode_pack(const char *data, size_t len, size_t &dec
 	}
 	decode_len = offset;
 
-	// 妫�祴鏄惁瑙ｆ瀽鍑哄寘澶�
+	// 检测是否解析出包头
 	if (offset >= len - sizeof(MsgHeader))
 	{
 		return NULL;
 	}
 
-	// 妫�祴鎺ユ敹鍒扮殑鏁版嵁鏄惁瓒冲缁勬垚涓�釜鍒嗗寘
+	// 检测接收到的数据是否足够组成一个分包
 	if (len - offset < sizeof(MsgHeader) + body_len)
 	{
 		return NULL;
 	}
 
-	// 鍒涘缓鏁版嵁鍖�
+	// 创建数据包
 	Packet *pack = new Packet();
 	if (NULL == pack)
 	{

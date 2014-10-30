@@ -1,4 +1,4 @@
-/**
+﻿/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -42,7 +42,7 @@ static char * get_buffer(const char *buf, char *sz, int len)
 	return sz;
 }
 
-// 灏嗗瓧绗︿覆鏃堕棿杞负BCD鏃堕棿
+// 将字符串时间转为BCD时间
 static string bcd_2_utc(char bcd[6])
 {
 	string stime;
@@ -79,7 +79,7 @@ PlatFormCommonResp GBHandler::build_plat_form_common_resp(const GBheader*reqhead
 	msgid = htons(msgid);
 	prop = htons(prop);
 
-	//鍒濆鍖栭�鐢ㄥ洖澶嶆秷鎭ご
+	//初妾化�?用回复消息头
 	memcpy(&(pcommonresp.header.msgtype), &prop, sizeof(unsigned short));
 	memcpy(&(pcommonresp.header.msgid), &msgid, sizeof(unsigned short));
 	pcommonresp.header.seq = htons(downreq);
@@ -106,14 +106,14 @@ string GBHandler::convert_engeer(EngneerData *p)
 	return dest;
 }
 
-// 杞崲椹鹃┒琛屼负浜嬩欢
+// 转换驾驶行为事件
 string GBHandler::convert_event_gps(GpsInfo *gps)
 {
 	string dest;
 	if (gps == NULL)
 		return dest;
 
-	// [璧峰浣嶇疆绾害][璧峰浣嶇疆缁忓害][璧峰浣嶇疆楂樺害][璧峰浣嶇疆閫熷害][璧峰浣嶇疆鏂瑰悜][璧峰浣嶇疆鏃堕棿]
+	// [起妾位置纬度][起妾位置经度][起妾位置高度][起妾位置速度][起妾位置方向][起妾位置时间]
 	unsigned int lon = 0;
 	unsigned int lat = 0;
 	lon = (unsigned int) ntohl(gps->longitude) * 6 / 10;
@@ -129,7 +129,7 @@ string GBHandler::convert_event_gps(GpsInfo *gps)
 	return dest;
 }
 
-// 鏋勫缓MAP鐨凨EY鍜孷ALUE鍊肩殑鍏崇郴
+// 构建MAP的KEY和VALUE值的关系
 static void add_map_key(const string &key, const string &val, map<string, string> &mp)
 {
 	if (key.empty()) {
@@ -191,33 +191,33 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 	add_map_key("3", to_string(ntohs(gps_info->speed)), mp);
 	add_map_key("4", get_bcd_time((unsigned char*)gps_info->date_time), mp);
 
-	//姝ｅ寳鏂瑰悜涓�锛岄『鏃堕拡鏂瑰悜锛屽崟浣嶄负2搴︺�
+	//正北方向�?，顺时针方向，单位为2度�?
 	add_map_key("5", to_string(ntohs(gps_info->direction)), mp);
 	add_map_key("6", to_string(ntohs(gps_info->heigth)), mp);
 
-	// 娣诲姞褰撳墠鎺ユ敹鏃堕棿
+	// 添加当前接收时间
 	char sz[128] = {0};
 	snprintf( sz, sizeof(sz)-1, "%lu", (long)time(NULL) ) ;
 	add_map_key("999", sz , mp ) ;
 
-	/*寮犻工楂樺鍔�***********************************************************/
-	//DWORD,浣嶇疆鍩烘湰淇℃伅鐘舵�浣嶏紝B0~B15,鍙傝�JT/T808-2011,Page15锛岃〃17
+	/*张鹤高增�?***********************************************************/
+	//DWORD,位置基本信息状�?位，B0~B15,参�?JT/T808-2011,Page15，表17
 	unsigned int status = 0;
 	memcpy(&status, &(gps_info->state), sizeof(unsigned int));
 	status = ntohl(status);
-	// 澶勭悊鐘舵�
+	// 处理状�?
 	add_map_key("8", to_string(status), mp);
 
-	//瑙ｆ瀽鎶ヨ鏍囧織浣�
+	//解析报警标志�?
 	int ala = 0;
 	memcpy(&ala, &(gps_info->alarm), sizeof(int));
 	ala = ntohl(ala);
 
-	// 澶勭悊鎴愪竴涓姤璀︽爣蹇椾綅
+	// 处理成一个报警标志位
 	add_map_key("20", to_string(ala), mp);
 
 	char szbuf[512] = { 0 };
-	//鍗曠嫭澶勭悊闄勫姞淇℃伅
+	//单独处理附加信息
 	if (append_data != NULL && append_data_len > 2) {
 		unsigned short cur = 0;
 		unsigned char amid = 0;
@@ -234,19 +234,19 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 				break;
 			//printf("amid:%x,amlen:%x \n",amid,amlen);
 			switch (amid) {
-			case 0x01: //閲岀▼
+			case 0x01: //里程
 				add_map_key("9", i_to_decstr(get_dword(append_data + cur + 2), MAX_DWORD_INVALID, false), mp);
 				break;
-			case 0x02: //娌归噺锛學ORD锛�/10L锛屽搴旇溅涓婃补閲忚〃璇绘暟
+			case 0x02: //油量，WORD�?/10L，对应车上油量表读数
 				add_map_key("24", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 				break;
-			case 0x03: //琛岄┒璁板綍鍔熻兘鑾峰彇鐨勯�搴︼紝WORD,1/10KM/h
+			case 0x03: //行驶记录功能获取的�?度，WORD,1/10KM/h
 				add_map_key("7", to_string(get_word(append_data + cur + 2)), mp);
 				break;
-			case 0x04: // 闇�浜哄伐纭鎶ヨ浜嬩欢鐨処D锛學ORD,浠�寮�璁℃暟
-				add_map_key("519", to_string(get_word(append_data + cur + 2)), mp); // 琛ラ〉鏂板
+			case 0x04: // �?��人工确认报警事件的ID，WORD,�?�?��计数
+				add_map_key("519", to_string(get_word(append_data + cur + 2)), mp); // 补页新增
 				break;
-			case 0x11: //瓒呴�鎶ヨ闄勫姞淇℃伅
+			case 0x11: //超�?报警附加信息
 				if (amlen == 1) {
 					word = append_data[cur + 2];
 					if (word == 0) {
@@ -261,7 +261,7 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 					}
 				}
 				break;
-			case 0x12: //杩涘嚭鍖哄煙/璺嚎鎶ヨ闄勫姞淇℃伅
+			case 0x12: //进出区域/路线报警附加信息
 				if (amlen == 6) {
 					word = append_data[cur + 2];
 					if (word >= 1 && word <= 4) {
@@ -274,7 +274,7 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 					}
 				}
 				break;
-			case 0x13: //璺琛岄┒鏃堕棿涓嶈冻/杩囬暱鎶ヨ闄勫姞淇℃伅
+			case 0x13: //路段行驶时间不足/过长报警附加信息
 				if (amlen == 7) {
 					dword = get_dword(append_data + cur + 2);
 					word = get_word(append_data + cur + 6);
@@ -286,61 +286,61 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 					}
 				}
 				break;
-			case 0x14: // 闇�汉宸ョ‘璁ょ殑鎶ヨ娴佹按鍙凤紝瀹氫箟瑙佽〃20-3  4瀛楄妭
+			case 0x14: // �?��工确认的报警流水号，定义见表20-3  4字节
 			{
 				add_map_key("520", to_string(get_dword(append_data + cur + 2)), mp);
 			}
 				break;
-			case 0xE0: // 鍚庣户淇℃伅闀垮害
+			case 0xE0: // 后继信息长度
 				// ToDo:
 				break;
-			case 0x20: //鍙戝姩鏈鸿浆閫�
+			case 0x20: //发动机转�?
 			{
 				add_map_key("210", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 			}
 				break;
-			case 0x21: //鐬椂娌硅�
+			case 0x21: //瞬时油�?
 			{
 				add_map_key("216", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 			}
 				break;
-			case 0x22: // 鍙戝姩鏈烘壄鐭╃櫨鍒嗘瘮
+			case 0x22: // 发动机扭矩百分比
 			{
 				add_map_key("503", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x23: // 娌归棬韪忔澘浣嶇疆
+			case 0x23: // 油门踏板位置
 			{
 				add_map_key("504", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x24: // 鎵╁睍杞﹁締鎶ヨ鏍囧織浣�
+			case 0x24: // 扩展车辆报警标志�?
 			{
-				// 鏈�柊鍗忚鐨勬墿灞曟爣蹇椾綅
+				// �?��协议的扩展标志位
 				add_map_key("21", to_string(get_dword(append_data + cur + 2)), mp); //to_string
 			}
 				break;
-			case 0x25: // 鎵╁睍杞﹁締淇″彿鐘舵�浣�
+			case 0x25: // 扩展车辆信号状�?�?
 			{
 				add_map_key("500", to_string(get_dword(append_data + cur + 2)), mp);
 			}
 				break;
-			case 0x26: // 绱娌硅�
+			case 0x26: // 累计油�?
 			{
 				add_map_key("213", i_to_decstr(get_dword(append_data + cur + 2), MAX_DWORD_INVALID, false), mp);
 			}
 				break;
-			case 0x27: // 0x00锛氬甫閫熷紑闂紱0x01鍖哄煙澶栧紑闂紱0x02锛氬尯鍩熷唴寮�棬锛涘叾浠栧�淇濈暀锛�瀛楃
+			case 0x27: // 0x00：带速开门；0x01区域外开门；0x02：区域内�?��；其他�?保留�?字符
 			{
 				add_map_key("217", to_string((unsigned char) (*(append_data + cur + 2))), mp);
 			}
 				break;
-			case 0x28: // 0x28 VSS杩楪PS 杞﹂�鏉ユ簮
+			case 0x28: // 0x28 VSS还GPS 车�?来源
 			{
 				add_map_key("218", to_string((unsigned char) (*(append_data + cur + 2))), mp);
 			}
 				break;
-			case 0x29: // 0x29 璁￠噺浠补鑰楋紝1bit=0.01L,0=0L
+			case 0x29: // 0x29 计量仪油耗，1bit=0.01L,0=0L
 			{
 				add_map_key("219", i_to_decstr(get_dword(append_data + cur + 2), MAX_DWORD_INVALID, false), mp);
 			}
@@ -365,61 +365,61 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 				add_map_key("703", to_string(append_data[cur + 2]), mp);
 			}
 				break;
-			case 0x40: // 鍙戝姩鏈鸿繍琛屾�鏃堕暱
+			case 0x40: // 发动机运行�?时长
 			{
 				add_map_key("505", i_to_decstr(get_dword(append_data + cur + 2), MAX_DWORD_INVALID, false), mp);
 			}
 				break;
-			case 0x41: // 缁堢鍐呯疆鐢垫睜鐢靛帇
+			case 0x41: // 终端内置电池电压
 			{
 				add_map_key("506", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 			}
 				break;
-			case 0x42: // 钃勭數姹犵數鍘�
+			case 0x42: // 蓄电池电�?
 			{
 				add_map_key("507", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 			}
 				break;
-			case 0x43: // 鍙戝姩鏈烘按娓�
+			case 0x43: // 发动机水�?
 			{
 				add_map_key("214", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x44: // 鏈烘补娓╁害
+			case 0x44: // 机油温度
 			{
 				add_map_key("508", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x45: // 鍙戝姩鏈哄喎鍗存恫娓╁害
+			case 0x45: // 发动机冷却液温度
 			{
 				add_map_key("509", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x46: // 杩涙皵娓╁害
+			case 0x46: // 进气温度
 			{
 				add_map_key("510", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, false), mp);
 			}
 				break;
-			case 0x47: // 鏈烘补鍘嬪姏
+			case 0x47: // 机油压力
 			{
 				add_map_key("215", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x48: // 澶ф皵鍘嬪姏
+			case 0x48: // 大气压力
 			{
 				add_map_key("511", i_to_decstr(get_word(append_data + cur + 2), MAX_WORD_INVALID, true), mp);
 			}
 				break;
-			case 0x4A: // 娌归噺鏁版嵁涓婁紶
+			case 0x4A: // 油量数据上传
 			{
 				unsigned char ntype = (unsigned char) append_data[cur + 2];
 				unsigned short noil = get_word(append_data + cur + 3);
 
-				// 姝ｅ父娌归噺
+				// 正常油量
 				if (ntype == 0) {
 					sprintf(szbuf, "%u|%u", ntype, noil);
 					add_map_key("318", szbuf, mp);
-				} else { // 鍔犳补鎴栬�婕忔补
+				} else { // 加油或�?漏油
 					unsigned short nval = get_word(append_data + cur + 5);
 					sprintf(szbuf, "%u|%u|%u|%s|%s", ntype, noil, nval, bcd_2_utc((char*) (append_data + cur + 7)).c_str(), bcd_2_utc((char*) (append_data + cur + 13)).c_str());
 					add_map_key("318", szbuf, mp);
@@ -427,18 +427,18 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 				break;
 			}
 				break;
-				// 浠ヤ笅涓烘柊澧炵殑鍖楁枟鎷涙爣閮ㄥ垎鍗忚瑙ｆ瀽
-			case 0xfe: // 淇″彿寮哄害
+				// 以下为新增的北斗招标部分协议解析
+			case 0xfe: // 信号强度
 			{
 				unsigned char c = (unsigned char) append_data[cur + 2];
-				// 淇″彿寮哄害.鍗槦鏁�楂樺洓浣嶄俊鍙峰己搴︼紝浣庡洓浣嶄俊鍙峰己搴�
+				// 信号强度.卫星�?高四位信号强度，低四位信号强�?
 				sprintf(szbuf, "%u.%u|%u", ((c >> 4) & 0x0f), (c & 0x0f), (unsigned char) append_data[cur + 3]);
 				add_map_key("401", szbuf, mp);
 			}
 				break;
-			case 0xff: // 鑷畾涔夌姸鎬佸強妯℃嫙閲忎笂浼�
+			case 0xff: // 自定义状态及模拟量上�?
 			{
-				// BYTE IO鐘舵�1 | BYTE IO鐘舵�2 | WORD 妯℃嫙閲� | WORD 妯℃嫙閲�
+				// BYTE IO状�?1 | BYTE IO状�?2 | WORD 模拟�? | WORD 模拟�?
 				sprintf(szbuf, "%u|%u|%u|%u", (unsigned char) append_data[cur + 2], (unsigned char) append_data[cur + 3], get_word(append_data + cur + 4), get_word(append_data + cur
 						+ 6));
 				add_map_key("402", szbuf, mp);
@@ -453,7 +453,7 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 	}
 	/***********************************************************************/
 	//dest = "{TYPE:0,RET:0," + dest;
-	// 閲嶇粍鍐呴儴鍗忚鏁版嵁
+	// 重组内部协议数据
 	dest += build_map_command(mp);
 	//dest += "}";
 	/*if ( !astr.empty() )
@@ -462,7 +462,7 @@ string GBHandler::convert_gps_info(GpsInfo*gps_info, const char *append_data, in
 	return dest;
 }
 
-// 妫�祴鏄惁涓烘柊808鍗忚
+// �?��是否为新808协议
 bool GBHandler::check_driver( unsigned char *ptr, int len )
 {
 	if ( len < 7 ) return false ;
@@ -470,7 +470,7 @@ bool GBHandler::check_driver( unsigned char *ptr, int len )
 	if ( ptr[0] != 0x01 && ptr[0] != 0x02 )
 		return false ;
 
-	// bcd[6] 鏃堕棿锛�Y-m-d H:i:S
+	// bcd[6] 时间�?Y-m-d H:i:S
 	if ( ptr[1] < 0x13 || ptr[1] > 0x99 )
 		return false ;
 	if ( ptr[2] < 0x01 || ptr[2] > 0x12 )
@@ -478,14 +478,14 @@ bool GBHandler::check_driver( unsigned char *ptr, int len )
 	if ( ptr[3] < 0x01 || ptr[3] > 0x31 )
 		return false ;
 
-	// 鏃跺垎绉掔殑妫�祴
+	// 时分秒的�?��
 	if ( ptr[4] > 0x24 || ptr[5] > 0x60 || ptr[6] > 0x60 )
 		return false ;
 
 	return true ;
 }
 
-// 瀹夊叏鍐呭瓨鎷疯礉
+// 安全内存拷贝
 static char * safe_memncpy( char *dest, const char *src, int len )
 {
 	if ( src == NULL )
@@ -503,7 +503,7 @@ static char * safe_memncpy( char *dest, const char *src, int len )
 	return dest ;
 }
 
-// 鑾峰彇椹鹃┒鍛樿韩浠戒俊鎭�
+// 获取驾驶员身份信�?
 bool GBHandler::get_driver_info(const char *buf, int len, DRIVER_INFO &info)
 {
 	const char *ptr = buf;
@@ -539,37 +539,37 @@ bool GBHandler::get_driver_info(const char *buf, int len, DRIVER_INFO &info)
 	return true;
 }
 
-//鑾峰彇椹鹃┒鍛橀壌鏉冭韩浠戒俊鎭� ---涓存椂鏂规
+//获取驾驶员鉴权身份信�? ---临时方案
 bool GBHandler::get_driver_info(const char *buf, int buf_len, DRIVER_INFO_NEW808 &dinfo)
 {
 	if (NULL == buf || buf_len <= 0)
 		return false;
 
 	memset(&dinfo, 0x00, sizeof(DRIVER_INFO_NEW808));
-	// 鐘舵�,0x01锛氫粠涓氳祫鏍艰瘉IC鍗℃彃鍏ワ紙椹鹃┒鍛樹笂鐝級锛�x02锛氫粠涓氳祫鏍艰瘉IC鍗℃嫈鍑猴紙椹鹃┒鍛樹笅鐝級銆�
+	// 状�?,0x01：从业资格证IC卡插入（驾驶员上班）�?x02：从业资格证IC卡拔出（驾驶员下班）�?
 	int offset = 0;
 	if (offset + 1 > buf_len)
 		return false;
 	dinfo.state = buf[offset];
 	offset++;
-	//鏃堕棿鎻掑崱/鎷斿崱鏃堕棿锛孻Y-MM-DD-hh-mm-ss锛涗互涓嬪瓧娈靛湪鐘舵�涓�x01鏃舵墠鏈夋晥骞跺仛濉厖銆�
+	//时间插卡/拔卡时间，YY-MM-DD-hh-mm-ss；以下字段在状�?�?x01时才有效并做填充�?
 	if (offset + 6 > buf_len) {
 		return false;
 	}
 	memcpy(dinfo._timer, buf + offset, 6);
 	if (dinfo.state == 0x02)
-		return true; //鎷斿崱 鐗规畩澶勭悊锛屽叧閿�
+		return true; //拔卡 特殊处理，关�?
 	offset += 6;
-	// IC鍗¤鍙栫粨鏋�
+	// IC卡读取结�?
 	if (offset + 1 > buf_len) {
 		return false;
 	}
 	dinfo.result = buf[offset];
 	if (0x00 != dinfo.result)
-		return true; //IC鍗¤鍗″け璐ョ壒娈婂鐞嗭紝鍏抽敭
+		return true; //IC卡读卡失败特殊夐理，关键
 
 	offset++;
-	// 椹鹃┒鍛樺鍚嶉暱搴�
+	// 驾驶员��名长�?
 	if (offset + 1 > buf_len) {
 		return false;
 	}
@@ -578,16 +578,16 @@ bool GBHandler::get_driver_info(const char *buf, int buf_len, DRIVER_INFO_NEW808
 	if (offset + namelen > buf_len) {
 		return false;
 	}
-	// 椹鹃┒鍛樺鍚�
+	// 驾驶员���?
 	memcpy(dinfo.name, buf + offset, namelen);
 	offset += namelen;
-	// 浠庝笟璧勬牸璇佺紪鐮�
+	// 从业资格证编�?
 	if (offset + 20 > buf_len) {
 		return false;
 	}
 	memcpy(dinfo.certification, buf + offset, 20);
 	offset += 20;
-	// 鍙戣瘉鏈烘瀯鍚嶇О闀垮害
+	// 发证机构名称长度
 	if (offset + 1 > buf_len) {
 		return false;
 	}
@@ -596,10 +596,10 @@ bool GBHandler::get_driver_info(const char *buf, int buf_len, DRIVER_INFO_NEW808
 	if (offset + agentlen > buf_len) {
 		return false;
 	}
-	// 鍙戣瘉鏈烘瀯鍚嶇О
+	// 发证机构名称
 	memcpy(dinfo.agent, buf + offset, agentlen);
 	offset += agentlen;
-	// 璇佷欢鏈夋晥鏈�
+	// 证件有效�?
 	if (offset + 4 > buf_len) {
 		return false;
 	}
@@ -608,8 +608,8 @@ bool GBHandler::get_driver_info(const char *buf, int buf_len, DRIVER_INFO_NEW808
 }
 
 /*
- * buf锛氭秷鎭綋
- * buf_len:娑堟伅浣撻暱搴�
+ * buf：消息体
+ * buf_len:消息体长�?
  */
 string GBHandler::convert_driver_info(char *buf, int buf_len, unsigned char result)
 {
@@ -617,7 +617,7 @@ string GBHandler::convert_driver_info(char *buf, int buf_len, unsigned char resu
 		return "";
 
 	string sinfo ;
-	// 鏂扮増鏈┚椹跺憳韬唤璇嗗埆
+	// 新版本驾驶员身份识别
 	if ( check_driver( (unsigned char *)buf, buf_len ) ) {
 		DRIVER_INFO_NEW808 info;
 		if (!get_driver_info(buf, buf_len, info)) {
@@ -646,32 +646,32 @@ string GBHandler::convert_driver_info(char *buf, int buf_len, unsigned char resu
 				sinfo += tmp;
 			}
 		}
-	} else {  // 鑰佺増鏈�08椹鹃┒鍛樿韩浠借瘑鍒�
+	} else {  // 老版�?08驾驶员身份识�?
 		DRIVER_INFO info ;
 		if ( ! get_driver_info( buf, buf_len, info ) ) {
 			return "" ;
 		}
-		// 椹鹃┒鍛樺鍚�
+		// 驾驶员���?
 		sinfo += ",110:" ;
 		sinfo += info.drivername;
 
-		//椹鹃┒鍛樿韩浠借瘉缂栫爜
+		//驾驶员身份证编码
 		sinfo += ",111:" ;
 		sinfo += info.driverid;
 
-		//浠庝笟璧勬牸璇佺紪鐮�
+		//从业资格证编�?
 		sinfo += ",112:" ;
 		sinfo +=info.driverorgid ;
 
-		//鍙戣瘉鏈烘瀯鍚嶇О
+		//发证机构名称
 		sinfo += ",113:";
 		sinfo += info.orgname;
 	}
-	// 閲嶇粍鏁版嵁杩斿洖
+	// 重组数据返回
 	return "{TYPE:8,RESULT:" + to_string(result) + sinfo+ "}";
 }
 
-// 鏌ヨ〃鎵惧�
+// 查表找�?
 static bool get_postion_key(unsigned char key, bool bit, char *val)
 {
 	const static unsigned char flag[] = { 0x01, 0x02, 0x03, 0x11, 0x12, 0x13, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48 };
@@ -684,10 +684,10 @@ static bool get_postion_key(unsigned char key, bool bit, char *val)
 	return false;
 }
 
-// 灏嗗搴旂殑浣嶈浆鎹㈡垚澶勭悊
+// 将对应的位转换成处理
 static void get_postion_set(const char *buf, string &val)
 {
-	// 澶勭悊鎵�湁鐘舵�鏍囪
+	// 处理�?��状�?标记
 	for (int i = 0; i < 32; ++i) {
 		for (int n = 0; n < 8; ++n) {
 			char sbuf[128] = { 0 };
@@ -702,7 +702,7 @@ static void get_postion_set(const char *buf, string &val)
 	}
 }
 
-// 灏嗗搴旂殑浣嶈浆鎹负鍊�
+// 将对应的位转捣G���?
 static void get_flagbyword(unsigned int n, string &val, int size)
 {
 	char buf[128] = { 0 };
@@ -714,10 +714,10 @@ static void get_flagbyword(unsigned int n, string &val, int size)
 	}
 }
 
-//flag 0:璇诲彇锛�璁剧疆
+//flag 0:读取�?设置
 bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 {
-	/***********寮犻工楂樹慨鏀�-9*************************************/
+	/***********张鹤高修�?-9*************************************/
 	int curn = sizeof(GBheader);
 
 	//unsigned short seq = get_word(buf+curn) ;
@@ -769,7 +769,7 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x0013:
 			add_map_key("0", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x0014: //澶囦唤APN
+		case 0x0014: //备份APN
 			add_map_key("106", get_buffer(buf + curn, pchar, plen), mp);
 			break;
 		case 0x0015:
@@ -778,19 +778,19 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x0016:
 			add_map_key("108", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x0017: //澶囦唤IP
+		case 0x0017: //备份IP
 			add_map_key("109", get_buffer(buf + curn, pchar, plen), mp);
 			break;
 		case 0x0018:
 			add_map_key("1", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0019: // 鏍规嵁鍐呴儴鍗忚涓庡閮ㄥ崗璁搴斿叧绯诲鐞�
+		case 0x0019: // 根据内部协议与�A部协议对应关系夐�?
 			add_map_key("110", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x001A: //IC鍗¤璇佷富鏈嶅姟鍣ㄥ湴鍧�
+		case 0x001A: //IC卡认证主服务器地�?
 			add_map_key("800", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x001B: //IC鍗¤璇佷富鏈嶅姟鍣ㄧ鍙�
+		case 0x001B: //IC卡认证主服务器端�?
 			add_map_key("801", to_string(get_dword(buf + curn)), mp);
 			break;
 		case 0x001C:
@@ -832,13 +832,13 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x0030:
 			add_map_key("121", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0031: // 鐢靛瓙鍥存爮鍗婂緞
+		case 0x0031: // 电子围栏半径
 			add_map_key("31", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0040: //鐩戞帶骞冲彴鐢佃瘽鍙风爜
+		case 0x0040: //监控平台电话号码
 			add_map_key("10", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x0041: //澶嶄綅鐢佃瘽鍙风爜
+		case 0x0041: //复位电话号码
 			add_map_key("122", get_buffer(buf + curn, pchar, plen), mp);
 			break;
 		case 0x0042:
@@ -862,7 +862,7 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x0048:
 			add_map_key("9", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x0049: //鐩戞帶骞冲彴鐗规潈鐭俊鍙风爜
+		case 0x0049: //监控平台特权短信号码
 			add_map_key("141", get_buffer(buf + curn, pchar, plen), mp);
 			break;
 		case 0x0050:
@@ -898,16 +898,16 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x005A:
 			add_map_key("133", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x005D: // 纰版挒鎶ヨ鍙傛暟璁剧疆
+		case 0x005D: // 碰撞报警参数设置
 			add_map_key("407", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x005E: // 渚х炕鎶ヨ鍙傛暟璁剧疆
+		case 0x005E: // 侧翻报警参数设置
 			add_map_key("808", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0064: //瀹氭椂鎷嶇収
+		case 0x0064: //定时拍照
 			add_map_key("809", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0065: //瀹氳窛鎷嶇収
+		case 0x0065: //定距拍照
 			add_map_key("810", to_string(get_dword(buf + curn)), mp);
 			break;
 		case 0x0070:
@@ -937,19 +937,19 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 		case 0x0083:
 			add_map_key("41", get_buffer(buf + curn, pchar, plen), mp);
 			break;
-		case 0x0084: // 杞︾墝棰滆壊
+		case 0x0084: // 车牌颜色
 			add_map_key("42", to_string(buf[curn]), mp);
 			break;
-		case 0x005B: // 瓒呴�鎶ヨ棰勮宸�
+		case 0x005B: // 超�?报警预警差�?
 			add_map_key("300", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x005C: // 鐗瑰緛绯绘暟
+		case 0x005C: // 特征系数
 			add_map_key("301", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x005F: // 娌圭瀹归噺
+		case 0x005F: // 油箱容量
 			add_map_key("304", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0060: // 浣嶇疆淇℃伅姹囨姤闄勫姞淇℃伅璁剧疆
+		case 0x0060: // 位置信息汇报附加信息设置
 		{
 			/**
 			 char szbuf[256] = {0} ;
@@ -968,7 +968,7 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 			add_map_key("305", sval, mp);
 		}
 			break;
-		case 0x0061: // 闂ㄥ紑鍏虫媿鐓ф帶鍒�
+		case 0x0061: // 门开关拍照控�?
 		{
 			/**
 			 add_map_key( "306" , to_string(get_dword(buf+curn)) , mp ) ;
@@ -978,7 +978,7 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 			add_map_key("306", sval, mp);
 		}
 			break;
-		case 0x0062: // 缁堢澶栧洿浼犳劅閰嶇疆
+		case 0x0062: // 终端外围传感配置
 		{
 			/**
 			 add_map_key( "307" , to_string(get_dword(buf+curn)) , mp ) ;
@@ -988,56 +988,56 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 			add_map_key("307", sval, mp);
 		}
 			break;
-		case 0x0063: // 鐩插尯琛ユ姤妯″紡
+		case 0x0063: // 盲区补报模式
 			add_map_key("308", to_string(get_dword(buf + curn) + 1), mp);
 			break;
-		case 0x0066: // 閫熷害鏉ユ簮VSS杩樻槸GPS 涓�釜浣嶇殑鏁版嵁
+		case 0x0066: // 速度来源VSS还是GPS �?��位的数据
 			add_map_key("187", to_string((unsigned char) (*(buf + curn))), mp);
 			break;
-		case 0x0067: // ToDo: 椹鹃┒鍛樼櫥闄嗘帶鍒朵俊鎭紝瀹囬�鏂板
+		case 0x0067: // ToDo: 驾驶员登陆控制信息，宇�?新增
 			add_map_key("190", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0075: // 鍒嗚京鐜�
+		case 0x0075: // 分辩�?
 			add_map_key("309", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0085: // 杞︾墝鍒嗙被
+		case 0x0085: // 车牌分类
 		{
 			char szbuf[128] = { 0 };
 			add_map_key("310", get_buffer(buf + curn, szbuf, 12), mp);
 		}
 			break;
-		case 0x0090: // GNSS瀹氫綅妯″紡
+		case 0x0090: // GNSS定位模式
 			add_map_key("811", to_string(buf[curn]), mp);
 			break;
-		case 0x0091: // GNSS娉㈢壒鐜�
+		case 0x0091: // GNSS波特�?
 			add_map_key("402", to_string(buf[curn]), mp);
 			break;
-		case 0x0092: // GNSS妯″潡璇︾粏瀹氫綅鏁版嵁杈撳嚭棰戠巼
+		case 0x0092: // GNSS模块详细定位数据输出频率
 			add_map_key("403", to_string(buf[curn]), mp);
 			break;
-		case 0x0093: // GNSS妯″潡璇︾粏瀹氫綅鏁版嵁閲囬泦棰戠巼锛屽崟浣嶄负绉�
+		case 0x0093: // GNSS模块详细定位数据采集频率，单位为�?
 			add_map_key("404", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0094: // GNSS妯″潡璇︾粏瀹氫綅鏁版嵁涓婁紶鏂瑰紡
+		case 0x0094: // GNSS模块详细定位数据上传方式
 			add_map_key("815", to_string(buf[curn]), mp);
 			break;
-		case 0x0095: // GNSS妯″潡璇︾粏瀹氫綅鏁版嵁涓婁紶璁剧疆
+		case 0x0095: // GNSS模块详细定位数据上传设置
 			add_map_key("816", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0100: // CAN鎬荤嚎閫氶亾1閲囬泦鏃堕棿闂撮殧(ms)锛�琛ㄧず涓嶉噰闆�
+		case 0x0100: // CAN总线通道1采集时间间隔(ms)�?表示不采�?
 			add_map_key("817", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0101: // CAN鎬荤嚎閫氶亾1涓婁紶鏃堕棿闂撮殧(s)锛�琛ㄧず涓嶄笂浼�
+		case 0x0101: // CAN总线通道1上传时间间隔(s)�?表示不上�?
 			add_map_key("818", to_string(get_word(buf + curn)), mp);
 			break;
-		case 0x0102: // CAN鎬荤嚎閫氶亾2閲囬泦鏃堕棿闂撮殧(ms)锛�琛ㄧず涓嶉噰闆�
+		case 0x0102: // CAN总线通道2采集时间间隔(ms)�?表示不采�?
 			add_map_key("819", to_string(get_dword(buf + curn)), mp);
 			break;
-		case 0x0103: // CAN鎬荤嚎閫氶亾2涓婁紶鏃堕棿闂撮殧(s)锛�琛ㄧず涓嶄笂浼�
+		case 0x0103: // CAN总线通道2上传时间间隔(s)�?表示不上�?
 			add_map_key("820", to_string(get_word(buf + curn)), mp);
 			break;
 		case 0x0110:
-		{ // CAN鎬荤嚎ID鍗曠嫭閲囬泦璁剧疆
+		{ // CAN总线ID单独采集设置
 			unsigned int pick_inter = get_dword(buf + curn);
 			const unsigned char * arr = (const unsigned char *) buf + curn + 4;
 			int channel = (arr[0] & 0x80) == 0x80 ? 1 : 0;
@@ -1061,7 +1061,7 @@ bool GBHandler::convert_get_para(char *buf, int buf_len, string &data)
 	return true;
 }
 
-// 璁剧疆64鐨勬暟鎹�
+// 设置64的数�?
 static void set_int64(DataBuffer *pbuf, unsigned int msgid, uint64_t n)
 {
 	pbuf->writeInt32(msgid);
@@ -1069,7 +1069,7 @@ static void set_int64(DataBuffer *pbuf, unsigned int msgid, uint64_t n)
 	pbuf->writeInt64(n);
 }
 
-// 璁剧疆32浣嶆暟鎹�
+// 设置32位数�?
 static void set_dword(DataBuffer *pbuf, unsigned int msgid, unsigned int dword)
 {
 	pbuf->writeInt32(msgid);
@@ -1108,7 +1108,7 @@ static void set_bytes(DataBuffer *pbuf, unsigned int msgid, unsigned char *data,
 	}
 }
 
-// 鏇存柊瀵瑰簲浣嶆暟鎹�
+// 更新对应位数�?
 static int get_dword_by_flag(const string &val)
 {
 	int dword = 0, nval = 0, npos = 0;
@@ -1134,7 +1134,7 @@ static int get_dword_by_flag(const string &val)
 	return dword;
 }
 
-// 鏋勫缓浣嶇疆淇℃伅璁剧疆鍙傛暟
+// 构建位置信息设置参数
 static void build_postion_set(const string &val, unsigned char b[32])
 {
 	const static unsigned char flag[] = { 0x01, 0x02, 0x03, 0x11, 0x12, 0x13, 0x20, 0x21,
@@ -1151,26 +1151,26 @@ static void build_postion_set(const string &val, unsigned char b[32])
 			continue;
 		}
 
-		// 鍙栧�澶勭悊
+		// 取�?处理
 		nval = atoi(vec[i].c_str());
 		npos = (nval - 1) / 2;
 
-		// 鍒ゆ柇鏄惁姝ｇ‘鍊�
+		// 判断是否正确�?
 		if (npos < 0 || npos > 22) {
 			continue;
 		}
 
-		nbyte = (flag[npos] - 1) / 8; // 璁＄畻钀藉湪鍝釜鍐呭瓨绌洪棿
-		nbit = (flag[npos] - 1) % 8; // 鍙栧緱鏇存柊鍝釜浣�
+		nbyte = (flag[npos] - 1) / 8; // 计算落在哪个内存空间
+		nbit = (flag[npos] - 1) % 8; // 取得更新哪个�?
 
 		if (nval % 2 != 0) {
-			// 璁剧疆瀵瑰簲CHAR瀵硅薄浣�
+			// 设置对应CHAR对象�?
 			S_BIT( b[nbyte], nbit);
 		}
 	}
 }
 
-// 灏嗗唴閮ㄥ崗璁殑鍙傛暟璁剧疆杞负澶栭儴鍗忚
+// 将内部协议的参数设置转为外部协议
 bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map , unsigned char &pnum)
 {
 	p_kv_map.erase("TYPE");
@@ -1185,7 +1185,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 
 	pnum = 0;
 
-	//鐢ㄦ潵淇濇寔鍙傛暟鍒楄〃
+	//用来保持参数列表
 	vector<string> vec_v;
 	typedef map<string, string>::iterator MapIter;
 
@@ -1223,12 +1223,12 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			break;
 		case 6:
 			break;
-		case 7: //蹇冭烦闂撮殧
+		case 7: //心跳间隔
 			set_dword(pbuf, 0x0001, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 8: //鎶ヨ鍙风爜
-		case 10: //姹傚姪鍙风爜
+		case 8: //报警号码
+		case 10: //求助号码
 		{
 			vec_v.clear();
 			strsplit(v, "/", vec_v);
@@ -1242,7 +1242,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			}
 		}
 			break;
-		case 9: //鐩戝惉鍙风爜
+		case 9: //监听号码
 		{
 			vec_v.clear();
 			strsplit(v, "/", vec_v);
@@ -1264,7 +1264,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			break;
 		case 14:
 			break;
-		case 15: //涓績鐭俊鍙风爜
+		case 15: //中心短信号码
 			set_string(pbuf, 0x0043, v.c_str(), v.length());
 			pnum++;
 			break;
@@ -1272,7 +1272,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			break;
 		case 17:
 			break;
-		case 18: //璁剧疆GPS鏁版嵁鍥炰紶闂撮殧
+		case 18: //设置GPS数据回传间隔
 			set_dword(pbuf, 0x0029, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1301,7 +1301,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 		case 30:
 			break;
 		case 31:
-			set_word(pbuf, 0x0031, atoi(v.c_str())); // 琛ラ〉鏂板鐢靛瓙鍥存爮鍗婂緞
+			set_word(pbuf, 0x0031, atoi(v.c_str())); // 补页新增电子围栏半径
 			++pnum;
 			break;
 		case 32:
@@ -1322,11 +1322,11 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			break;
 		case 40:
 			break;
-		case 41: // 璁剧疆杞︾墝鍙�
+		case 41: // 设置车牌�?
 			set_string(pbuf, 0x0083, v.c_str(), v.length());
 			++pnum;
 			break;
-		case 42: // 璁剧疆杞︾墝棰滆壊
+		case 42: // 设置车牌颜色
 			set_word(pbuf, 0x0084, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1338,11 +1338,11 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			break;
 		case 90:
 			break;
-		case 100: //TCP娑堟伅搴旂瓟瓒呮椂鏃堕棿
+		case 100: //TCP消息应答超时时间
 			set_dword(pbuf, 0x0002, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 101: // TCP閲嶄紶娆℃暟
+		case 101: // TCP重传次数
 			set_dword(pbuf, 0x0003, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1350,19 +1350,19 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0004, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 103: // UDP閲嶄紶娆℃暟
+		case 103: // UDP重传次数
 			set_dword(pbuf, 0x0005, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 104: // SMS搴旂瓟瓒呮椂鏃堕棿
+		case 104: // SMS应答超时时间
 			set_dword(pbuf, 0x0006, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 105: // SMS閲嶄紶娆℃暟
+		case 105: // SMS重传次数
 			set_dword(pbuf, 0x0007, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 106: //澶囦唤APN
+		case 106: //备份APN
 			set_string(pbuf, 0x0014, v.c_str(), v.length());
 			pnum++;
 			break;
@@ -1374,19 +1374,19 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_string(pbuf, 0x0016, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 109: //澶囦唤鏈嶅姟鍣↖P
+		case 109: //备份服务器IP
 			set_string(pbuf, 0x0017, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 110: //鏈嶅姟鍣║DP绔彛
+		case 110: //服务器UDP端口
 			set_dword(pbuf, 0x0019, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 111: //姹囨姤绛栫暐
+		case 111: //汇报策略
 			set_dword(pbuf, 0x0020, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 112: // 浣嶇疆姹囨姤
+		case 112: // 位置汇报
 			set_dword(pbuf, 0x0021, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1394,11 +1394,11 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0022, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 114: //浼戠湢鏃朵綅缃眹鎶ユ椂闂撮棿闅�
+		case 114: //休眠时位置汇报时间间�?
 			set_dword(pbuf, 0x0027, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 115: // 绱ф�鎶ヨ鏃舵眹鎶ユ椂闂撮棿闅�
+		case 115: // 紧�?报警时汇报时间间�?
 			set_dword(pbuf, 0x0028, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1406,7 +1406,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0029, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 117: //缂虹渷璺濈姹囨姤闂撮殧锛屽崟浣嶄负绫筹紙m锛夛紝>0
+		case 117: //缺省距�a汇报间隔，单位为米（m），>0
 			set_dword(pbuf, 0x002C, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1426,31 +1426,31 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0030, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 122: //澶嶄綅鐢佃瘽鍙风爜锛屽彲閲囩敤姝ょ數璇濆彿鐮佹嫧鎵撶粓绔數璇濊缁堢澶嶄綅
+		case 122: //复位电话号码，可采用此电话号码拨打终端电话让终端复位
 			set_string(pbuf, 0x0041, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 123: //鎭㈠鍑哄巶璁剧疆鐢佃瘽鍙风爜锛屽彲閲囩敤姝ょ數璇濆彿鐮佹嫧鎵撶粓绔數璇濊缁堢鎭㈠鍑哄巶璁剧疆
+		case 123: //恢夙出厂设置电话号码，可采用此电话号码拨打终端电话让终端恢夙出厂设置
 			set_string(pbuf, 0x0042, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 124: // 鎺ユ敹缁堢SMS鏂囨湰鎶ヨ鍙风爜
+		case 124: // 接收终端SMS文本报警号码
 			set_string(pbuf, 0x0044, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 125: // 缁堢鐢佃瘽鎺ュ惉绛栫暐
+		case 125: // 终端电话接听策略
 			set_dword(pbuf, 0x0045, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 126: // 姣忔鏈�暱閫氳瘽鏃堕棿
+		case 126: // 每次�?��通话时间
 			set_dword(pbuf, 0x0046, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 127: // 褰撴湀鏈�暱閫氳瘽鏃堕棿
+		case 127: // 当月�?��通话时间
 			set_dword(pbuf, 0x0047, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 128: //鏈�珮鏃堕�
+		case 128: //�?��时�?
 			set_dword(pbuf, 0x0055, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1462,7 +1462,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0057, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 131: //褰撳ぉ绱椹鹃┒鏃堕棿闂ㄩ檺锛屽崟浣嶄负绉掞紙s锛�
+		case 131: //当天累计驾驶时间门限，单位为秒（s�?
 			set_dword(pbuf, 0x0058, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1474,7 +1474,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x005A, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 134: //杞﹁締鎵�湪鐪佸煙ID
+		case 134: //车辆�?��省域ID
 			set_word(pbuf, 0x0081, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1482,7 +1482,7 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_word(pbuf, 0x0082, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 136: //鍥惧儚/瑙嗛璐ㄩ噺-1锝�0锛�鏈�ソ;
+		case 136: //图像/视频质量-1�?0�?�?��;
 			set_dword(pbuf, 0x0070, atoi(v.c_str()));
 			pnum++;
 			break;
@@ -1502,71 +1502,71 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			set_dword(pbuf, 0x0074, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 141: //鐩戠骞冲彴鐗规潈鐭俊鍙风爜
+		case 141: //监管平台特权短信号码
 			set_string(pbuf, 0x0049, v.c_str(), v.length());
 			pnum++;
 			break;
-		case 142: //鎶ヨ灞忚斀瀛�
+		case 142: //报警屏蔽�?
 			set_dword(pbuf, 0x0050, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 143: //鎶ヨ鍙戦�鏂囨湰寮�叧SMS寮�叧
+		case 143: //报警发�?文本�?��SMS�?��
 			set_dword(pbuf, 0x0051, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 144: //鎶ヨ鎷嶆憚寮�叧
+		case 144: //报警拍摄�?��
 			set_dword(pbuf, 0x0052, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 145: //鎶ヨ鎷嶆憚瀛樺偍鏍囧織
+		case 145: //报警拍摄存储标志
 			set_dword(pbuf, 0x0053, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 146: //鍏抽敭鎶ヨ鏍囧織
+		case 146: //关键报警标志
 			set_dword(pbuf, 0x0054, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 147: //杞﹁締閲岀▼琛ㄨ鏁�
+		case 147: //车辆里程表读�?
 			set_dword(pbuf, 0x0080, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 180: //瀹氭椂鎷嶇収
+		case 180: //定时拍照
 			set_dword(pbuf, 0x0064, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 181: //瀹氳窛鎷嶇収
+		case 181: //定距拍照
 			set_dword(pbuf, 0x0065, atoi(v.c_str()));
 			pnum++;
 			break;
-		case 187: // 璁剧疆VSS閫熷害浼樺厛杩樻槸GPS浼樺厛
+		case 187: // 设置VSS速度优先还是GPS优先
 			set_word(pbuf, 0x0066, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 190: // ToDo: 璁剧疆椹鹃┒鍛樼櫥闄嗘媿鐓ф帶鍒�瀹囬�鏂板
+		case 190: // ToDo: 设置驾驶员登陆拍照控�?宇�?新增
 			set_word(pbuf, 0x0067, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 300: // 瓒呴�鎶ヨ棰勮宸� WORD
+		case 300: // 超�?报警预警差�? WORD
 			set_word(pbuf, 0x005B, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 301: // 鐤插姵椹鹃┒棰勮宸�
+		case 301: // 疲劳驾驶预警差�?
 			set_word(pbuf, 0x005C, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 302: // 鐗瑰緛绯绘暟
+		case 302: // 特征系数
 			set_word(pbuf, 0x005D, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 303: // 杞﹁疆姣忚浆鑴夊啿鏁�
+		case 303: // 车轮每转脉冲�?
 			set_word(pbuf, 0x005E, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 304: // 娌圭瀹归噺
+		case 304: // 油箱容量
 			set_word(pbuf, 0x005F, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 305: // 浣嶇疆淇℃伅姹囨姤闄勫姞璁剧疆
+		case 305: // 位置信息汇报附加设置
 		{
 			unsigned char b[32] = { 0 };
 			build_postion_set(v, b);
@@ -1574,126 +1574,126 @@ bool GBHandler::build_param_set(DataBuffer *pbuf, map<string, string> &p_kv_map 
 			++pnum;
 		}
 			break;
-		case 306: // 闂ㄥ紑鍏虫媿鐓ф帶鍒�
+		case 306: // 门开关拍照控�?
 			set_dword(pbuf, 0x0061, get_dword_by_flag(v));
 			++pnum;
 			break;
-		case 307: // 缁堢澶栧洿浼犳劅閰嶇疆
+		case 307: // 终端外围传感配置
 			set_dword(pbuf, 0x0062, get_dword_by_flag(v));
 			++pnum;
 			break;
-		case 308: // 鐩插尯琛ユ姤妯″紡
+		case 308: // 盲区补报模式
 			set_dword(pbuf, 0x0063, atoi(v.c_str()) - 1);
 			++pnum;
 			break;
-		case 309: // 鍒嗚京鐜�
+		case 309: // 分辩�?
 			set_word(pbuf, 0x0075, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 310: // 杞︾墝鍒嗙被
+		case 310: // 车牌分类
 			set_bytes(pbuf, 0x0085, (unsigned char*) v.c_str(), v.length(), 12);
 			++pnum;
 			break;
-		case 800: // 閬撹矾杩愯緭璇両C 鍗¤璇佷富鏈嶅姟鍣↖P 鍦板潃鎴栧煙鍚�
+		case 800: // 道路运输证IC 卡认证主服务器IP 地址或域�?
 			set_string(pbuf, 0x001A, v.c_str(), v.length());
 			++pnum;
 			break;
-		case 801: // 閬撹矾杩愯緭璇両C 鍗¤璇佷富鏈嶅姟鍣═CP 绔彛
+		case 801: // 道路运输证IC 卡认证主服务器TCP 端口
 			set_dword(pbuf, 0x001B, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 802: // 閬撹矾杩愯緭璇両C 鍗¤璇佷富鏈嶅姟鍣║DP 绔彛
+		case 802: // 道路运输证IC 卡认证主服务器UDP 端口
 			set_dword(pbuf, 0x001C, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 803: // 閬撹矾杩愯緭璇両C 鍗¤璇佸浠芥湇鍔″櫒IP 鍦板潃鎴栧煙鍚嶏紝绔彛鍚屼富鏈嶅姟鍣�
+		case 803: // 道路运输证IC 卡认证夓份服务器IP 地址或域名，端口同主服务�?
 			set_string(pbuf, 0x001D, v.c_str(), v.length());
 			++pnum;
 			break;
 		/**
-		case 805: // 瓒呴�鎶ヨ棰勮宸�锛屽崟浣嶄负1/10Km/h
+		case 805: // 超�?报警预警差�?，单位为1/10Km/h
 			set_word(pbuf, 0x005B, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 806: // 鐤插姵椹鹃┒棰勮宸�锛屽崟浣嶄负绉掞紙s锛夛紝>0
+		case 806: // 疲劳驾驶预警差�?，单位为秒（s），>0
 			set_word(pbuf, 0x005C, atoi(v.c_str()));
 			++pnum;
 			break;
 		*/
-		case 407: // 渚х炕鎶ヨ鍙傛暟璁剧疆锛氫晶缈昏搴︼紝鍗曚綅1 搴︼紝榛樿涓�0 搴�
+		case 407: // 侧翻报警参数设置：侧翻��度，单位1 度，默认�?0 �?
 			set_word(pbuf, 0x005D, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 808: // 纰版挒鎶ヨ鍙傛暟璁剧疆
+		case 808: // 碰撞报警参数设置
 			set_word(pbuf, 0x005E, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 809: // 瀹氭椂鎷嶇収鎺у埗
+		case 809: // 定时拍照控制
 			set_dword(pbuf, 0x0064, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 810: // 瀹氳窛鎷嶇収鎺у埗
+		case 810: // 定距拍照控制
 			set_dword(pbuf, 0x0065, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 811: // GNSS 瀹氫綅妯″紡
+		case 811: // GNSS 定位模式
 			set_word(pbuf, 0x0090, (unsigned char) atoi(v.c_str()));
 			++pnum;
 			break;
-		case 402: // GNSS 娉㈢壒鐜�
+		case 402: // GNSS 波特�?
 			set_word(pbuf, 0x0091, (unsigned char) atoi(v.c_str()));
 			++pnum;
 			break;
-		case 403: // GNSS 妯″潡璇︾粏瀹氫綅鏁版嵁杈撳嚭棰戠巼
+		case 403: // GNSS 模块详细定位数据输出频率
 			set_word(pbuf, 0x0092, (unsigned char) atoi(v.c_str()));
 			++pnum;
 			break;
-		case 404: // GNSS閲囬泦NMEA鏁版嵁棰戠巼锛屽崟浣嶄负绉�
+		case 404: // GNSS采集NMEA数据频率，单位为�?
 			set_dword(pbuf, 0x0093, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 815: // GNSS 妯″潡璇︾粏瀹氫綅鏁版嵁涓婁紶鏂瑰紡
+		case 815: // GNSS 模块详细定位数据上传方式
 			set_word(pbuf, 0x0094, (unsigned char) atoi(v.c_str()));
 			++pnum;
 			break;
-		case 816: // GNSS 妯″潡璇︾粏瀹氫綅鏁版嵁涓婁紶璁剧疆
+		case 816: // GNSS 模块详细定位数据上传设置
 			set_dword(pbuf, 0x0095, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 817: // CAN 鎬荤嚎閫氶亾1 閲囬泦鏃堕棿闂撮殧(ms)锛� 琛ㄧず涓嶉噰闆�
+		case 817: // CAN 总线通道1 采集时间间隔(ms)�? 表示不采�?
 			set_dword(pbuf, 0x0100, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 818: // CAN 鎬荤嚎閫氶亾1 涓婁紶鏃堕棿闂撮殧(s)锛� 琛ㄧず涓嶄笂浼�
+		case 818: // CAN 总线通道1 上传时间间隔(s)�? 表示不上�?
 			set_word(pbuf, 0x0101, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 819: // CAN 鎬荤嚎閫氶亾2 閲囬泦鏃堕棿闂撮殧(ms)锛� 琛ㄧず涓嶉噰闆�
+		case 819: // CAN 总线通道2 采集时间间隔(ms)�? 表示不采�?
 			set_dword(pbuf, 0x0102, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 820: // CAN 鎬荤嚎閫氶亾2 涓婁紶鏃堕棿闂撮殧(s)锛� 琛ㄧず涓嶄笂浼�
+		case 820: // CAN 总线通道2 上传时间间隔(s)�? 表示不上�?
 			set_word(pbuf, 0x0103, atoi(v.c_str()));
 			++pnum;
 			break;
-		case 821: // CAN 鎬荤嚎ID 鍗曠嫭閲囬泦璁剧疆
+		case 821: // CAN 总线ID 单独采集设置
 		{
-			// 閲囬泦鏃堕棿闂撮殧|CAN 閫氶亾鍙穦甯х被鍨媩鏁版嵁閲囬泦鏂瑰紡|CAN 鎬荤嚎ID
+			// 采集时间间隔|CAN 通道号|帧类型|数据采集方式|CAN 总线ID
 			unsigned int pick_inter = 0, channel = 0, frametype = 0, pick_way = 0, canid = 0;
 			sscanf(v.c_str(), "%u|%u|%u|%u|%u", &pick_inter, &channel, &frametype, &pick_way, &canid);
-			// 杞垚64鐨勬暟鎹�
+			// 转成64的数�?
 			uint64_t n = 0;
-			// 璁剧疆CAN閫氶亾 鍙�
+			// 设置CAN通道 �?
 			if (channel > 0)   S_BIT( n, 31 );
-			// 琛ㄧず甯х被鍨�
+			// 表示帧类�?
 			if (frametype > 0) S_BIT( n, 30 );
-			// 琛ㄧず鏁版嵁閲囬泦鏂瑰紡
+			// 表示数据采集方式
 			if (pick_way > 0)  S_BIT( n, 29 );
-			// 琛ㄧずCAN鎬荤嚎ID锛�9浣嶆暟鎹�
+			// 表示CAN总线ID�?9位数�?
 			n = ( ( n | (canid & 0x1fff)) & 0x00000000ffffffffLL ) ;
-			// 灏嗛珮32浣嶈缃负閲囬泦鏃堕棿闂撮殧
+			// 将高32位设置为采集时间间隔
 			n |= (((unsigned long long) pick_inter << 32) & 0xffffffff00000000LL);
-			// 璁剧疆缁堢鍙傛暟
+			// 设置终端参数
 			set_int64(pbuf, 0x0110, n);
 
 			++pnum;
@@ -1780,7 +1780,7 @@ string GBHandler::get_time()
 
 }
 
-// 娣诲姞鍖楁枟鎷涙爣鐨勬墿灞曟秷鎭笂鎶ュ崗璁�
+// 添加北斗招标的扩展消息上报协�?
 bool GBHandler::convert_report(const char *pbuf, int len, string &data)
 {
 	// BYTE
@@ -1806,18 +1806,18 @@ bool GBHandler::convert_report(const char *pbuf, int len, string &data)
 		offset += 1;
 
 		switch (id) {
-		case 0x0001: // 缁堢灞炴�涓婃姤
+		case 0x0001: // 终端属�?上报
 		{
-			// 缁堢绫诲瀷 | 缁堢鐗堟湰鍙�0x0207,琛ㄧず2.07鐗堟湰) | GNSS妯″潡灞炴� | 閫氫俊妯″潡灞炴� | 缁堢灞炴�
+			// 终端类型 | 终端版本�?0x0207,表示2.07版本) | GNSS模块属�? | 通信模块属�? | 终端属�?
 			sprintf(szbuf, ",601:%u|%u|%u|%u|%u",
 					get_dword(p + offset), get_dword(p + offset + 4),
 					get_dword(p + offset + 8), get_dword(p + offset + 12), get_dword(p + offset + 16));
 			data += szbuf;
 		}
 			break;
-		case 0x0002: // 鎵╁睍鏂囨湰淇℃伅涓婂彂鎸囦护
+		case 0x0002: // 扩展文本信息上发指令
 		{
-			// 鏍囧織浣嶏綔鏂囨湰淇℃伅(base64)
+			// 标志位｜文本信息(base64)
 			unsigned char type = (unsigned char) p[offset];
 			if (n > 1) {
 				Base64 coder;
@@ -1834,48 +1834,48 @@ bool GBHandler::convert_report(const char *pbuf, int len, string &data)
 	return true;
 }
 
-// 缁堢鍗囩骇搴旂瓟
+// 终端升级应答
 bool GBHandler::convert_term_upgrade_result_notify(const char * buf, int len, char * datap)
 {
 	if (buf == NULL || len < (int) sizeof(DownUpgradeResult))
 		return false;
-	// 缁堢鍗囩骇缁撴灉
+	// 终端升级结果
 	DownUpgradeResult *rsp = (DownUpgradeResult *) (buf);
-	// 缁勫缓鍐呴儴鍗忚
+	// 组建内部协议
 	sprintf(datap, ",707:%d|%d", rsp->type, rsp->result);
 
 	return true;
 }
 
-// 娣诲姞 鏂�08 鏌ヨ缁堢灞炴�搴旂瓟涓婃姤
+// 添加 �?08 查询终端属�?应答上报
 bool GBHandler::convert_report_new808(const char *buf, int len, char * datap)
 {
 	int offset = (int) sizeof(TermAttrib);
 	if (buf == NULL || len < offset + 2)
 		return false;
 
-	// 涓诲姩涓婃姤鐨勭粓绔弬鏁板睘鎬�
+	// 主动上报的终端参数属�?
 	TermAttrib *attr = (TermAttrib *) buf;
-	// 缁堢灞炴�绫诲瀷
+	// 终端属�?类型
 	unsigned short type = ntohs(attr->type) ;
-	// 鍒堕�鍟咺D
+	// 制�?商ID
 	char manuid[6] = { 0 };
 	get_buffer((char*) attr->corpid, manuid, sizeof(attr->corpid));
-	// 缁堢绫诲瀷
+	// 终端类型
 	char term_model[21] = { 0 };
 	get_buffer((const char*) attr->termtype, term_model, sizeof(attr->termtype));
-	// 缁堢ID
+	// 终端ID
 	char term_id[8] = { 0 };
 	get_buffer((const char*) attr->termid, term_id, sizeof(attr->termid));
-	// 缁堢SIM鍗CCID
+	// 终端SIM卡ICCID
 	string iccid;
 	bcd_to_str((char *) attr->iccid, sizeof(attr->iccid), iccid);
 
-	// 缁堢纭欢鐗堟湰鍙烽暱搴�
+	// 终端硬件版本号长�?
 	unsigned char nhver = (unsigned char) buf[offset];
 	offset = offset + 1;
 
-	// 缁堢纭欢鐗堟湰鍙�
+	// 终端硬件版本�?
 	char hver[257] = { 0 };
 	if (nhver > 0)
 		get_buffer((const char*) (buf + offset), hver, nhver);
@@ -1884,11 +1884,11 @@ bool GBHandler::convert_report_new808(const char *buf, int len, char * datap)
 	if (offset > len)
 		return false;
 
-	// 缁堢鍥轰欢鐗堟湰鍙烽暱搴�
+	// 终端固件版本号长�?
 	unsigned char nfver = (unsigned char) buf[offset];
 	offset = offset + 1;
 
-	// 缁堢鍥轰欢鐗堟湰鍙�
+	// 终端固件版本�?
 	char fver[257] = { 0 };
 	if (nfver > 0)
 		get_buffer((const char*) (buf + offset), fver, nfver);
@@ -1906,7 +1906,7 @@ bool GBHandler::convert_report_new808(const char *buf, int len, char * datap)
 	return true;
 }
 
-// 鏋勫缓鍙傛暟鏌ヨ澶勭悊
+// 构建参数查询处理
 bool GBHandler::convert_get_param2(const char *pbuf, int len, string &data)
 {
 	unsigned char size = *pbuf;
@@ -1931,13 +1931,13 @@ bool GBHandler::convert_get_param2(const char *pbuf, int len, string &data)
 		offset += 1;
 
 		switch (id) {
-		case 0x0001: // GNSS瀹氫綅妯″紡鍒囨崲
-		case 0x0002: // GNSS娉㈢壒鐜囪缃�
-		case 0x0003: // GNSS NMEA杈撳嚭鏇存柊鐜囪缃�
-		case 0x0004: // GNSS閲囬泦NMEA鏁版嵁棰戠巼
-		case 0x0005: // CAN1鍙傛暟璁剧疆
-		case 0x0006: // CAN2鍙傛暟璁剧疆
-		case 0x0007: // 纰版挒鍙傛暟璁剧疆
+		case 0x0001: // GNSS定位模式切换
+		case 0x0002: // GNSS波特率设�?
+		case 0x0003: // GNSS NMEA输出更新率设�?
+		case 0x0004: // GNSS采集NMEA数据频率
+		case 0x0005: // CAN1参数设置
+		case 0x0006: // CAN2参数设置
+		case 0x0007: // 碰撞参数设置
 		{
 			sprintf(szbuf, ",%u:%u", (400 + id), get_dword(p + offset));
 			data += szbuf;
@@ -1950,7 +1950,7 @@ bool GBHandler::convert_get_param2(const char *pbuf, int len, string &data)
 	return true;
 }
 
-// 瑙ｆ瀽涓嬪彂鍙傛暟璁剧疆
+// 解析下发参数设置
 bool GBHandler::build_set_param2(DataBuffer &buf, map<string, string> &mp , unsigned char &num)
 {
 	if (mp.empty())
@@ -1981,7 +1981,7 @@ bool GBHandler::build_set_param2(DataBuffer &buf, map<string, string> &mp , unsi
 	return (num > 0);
 }
 
-// 瑙ｆ瀽甯︽墿鍙锋爣璇嗙殑鏁版嵁
+// 解析带扩号标识的数据
 static bool parse_vector(const string &sval, vector<string> &vec, const char cbegin, const char cend)
 {
 	size_t end = 0;
@@ -1991,7 +1991,7 @@ static bool parse_vector(const string &sval, vector<string> &vec, const char cbe
 		if (end == string::npos) {
 			break;
 		}
-		// 瀛樻斁瑙ｆ瀽鍑烘潵鐨勬暟鎹甗]鍒嗗壊鏁版嵁
+		// 存放解析出来的数据[]分割数据
 		vec.push_back(sval.substr(pos + 1, end - pos - 1));
 		pos = sval.find(cbegin, end + 1);
 	}
@@ -2003,7 +2003,7 @@ static bool parse_vector(const string &sval, vector<string> &vec, const char cbe
 	return true;
 }
 
-// 瑙ｆ瀽鎵╁睍鍙傛暟璁剧疆2
+// 解析扩展参数设置2
 bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, string> &mp)
 {
 	if (mp.empty())
@@ -2014,9 +2014,9 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 	for (it = mp.begin(); it != mp.end(); ++it) {
 		flag = atoi(it->first.c_str());
 		switch (flag) {
-		case 501: // CAN ID鍙傛暟璁剧疆
+		case 501: // CAN ID参数设置
 		{
-			// 鎿嶄綔锝淸CAN1璁剧疆椤筣[CAN2璁剧疆椤筣[CAN3璁剧疆椤筣
+			// 操作｜[CAN1设置项][CAN2设置项][CAN3设置项]
 			string &s = it->second;
 			size_t pos = s.find('|');
 			if (pos == string::npos) {
@@ -2033,18 +2033,18 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 
 			int num = 0;
 			DataBuffer dbuf;
-			// ID鍙凤綔ID灞炴�锝淚D鍊硷綔ID椤靛睘鎬э綔ID閲囬泦闂撮殧鏃堕棿
+			// ID号｜ID属�?｜ID值｜ID页属性｜ID采集间隔时间
 			for (int i = 0; i < size; ++i) {
 				vector<string> tmp;
 				strsplit(vec[i], "|", tmp);
 				if (tmp.size() != 5) {
 					continue;
 				}
-				dbuf.writeInt8(atoi(tmp[0].c_str())); // ID鍙�
-				dbuf.writeInt8(atoi(tmp[1].c_str())); // ID灞炴�
-				dbuf.writeInt32(atoi(tmp[2].c_str())); // ID鍊�
-				dbuf.writeInt8(atoi(tmp[3].c_str())); // ID椤靛睘鎬�
-				dbuf.writeInt16(atoi(tmp[4].c_str())); // ID閲囬泦闂撮殧鏃堕棿
+				dbuf.writeInt8(atoi(tmp[0].c_str())); // ID�?
+				dbuf.writeInt8(atoi(tmp[1].c_str())); // ID属�?
+				dbuf.writeInt32(atoi(tmp[2].c_str())); // ID�?
+				dbuf.writeInt8(atoi(tmp[3].c_str())); // ID页属�?
+				dbuf.writeInt16(atoi(tmp[4].c_str())); // ID采集间隔时间
 
 				num = num + 1;
 
@@ -2052,8 +2052,8 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 					DataBuffer *ptmp = new DataBuffer;
 					ptmp->writeInt16(0x0001);
 					ptmp->writeInt8(dbuf.getDataLen() + 2);
-					ptmp->writeInt8(op); // 璁剧疆鎿嶄綔
-					ptmp->writeInt8(num); // 涓暟
+					ptmp->writeInt8(op); // 设置操作
+					ptmp->writeInt8(num); // 个数
 					ptmp->writeBytes(dbuf.getData(), dbuf.getDataLen());
 					vbuf.push_back(ptmp);
 					dbuf.clear();
@@ -2061,27 +2061,27 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 				}
 			}
 
-			// 澶勭悊鏈�悗涓�釜鏁版嵁
+			// 处理�?���?��数据
 			if (dbuf.getDataLen() > 0) {
 				DataBuffer *ptmp = new DataBuffer;
-				ptmp->writeInt32(0x0001); // 灏哤ORD鏀规垚DWORD
+				ptmp->writeInt32(0x0001); // 将WORD改成DWORD
 				ptmp->writeInt8(dbuf.getDataLen() + 2);
-				ptmp->writeInt8(op); // 璁剧疆鎿嶄綔
-				ptmp->writeInt8(num); // 涓暟
+				ptmp->writeInt8(op); // 设置操作
+				ptmp->writeInt8(num); // 个数
 				ptmp->writeBytes(dbuf.getData(), dbuf.getDataLen());
 				vbuf.push_back(ptmp);
 			}
 		}
 			break;
-		case 502: // 鎵╁睍鏂囨湰涓嬪彂璁剧疆
+		case 502: // 扩展文本下发设置
 		{
-			// 淇濈暀锛堥粯璁�锛夛綔鏍囧織锝滄枃鏈俊鎭�base64)
+			// 保留（默�?）｜标志｜文本信�?base64)
 			vector<string> vec;
 			strsplit(it->second, "|", vec);
 			if (vec.size() != 3) {
 				continue;
 			}
-			// 濡傛灉涓嬪彂鏂囨湰涓虹┖
+			// 如果下发文本为空
 			if (vec[2].empty()) {
 				continue;
 			}
@@ -2095,7 +2095,7 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 			}
 
 			DataBuffer *pbuf = new DataBuffer;
-			pbuf->writeInt32(0x0002); // 灏哤ORD鏀规垚DWORD
+			pbuf->writeInt32(0x0002); // 将WORD改成DWORD
 			pbuf->writeInt8(coder.size() + 2);
 			pbuf->writeInt8(0);
 			pbuf->writeInt8(atoi(vec[1].c_str()));
@@ -2109,7 +2109,7 @@ bool GBHandler::build_set_param_2ex(vector<DataBuffer*> &vbuf, map<string, strin
 	return (!vbuf.empty());
 }
 
-// 杞崲鎴愬崄鍏繘鍒�
+// 转换成十六进�?
 void GBHandler::print_hex(unsigned char *p, int n, char *buf)
 {
 	for (int i = 0; i < n; ++i) {
