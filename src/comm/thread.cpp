@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : */
@@ -12,27 +12,31 @@
 namespace triones
 {
 
-Thread::Thread( Runnable *runner , void *param,  int policy , int priority , int stackSize , bool detached )
-:_runner(runner)
+Thread::Thread(Runnable *runner, void *param, int policy, int priority, int stackSize,
+        bool detached)
+		: _runner(runner)
 {
-	_param     = NULL ;
-	_param     = param ;
-	_pthread   = (pthread_t) -1 ;
-	_policy    = policy   ;
-	_priority  = priority ;
-	_detached  = detached ;
-	_stackSize = stackSize ;
-	_selfRef   = this ;
-	_state     = uninitialized ;
+	_param = NULL;
+	_param = param;
+	_pthread = (pthread_t) -1;
+	_policy = policy;
+	_priority = priority;
+	_detached = detached;
+	_stackSize = stackSize;
+	_selfRef = this;
+	_state = uninitialized;
 }
 
 Thread::~Thread(void)
 {
 	if (!_detached)
 	{
-		try {
+		try
+		{
 			join();
-		} catch (...) {
+		}
+		catch (...)
+		{
 			// We're really hosed.
 		}
 	}
@@ -57,9 +61,7 @@ void Thread::start(void)
 	}
 
 	if (pthread_attr_setdetachstate(&thread_attr,
-			_detached ?
-			PTHREAD_CREATE_DETACHED :
-						PTHREAD_CREATE_JOINABLE) != 0)
+	        _detached ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE) != 0)
 	{
 		throw SystemResourceException("pthread_attr_setdetachstate failed");
 	}
@@ -88,8 +90,7 @@ void Thread::start(void)
 	// Create reference
 	_state = starting;
 
-	if (pthread_create(&_pthread, &thread_attr, ThreadMain, (void*) _selfRef)
-			!= 0)
+	if (pthread_create(&_pthread, &thread_attr, ThreadMain, (void*) _selfRef) != 0)
 	{
 		throw SystemResourceException("pthread_create failed");
 	}
@@ -167,13 +168,12 @@ ThreadManager::~ThreadManager()
  *  鍒濆鍖栫嚎绋嬪璞� */
 bool ThreadManager::init(unsigned int nthread, void *param, Runnable *runner)
 {
-	if (nthread == 0)
-		return false;
+	if (nthread == 0) return false;
 
 	for (unsigned int i = 0; i < nthread; ++i)
 	{
 		Thread *p = new Thread(runner, param);
-		assert( p != NULL );
+		assert(p != NULL);
 		p->add_ref();
 		_thread_lst.push_back(p);
 	}
@@ -190,7 +190,7 @@ void ThreadManager::start(void)
 	for (it = _thread_lst.begin(); it != _thread_lst.end(); ++it)
 	{
 		p = *it;
-		assert( p != NULL );
+		assert(p != NULL);
 		p->start();
 	}
 	_thread_state = true;
@@ -201,8 +201,7 @@ void ThreadManager::start(void)
  */
 void ThreadManager::stop(void)
 {
-	if (!_thread_state)
-		return;
+	if (!_thread_state) return;
 
 	_thread_state = false;
 
@@ -211,7 +210,7 @@ void ThreadManager::stop(void)
 	for (it = _thread_lst.begin(); it != _thread_lst.end(); ++it)
 	{
 		p = *it;
-		assert( p != NULL );
+		assert(p != NULL);
 		p->join();
 	}
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-28
  */
@@ -16,7 +16,7 @@ class SynValue
 {
 public:
 	SynValue(int i = 0)
-	:num(i)
+			: num(i)
 	{
 	}
 
@@ -111,4 +111,3 @@ extern NetRunInfo __net_runinfo;
 } // namespace triones
 
 #endif // #ifndef __TRIONES_RUNINFO_H__
-

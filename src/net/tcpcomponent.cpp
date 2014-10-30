@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: TCPComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -93,7 +93,6 @@ bool TCPComponent::init(bool isServer)
 
 	return true;
 }
-
 
 /*
  * 连接到socket
@@ -249,7 +248,7 @@ void TCPComponent::checkTimeout(int64_t now)
 		}
 	}
 	//需要重连的socket
-	else if(_state == TRIONES_CLOSED && _isServer == false && _autoReconn == true)
+	else if (_state == TRIONES_CLOSED && _isServer == false && _autoReconn == true)
 	{
 		//每隔五秒钟重连一次
 		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(5000000)))
@@ -261,7 +260,7 @@ void TCPComponent::checkTimeout(int64_t now)
 	}
 
 	// 原先connect的超时检查
-    // checkTimeout(now);
+	// checkTimeout(now);
 }
 
 /**** 原先connectiong的部分 *********************/
@@ -391,7 +390,7 @@ bool TCPComponent::readData()
 		int decode = _streamer->decode(_input.getData(), _input.getDataLen(), &_inputQueue);
 
 		//一定要调用drainData，因为decode时候没有将_input的读位置前移。
-		if(decode > 0)
+		if (decode > 0)
 		{
 			_input.drainData(decode);
 		}

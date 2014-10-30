@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: SocketEvent.h
  *     Author: triones  2014-9-18
  *Description:
@@ -9,7 +9,6 @@
 
 #define MAX_EPOLL_EVENT         0xffffff  //初始支持的socket数目
 #define MAX_SOCKET_EVENTS       10240     //每次能检测的最大数目
-
 namespace triones
 {
 class IOEvent

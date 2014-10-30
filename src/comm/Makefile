@@ -1,4 +1,3 @@
-﻿##
 # TRIONES_HOME
 #
 # MODULE
@@ -25,7 +24,6 @@ SRCS += sem.cpp thread.cpp util.cpp
 
 SLIB = libcomm.a
 
-EXTRA_LIB_PATH = 
+EXTRA_LIB_PATH =
 
 include ${TRIONES_HOME}/Makefile.inc
-

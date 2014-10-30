@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  */
@@ -12,7 +12,8 @@ namespace triones
 class Atomic
 {
 public:
-	Atomic() :_value(0)
+	Atomic()
+			: _value(0)
 	{
 	}
 
@@ -103,8 +104,6 @@ private:
 #define ATOMIC_SUB(x,y) ((x)->atomic_sub(y))
 #define ATOMIC_FETCH(x) ((x)->atomic_fetch(x))
 
-
 } // namespace triones
 
 #endif // #ifndef __TRIONES_ATOMIC_H__
-

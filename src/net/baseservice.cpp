@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: baseservice.cpp
  *     Author: triones  2014-9-26
  *Description:
@@ -49,7 +49,7 @@ bool BaseService::init(int thread_num /* = 1 */)
 
 IOComponent *BaseService::connect(const char *spec, int streamer, bool autoReconn)
 {
-	if(!init()) return false;
+	if (!init()) return false;
 
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
 	if (tp == NULL) return NULL;
@@ -64,14 +64,13 @@ IOComponent *BaseService::connect(const char *spec, int streamer, bool autoRecon
 
 IOComponent* BaseService::listen(const char *spec, int streamer)
 {
-	if(!init()) return false;
+	if (!init()) return false;
 
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
-	if (tp == NULL)
-		return NULL;
+	if (tp == NULL) return NULL;
 
-	TCPAcceptor * acceptor = (TCPAcceptor*)_transport->listen(spec, tp, this);
-	if(acceptor != NULL)
+	TCPAcceptor * acceptor = (TCPAcceptor*) _transport->listen(spec, tp, this);
+	if (acceptor != NULL)
 	{
 		acceptor->setServerAdapter(this);
 	}
@@ -137,7 +136,7 @@ bool BaseService::destroy_service()
 
 bool BaseService::destroy()
 {
-	if(_transport != NULL)
+	if (_transport != NULL)
 	{
 		//只是transport置了stop标志位，线程还不能保证已经全部结束；
 		_transport->stop();
@@ -146,20 +145,20 @@ bool BaseService::destroy()
 	//放在_transport stop和wait的中间
 	destroy_service();
 
-	if(_queue_thread != NULL)
+	if (_queue_thread != NULL)
 	{
 		_queue_thread->stop();
 		delete _queue_thread;
 		_queue_thread = NULL;
 	}
 
-	if(_packqueue != NULL)
+	if (_packqueue != NULL)
 	{
 		delete _packqueue;
 		_packqueue = NULL;
 	}
 
-	if(_transport != NULL)
+	if (_transport != NULL)
 	{
 		_transport->wait();
 		delete _transport;

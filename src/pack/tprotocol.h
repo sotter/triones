@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -92,9 +92,7 @@ private:
 	TransProtocol* _tp[TPROTOCOL_NUM];
 };
 
-
 extern TransProtocolFac __trans_protocol;
 } // namespace triones
 
 #endif // #ifndef __TRIONES_TPROTOCOL_H__
-

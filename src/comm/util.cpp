@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -32,7 +32,6 @@
 #elif defined(HAVE_GETTIMEOFDAY)
 #include <sys/time.h>
 #endif // defined(HAVE_CLOCK_GETTIME)
-
 namespace triones
 {
 
@@ -53,7 +52,6 @@ const int64_t Util::current_time_ticks(int64_t ticks_per_sec)
 #else
 	result = time(NULL);
 #endif // defined(HAVE_CLOCK_GETTIME)
-
 	return result;
 }
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : 多线程使用 Monitor对象需要配合Synchronized来使用，如果不进行同步而存在多线程数据错乱情况
@@ -24,20 +24,20 @@ class Monitor::Impl
 
 public:
 
-	Impl() :
-			_mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
+	Impl()
+			: _mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
 	{
 		init(&_owned_mutex);
 	}
 
-	Impl(Mutex* mutex) :
-			_mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
+	Impl(Mutex* mutex)
+			: _mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
 	{
 		init(mutex);
 	}
 
-	Impl(Monitor* monitor) :
-			_mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
+	Impl(Monitor* monitor)
+			: _mutex(NULL), _cond_initialized(false), _cond_notifyend(false)
 	{
 		init(&(monitor->mutex()));
 	}
@@ -63,12 +63,10 @@ public:
 	void wait(int64_t timeout) const
 	{
 		// 如果已经收到停止的指令直接退出
-		if (_cond_notifyend)
-			return;
+		if (_cond_notifyend) return;
 
 		assert(_mutex);
-		pthread_mutex_t* mutex_impl =
-				reinterpret_cast<pthread_mutex_t*>(_mutex->get_impl());
+		pthread_mutex_t* mutex_impl = reinterpret_cast<pthread_mutex_t*>(_mutex->get_impl());
 		assert(mutex_impl);
 
 		// XXX Need to assert that caller owns mutex
@@ -160,16 +158,16 @@ private:
 	mutable bool _cond_notifyend;
 };
 
-Monitor::Monitor() :
-		_impl(new Monitor::Impl())
+Monitor::Monitor()
+		: _impl(new Monitor::Impl())
 {
 }
-Monitor::Monitor(Mutex* mutex) :
-		_impl(new Monitor::Impl(mutex))
+Monitor::Monitor(Mutex* mutex)
+		: _impl(new Monitor::Impl(mutex))
 {
 }
-Monitor::Monitor(Monitor* monitor) :
-		_impl(new Monitor::Impl(monitor))
+Monitor::Monitor(Monitor* monitor)
+		: _impl(new Monitor::Impl(monitor))
 {
 }
 
@@ -214,12 +212,12 @@ void Monitor::notify_end() const
 }
 
 Synchronized::Synchronized(const Monitor* monitor)
-:_g(monitor->mutex())
+		: _g(monitor->mutex())
 {
 }
 
 Synchronized::Synchronized(const Monitor& monitor)
-:_g(monitor.mutex())
+		: _g(monitor.mutex())
 {
 }
 

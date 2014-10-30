@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // mur_mur_hash2, by Austin Appleby
 
 // Note - This code makes a few assumptions about how your machine behaves -
@@ -15,53 +15,53 @@
 #ifndef __MUR_MUR_HASH_H__
 #define __MUR_MUR_HASH_H__
 
-inline unsigned int mur_mur_hash2 ( const void * key, int len, unsigned int seed )
+inline unsigned int mur_mur_hash2(const void * key, int len, unsigned int seed)
 {
-   // 'm' and 'r' are mixing constants generated offline.
-   // They're not really 'magic', they just happen to work well.
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
 
-   const unsigned int m = 0x5bd1e995;
-   const int r = 24;
+	const unsigned int m = 0x5bd1e995;
+	const int r = 24;
 
-   // Initialize the hash to a 'random' value
+	// Initialize the hash to a 'random' value
 
-   unsigned int h = seed ^ len;
+	unsigned int h = seed ^ len;
 
-   // Mix 4 bytes at a time into the hash
+	// Mix 4 bytes at a time into the hash
 
-   const unsigned char * data = (const unsigned char *)key;
+	const unsigned char * data = (const unsigned char *) key;
 
-   while(len >= 4)
-   {
-      unsigned int k = *(unsigned int *)data;
+	while (len >= 4)
+	{
+		unsigned int k = *(unsigned int *) data;
 
-      k *= m;
-      k ^= k >> r;
-      k *= m;
+		k *= m;
+		k ^= k >> r;
+		k *= m;
 
-      h *= m;
-      h ^= k;
+		h *= m;
+		h ^= k;
 
-      data += 4;
-      len -= 4;
-   }
+		data += 4;
+		len -= 4;
+	}
 
-   // Handle the last few bytes of the input array
+	// Handle the last few bytes of the input array
 
-   const char *idata = (const char *)data;
+	const char *idata = (const char *) data;
 
-   if ( len == 3 ) h ^= idata[2] << 16;
-   if ( len >= 2 ) h ^= idata[1] << 8;
-   if ( len >= 1 ) h ^= idata[0];
-   if ( len > 0  ) h *= m;
+	if (len == 3) h ^= idata[2] << 16;
+	if (len >= 2) h ^= idata[1] << 8;
+	if (len >= 1) h ^= idata[0];
+	if (len > 0) h *= m;
 
-   // Do a few final mixes of the hash to ensure the last few
-   // bytes are well-incorporated.
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
 
-   h ^= h >> 13;
-   h *= m;
-   h ^= h >> 15;
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
 
-   return h;
+	return h;
 }
 #endif

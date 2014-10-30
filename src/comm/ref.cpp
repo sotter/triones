@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : 引用计数对象，当引用值为零时释放对象
@@ -19,10 +19,10 @@ namespace triones
 /**
  * 引用记数锁
  */
-static Mutex g_mutex ;
+static Mutex g_mutex;
 
-
-Ref::Ref():_ref(0)
+Ref::Ref()
+		: _ref(0)
 {
 }
 
@@ -31,11 +31,11 @@ Ref::Ref():_ref(0)
  */
 int Ref::add_ref()
 {
-	g_mutex.lock() ;
-	++ _ref ;
-	g_mutex.unlock() ;
+	g_mutex.lock();
+	++_ref;
+	g_mutex.unlock();
 
-	return _ref ;
+	return _ref;
 }
 
 /**
@@ -43,9 +43,9 @@ int Ref::add_ref()
  */
 int Ref::get_ref()
 {
-	Guard g( g_mutex ) ;
+	Guard g(g_mutex);
 
-	return _ref ;
+	return _ref;
 }
 
 /**
@@ -53,22 +53,23 @@ int Ref::get_ref()
  */
 void Ref::release()
 {
-	bool destory = false ;
+	bool destory = false;
 	{
-		g_mutex.lock() ;
+		g_mutex.lock();
 
-		assert( _ref > 0 ) ;
-		-- _ref ;
+		assert(_ref > 0);
+		--_ref;
 
-		if ( _ref == 0 ) {
-			destory = true ;
+		if (_ref == 0)
+		{
+			destory = true;
 		}
-		g_mutex.unlock() ;
+		g_mutex.unlock();
 	}
-	if ( destory ) {
-		delete this ;
+	if (destory)
+	{
+		delete this;
 	}
 }
-
 
 } // namespace triones

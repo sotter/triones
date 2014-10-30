@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: UDPComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -71,15 +71,14 @@ bool UDPComponent::readData()
 	__INTO_FUN__
 
 	//只有TRIONES_UDPCONN类型的才可以调用到这个地方
-	if(_type != TRIONES_UDPCONN)
+	if (_type != TRIONES_UDPCONN)
 	{
 		OUT_INFO(NULL, 0, NULL, "read type error, type %d", _type);
 		return false;
 	}
 
 	int n = _socket->read(_read_buff, sizeof(_read_buff));
-	if(n < 0)
-		return false;
+	if (n < 0) return false;
 
 	int decode = _streamer->decode(_read_buff, n, &_inputQueue);
 
@@ -106,7 +105,7 @@ bool UDPComponent::writeData()
 bool UDPComponent::postPacket(Packet *packet)
 {
 	//TRIONES_UDPCONN和TRIONES_UDPACTCONN可以调用到这个地方
-	if(_type != TRIONES_UDPCONN && _type != TRIONES_UDPACTCONN)
+	if (_type != TRIONES_UDPCONN && _type != TRIONES_UDPACTCONN)
 	{
 		OUT_INFO(NULL, 0, NULL, "write type error, type %d", _type);
 		return false;
@@ -133,7 +132,7 @@ bool UDPComponent::postPacket(Packet *packet)
 			sendbytes = _socket->sendto(packet->getData() + offset, send_len, _sock_addr);
 		}
 
-		if(sendbytes < 0)
+		if (sendbytes < 0)
 		{
 			ret = false;
 			break;
@@ -142,8 +141,7 @@ bool UDPComponent::postPacket(Packet *packet)
 		offset += sendbytes;
 	}
 
-	if(ret)
-		delete packet;
+	if (ret) delete packet;
 
 	return ret;
 }

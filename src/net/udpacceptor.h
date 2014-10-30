@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: UDPAcceptor.h
  *     Author: triones  2014-9-18
  *Description: (1) UDPAcceptor 来管理有其派生出来的UDPComponent而不是由Transport直接管理；

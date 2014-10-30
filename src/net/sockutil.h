@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: sockutil.h
  *     Author: triones  2014-10-27
  *Description:
@@ -19,7 +19,7 @@ private:
 	{
 		unsigned short family;
 		unsigned short port;
-		unsigned int   host;
+		unsigned int host;
 	};
 
 	union seriaddr
@@ -41,7 +41,6 @@ public:
 	//将网络ID转为字符串 example:10692856960556924930 -> udp:192.168.100.148:4000
 	static std::string sock_id2str(uint64_t id);
 };
-
 
 } /* namespace triones */
 #endif /* SOCKUTIL_H_ */

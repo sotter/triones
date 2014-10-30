@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -71,7 +71,7 @@ public:
 	}
 
 	static const void to_ticks(int64_t& result, int64_t secs, int64_t old_ticks,
-			int64_t old_ticks_per_sec, int64_t new_ticks_per_sec)
+	        int64_t old_ticks_per_sec, int64_t new_ticks_per_sec)
 	{
 		result = secs * new_ticks_per_sec;
 		result += old_ticks * new_ticks_per_sec / old_ticks_per_sec;

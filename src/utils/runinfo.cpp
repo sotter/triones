@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-28
  */
@@ -65,7 +65,7 @@ void NetRunInfo::show()
 	//total:%d(updata:%d, online:%d, commret:%d), fail total:%d, current average:%d/s
 	//单位是ms
 	long long timeval = (cur_timeval.tv_sec - _btimeval.tv_sec) * 1000
-			+ ((cur_timeval.tv_usec - _btimeval.tv_usec) / 1000) + 1;
+	        + ((cur_timeval.tv_usec - _btimeval.tv_usec) / 1000) + 1;
 
 	long long avg_send_num = _cur_send_num.value() * 1000 / timeval;
 	long long avg_recv_num = _cur_recv_num.value() * 1000 / timeval;
@@ -81,11 +81,11 @@ void NetRunInfo::show()
 	char buffer[256] = { 0 };
 
 	snprintf(buffer, sizeof(buffer) - 1,
-			"send(avg:%lld/s flux %s/s, total:%lld, send size:%s), recv(avg:%lld/s flux %s/s, total:%lld, recv size:%s)",
-			avg_send_num, host_size(avg_send_total).c_str(), _send_num.value(),
-			host_size(_send_total_size.value()).c_str(), avg_recv_num,
-			host_size(avg_recv_total).c_str(), _recv_num.value(),
-			host_size(_recv_total_size.value()).c_str());
+	        "send(avg:%lld/s flux %s/s, total:%lld, send size:%s), recv(avg:%lld/s flux %s/s, total:%lld, recv size:%s)",
+	        avg_send_num, host_size(avg_send_total).c_str(), _send_num.value(),
+	        host_size(_send_total_size.value()).c_str(), avg_recv_num,
+	        host_size(avg_recv_total).c_str(), _recv_num.value(),
+	        host_size(_recv_total_size.value()).c_str());
 
 	OUT_INFO(NULL, 0, "net_run_info", buffer);
 }

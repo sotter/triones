@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -19,9 +19,9 @@ class MsgHeader
 public:
 	MsgHeader()
 	{
-		_ver  = MSG_VERSION;
+		_ver = MSG_VERSION;
 		_type = 0;
-		_seq  = _len = 0;
+		_seq = _len = 0;
 	}
 	~MsgHeader()
 	{
@@ -34,12 +34,12 @@ public:
 			return false;
 		}
 
-		if (!pack->readInt16(_ver))  return false;
+		if (!pack->readInt16(_ver)) return false;
 		if (!pack->readInt16(_type)) return false;
-		if (!pack->readInt32(_seq))  return false;
-		if (!pack->readInt32(_len))  return false;
+		if (!pack->readInt32(_seq)) return false;
+		if (!pack->readInt32(_len)) return false;
 
-		if ((int)_len > pack->getDataLen())
+		if ((int) _len > pack->getDataLen())
 		{
 			return false;
 		}

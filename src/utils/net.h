@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-28
  */
@@ -20,4 +20,3 @@ bool ipv4_str_to_ip_port(const char *ip, uint16_t port, uint64_t& ip_port);
 } // namespace triones
 
 #endif // #ifndef __TRIONES_NET_H__
-

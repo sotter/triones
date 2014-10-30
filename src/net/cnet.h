@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: cnet.h
  *     Author: triones  2014-9-18
  *Description:
@@ -86,7 +86,6 @@ class ConnectionManager;
 #else
 #define __INTO_FUN__   ;
 #endif
-
 
 #endif
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-20
  */
@@ -27,15 +27,18 @@ namespace triones
 	friend class std::auto_ptr< type >;  \
 friend class Singleton< type >;
 
-
 class ThreadMutex
 {
 public:
 #ifndef __USE_THREAD__
-	ThreadMutex(){};
-	~ThreadMutex(){};
-	void Lock(){};
-	void UnLock(){};
+	ThreadMutex()
+	{};
+	~ThreadMutex()
+	{};
+	void Lock()
+	{};
+	void UnLock()
+	{};
 #else
 	ThreadMutex()
 	{
@@ -58,17 +61,15 @@ public:
 #if defined(WIN32)
 		EnterCriticalSection(&_thread_mutex);
 #else
-		if( pthread_mutex_lock(&_thread_mutex) != 0 )
-			perror(__FILE__"Error: Lock fail!\n");
+		if (pthread_mutex_lock(&_thread_mutex) != 0) perror(__FILE__"Error: Lock fail!\n");
 #endif
-	}	
+	}
 	void UnLock()
 	{
 #if defined(WIN32)
 		LeaveCriticalSection(&_thread_mutex);
 #else
-		if ( pthread_mutex_unlock(&_thread_mutex) != 0 )
-			perror(__FILE__"Error: Unlock fail!\n");
+		if (pthread_mutex_unlock(&_thread_mutex) != 0) perror(__FILE__"Error: Unlock fail!\n");
 #endif
 	}
 #endif
@@ -76,14 +77,14 @@ public:
 private:
 #ifdef __USE_THREAD__
 #if defined(WIN32)
-	CRITICAL_SECTION	_thread_mutex;
+	CRITICAL_SECTION _thread_mutex;
 #else
-	pthread_mutex_t		_thread_mutex;
+	pthread_mutex_t _thread_mutex;
 #endif
 #endif
 };
 
-template <class T>
+template<class T>
 class Singleton
 {
 public:
@@ -102,13 +103,13 @@ protected:
 	static ThreadMutex _thread_mutex;
 };
 
-template <class T>
+template<class T>
 std::auto_ptr<T> Singleton<T>::_instance;
 
-template <class T>
+template<class T>
 ThreadMutex Singleton<T>::_thread_mutex;
 
-template <class T>
+template<class T>
 inline T* Singleton<T>::instance()
 {
 	//Double-Checked Locking
@@ -128,4 +129,3 @@ inline T* Singleton<T>::instance()
 }  // namespace triones
 
 #endif // #ifndef __TRIONES_SINGLETON_H__
-

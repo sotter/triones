@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2012-07-09
  * */
@@ -11,34 +11,34 @@ namespace triones
 {
 
 Sem::Sem()
-:_sem(NULL)
+		: _sem(NULL)
 {
-	_sem = (void*)new sem_t;
+	_sem = (void*) new sem_t;
 	init();
 }
 
 Sem::~Sem()
 {
 	destroy();
-	delete( (sem_t*)_sem );
+	delete ((sem_t*) _sem);
 	_sem = NULL;
 }
 
 void Sem::init(unsigned int value /*= 0*/)
 {
-	if(value > SEM_VALUE_MAX)
+	if (value > SEM_VALUE_MAX)
 	{
 		value = SEM_VALUE_MAX;
 	}
 
-	sem_init((sem_t*)_sem, 0, value);
+	sem_init((sem_t*) _sem, 0, value);
 }
 
 void Sem::wait()
 {
-	while(1)
+	while (1)
 	{
-		if(0 == sem_wait((sem_t*)_sem))
+		if (0 == sem_wait((sem_t*) _sem))
 		{
 			return;
 		}
@@ -48,18 +48,18 @@ void Sem::wait()
 #ifdef __USE_XOPEN2K
 bool Sem::wait(time_t timeout)
 {
-	if(timeout == 0)
+	if (timeout == 0)
 	{
 		wait();
 		return true;
 	}
 
 	struct timespec ts;
-	ts.tv_sec = timeout/1000;
-	timeout = timeout - ts.tv_sec*1000;
-	ts.tv_nsec = timeout*1000000;
+	ts.tv_sec = timeout / 1000;
+	timeout = timeout - ts.tv_sec * 1000;
+	ts.tv_nsec = timeout * 1000000;
 
-	if(0 == sem_timedwait((sem_t*)_sem, &ts))
+	if (0 == sem_timedwait((sem_t*) _sem, &ts))
 	{
 		return true;
 	}
@@ -71,7 +71,7 @@ bool Sem::wait(time_t timeout)
 
 bool Sem::trywait()
 {
-	if(0 == sem_trywait((sem_t*)_sem))
+	if (0 == sem_trywait((sem_t*) _sem))
 	{
 		return true;
 	}
@@ -81,12 +81,12 @@ bool Sem::trywait()
 
 void Sem::post()
 {
-	sem_post((sem_t*)_sem);
+	sem_post((sem_t*) _sem);
 }
 
 void Sem::destroy()
 {
-	sem_destroy((sem_t*)_sem);
+	sem_destroy((sem_t*) _sem);
 }
 
 } // namespace triones

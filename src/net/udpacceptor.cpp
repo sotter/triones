@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: UDPAcceptor.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -34,8 +34,7 @@ bool UDPAcceptor::readData()
 {
 	struct sockaddr_in read_addr;
 	int n = _socket->recvfrom(_read_buff, sizeof(_read_buff), read_addr);
-	if(n < 0)
-		return false;
+	if (n < 0) return false;
 
 	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr);
 	UDPComponent *ioc = get(sockid);
@@ -73,7 +72,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 
 	_mutex.lock();
 	std::map<uint64_t, UDPComponent*>::iterator iter = _mpsock.find(sockid);
-	if(iter != _mpsock.end())
+	if (iter != _mpsock.end())
 	{
 		ioc = iter->second;
 		_mutex.unlock();

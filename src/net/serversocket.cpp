@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: ServerSocket.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -37,14 +37,14 @@ Socket *ServerSocket::accept()
 	{
 		handleSocket = new Socket();
 		handleSocket->setUp(fd, (struct sockaddr *) &addr);
-		OUT_INFO(NULL, 0, NULL,"accept %s , fd %d ", handleSocket->getAddr().c_str(), fd);
+		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", handleSocket->getAddr().c_str(), fd);
 	}
 	else
 	{
 		int error = getLastError();
 		if (error != EAGAIN)
 		{
-			OUT_ERROR(NULL, 0,  "accept error %s(%d)", strerror(error), error);
+			OUT_ERROR(NULL, 0, "accept error %s(%d)", strerror(error), error);
 		}
 	}
 

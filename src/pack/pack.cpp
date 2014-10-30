@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -27,7 +27,7 @@ bool Packet::read_str(std::string& s)
 //		return false;
 
 	s.resize(n);
-	return readBytes((char*)s.data(), n);
+	return readBytes((char*) s.data(), n);
 }
 
 bool Packet::write_str(const std::string& s)
@@ -37,7 +37,7 @@ bool Packet::write_str(const std::string& s)
 
 	if (n > 0)
 	{
-		writeBytes(s.data(), (int)n);
+		writeBytes(s.data(), (int) n);
 	}
 
 	return true;
@@ -65,7 +65,7 @@ bool Packet::read_string(std::string& s)
 
 bool Packet::write_string(const std::string &s)
 {
-	unsigned int n = s.length() ;
+	unsigned int n = s.length();
 	writeInt32(n);
 
 	if (n > 0)
@@ -94,13 +94,13 @@ PacketQueue::PacketQueue()
 	_head = NULL;
 	_tail = NULL;
 	_size = 0;
-	_mutex = new Mutex;	
+	_mutex = new Mutex;
 }
 
 PacketQueue::~PacketQueue()
 {
 	clear();
-	if(NULL != _mutex)
+	if (NULL != _mutex)
 	{
 		delete _mutex;
 		_mutex = NULL;

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify

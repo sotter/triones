@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -45,34 +45,32 @@ void greedy_for_resources()
 	struct rlimit limit;
 
 	// maximize the number of open files.
-	if(getrlimit(RLIMIT_NOFILE, &limit) < 0)
+	if (getrlimit(RLIMIT_NOFILE, &limit) < 0)
 	{
 		limit.rlim_cur = 1024;
 		limit.rlim_max = 1024;
 	}
 
-	while(setrlimit(RLIMIT_NOFILE, &limit) == 0)
+	while (setrlimit(RLIMIT_NOFILE, &limit) == 0)
 	{
-		limit.rlim_cur ++;
-		limit.rlim_max ++;
+		limit.rlim_cur++;
+		limit.rlim_max++;
 
-		if (limit.rlim_cur >= RLIM_INFINITY)
-			break;
+		if (limit.rlim_cur >= RLIM_INFINITY ) break;
 	}
 
 	// try to set the maximum size of stack segment
-	if(getrlimit(RLIMIT_STACK, &limit) < 0)
+	if (getrlimit(RLIMIT_STACK, &limit) < 0)
 	{
 		limit.rlim_cur = 0;
 	}
 
-	if(limit.rlim_cur < STACKSIZE)
+	if (limit.rlim_cur < STACKSIZE)
 	{
 		limit.rlim_cur = STACKSIZE;
 		limit.rlim_max = STACKSIZE;
 		setrlimit(RLIMIT_STACK, &limit);
 	}
 }
-
 
 } // namespace triones

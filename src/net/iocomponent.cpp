@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: IOComponent.cpp
  *     Author: triones  2014-9-18
  *Description:
@@ -18,7 +18,7 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 	_socketEvent = NULL;
 	atomic_set(&_refcount, 0);
 	_state = TRIONES_UNCONNECTED; // 正在连接
-	_type =  type;
+	_type = type;
 	_autoReconn = false; // 不要自动重连
 	_pre = _next = NULL;
 	_lastUseTime = triones::CTimeUtil::getTime();

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -18,14 +18,17 @@ namespace triones
 // trim from start
 std::string& ltrim(std::string& s)
 {
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(s.begin(),
+	        std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
 	return s;
 }
 
 // trim from end
 std::string& rtrim(std::string& s)
 {
-	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	s.erase(
+	        std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
+	        s.end());
 	return s;
 }
 
@@ -57,14 +60,14 @@ int stricmp(const std::string& ls, const std::string& rs)
 	std::string::const_iterator lit = ls.begin();
 	std::string::const_iterator rit = rs.begin();
 
-	for( ; lit != ls.end() && rit != rs.end(); ++lit, ++rit)
+	for (; lit != ls.end() && rit != rs.end(); ++lit, ++rit)
 	{
-		if(std::toupper(*lit) == std::toupper(*rit))
+		if (std::toupper(*lit) == std::toupper(*rit))
 		{
 			continue;
 		}
 
-		if(std::toupper(*lit) > std::toupper(*rit))
+		if (std::toupper(*lit) > std::toupper(*rit))
 		{
 			return 1;
 		}
@@ -74,11 +77,11 @@ int stricmp(const std::string& ls, const std::string& rs)
 		}
 	}
 
-	if(lit == ls.end() && rit == rs.end())
+	if (lit == ls.end() && rit == rs.end())
 	{
 		return 0;
 	}
-	else if(lit == ls.end())
+	else if (lit == ls.end())
 	{
 		return -1;
 	}
@@ -90,23 +93,24 @@ int stricmp(const std::string& ls, const std::string& rs)
 
 // The second parameter is a set of separators, i.e. each char is one separator.
 // e.g. if the separators is "sep", string "theseptember" will be split into "th", "","","","t","mb" and "r".
-void strsplit(const std::string& str, const std::string& separators, std::vector<std::string> & str_list, bool skip /* = false*/)
+void strsplit(const std::string& str, const std::string& separators,
+        std::vector<std::string> & str_list, bool skip /* = false*/)
 {
 	str_list.clear();
 
 	size_t head = 0;
 	size_t tail = str.find_first_of(separators, head);
 
-	for( ; tail != str.npos; head = tail + 1, tail = str.find_first_of(separators, head))
+	for (; tail != str.npos; head = tail + 1, tail = str.find_first_of(separators, head))
 	{
-		if(tail == head && skip)
+		if (tail == head && skip)
 		{
 			continue;
 		}
-		str_list.push_back(str.substr(head, tail-head));
+		str_list.push_back(str.substr(head, tail - head));
 	}
 
-	if((!skip && head > 0) || str.substr(head).size() > 0)
+	if ((!skip && head > 0) || str.substr(head).size() > 0)
 	{
 		str_list.push_back(str.substr(head));
 	}
@@ -116,23 +120,24 @@ void strsplit(const std::string& str, const std::string& separators, std::vector
 
 // The second parameter is THE separator.
 // e.g. if the separator is "sep", string "theseptember" will be split into "the" and "tember".
-void strsplit2(const std::string& str, const std::string& separator, std::vector<std::string> & str_list, bool skip /* = false*/)
+void strsplit2(const std::string& str, const std::string& separator,
+        std::vector<std::string> & str_list, bool skip /* = false*/)
 {
 	str_list.clear();
 
 	size_t head = 0;
 	size_t tail = str.find(separator, head);
 
-	for( ; tail != str.npos; head = tail + separator.size(), tail = str.find(separator, head))
+	for (; tail != str.npos; head = tail + separator.size(), tail = str.find(separator, head))
 	{
-		if(tail == head && skip)
+		if (tail == head && skip)
 		{
 			continue;
 		}
-		str_list.push_back(str.substr(head, tail-head));
+		str_list.push_back(str.substr(head, tail - head));
 	}
 
-	if((!skip && head > 0) || str.substr(head).size() > 0)
+	if ((!skip && head > 0) || str.substr(head).size() > 0)
 	{
 		str_list.push_back(str.substr(head));
 	}
@@ -144,7 +149,7 @@ std::string& replace(std::string& str, const std::string& str1, const std::strin
 {
 	size_t slen = str1.size();
 	size_t dlen = str2.size();
-	for(size_t pos = str.find(str1); pos != std::string::npos;)
+	for (size_t pos = str.find(str1); pos != std::string::npos;)
 	{
 		str.replace(pos, slen, str2);
 		pos += dlen;
@@ -156,7 +161,7 @@ std::string& replace(std::string& str, const std::string& str1, const std::strin
 
 bool strformat(std::string& str, const char* fmt, ...)
 {
-	int size=32;
+	int size = 32;
 	va_list ap;
 
 	while (1)
@@ -164,7 +169,7 @@ bool strformat(std::string& str, const char* fmt, ...)
 		str.resize(size);
 
 		va_start(ap, fmt);
-		int n = vsnprintf((char *)str.data(), size, fmt, ap);
+		int n = vsnprintf((char *) str.data(), size, fmt, ap);
 		va_end(ap);
 
 		if (n > -1 && n < size)
@@ -175,7 +180,7 @@ bool strformat(std::string& str, const char* fmt, ...)
 
 		if (n > -1)
 		{
-			size=n+1;
+			size = n + 1;
 		}
 		else
 		{
@@ -191,8 +196,7 @@ std::string to_string(int8_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRId8, val))
-		str.clear();
+	if (!strformat(str, "%" PRId8, val)) str.clear();
 
 	return str;
 }
@@ -201,8 +205,7 @@ std::string to_string(uint8_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRIu8, val))
-		str.clear();
+	if (!strformat(str, "%" PRIu8, val)) str.clear();
 
 	return str;
 }
@@ -211,8 +214,7 @@ std::string to_string(int16_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRId16, val))
-		str.clear();
+	if (!strformat(str, "%" PRId16, val)) str.clear();
 
 	return str;
 }
@@ -221,8 +223,7 @@ std::string to_string(uint16_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRIu16, val))
-		str.clear();
+	if (!strformat(str, "%" PRIu16, val)) str.clear();
 
 	return str;
 }
@@ -231,8 +232,7 @@ std::string to_string(int32_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRId32, val))
-		str.clear();
+	if (!strformat(str, "%" PRId32, val)) str.clear();
 
 	return str;
 }
@@ -241,8 +241,7 @@ std::string to_string(uint32_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRIu32, val))
-		str.clear();
+	if (!strformat(str, "%" PRIu32, val)) str.clear();
 
 	return str;
 }
@@ -251,8 +250,7 @@ std::string to_string(int64_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRId64, val))
-		str.clear();
+	if (!strformat(str, "%" PRId64, val)) str.clear();
 
 	return str;
 }
@@ -261,8 +259,7 @@ std::string to_string(uint64_t val)
 {
 	std::string str;
 
-	if(!strformat(str, "%" PRIu64, val))
-		str.clear();
+	if (!strformat(str, "%" PRIu64, val)) str.clear();
 
 	return str;
 }
@@ -271,8 +268,7 @@ std::string to_string(float val)
 {
 	std::string str;
 
-	if(!strformat(str, "%f", val))
-		str.clear();
+	if (!strformat(str, "%f", val)) str.clear();
 
 	return str;
 }
@@ -281,8 +277,7 @@ std::string to_string(double val)
 {
 	std::string str;
 
-	if(!strformat(str, "%f", val))
-		str.clear();
+	if (!strformat(str, "%f", val)) str.clear();
 
 	return str;
 }
@@ -291,8 +286,7 @@ std::string to_string(long double val)
 {
 	std::string str;
 
-	if(!strformat(str, "%Lf", val))
-		str.clear();
+	if (!strformat(str, "%Lf", val)) str.clear();
 
 	return str;
 }
@@ -368,7 +362,7 @@ bool str_to_bcd(const char* str, size_t len, std::string& bcd)
 {
 	bcd.clear();
 
-	for(size_t i = 0; i < len; i+=2)
+	for (size_t i = 0; i < len; i += 2)
 	{
 		char ch[2];
 
@@ -380,9 +374,9 @@ bool str_to_bcd(const char* str, size_t len, std::string& bcd)
 			return false;
 		}
 
-		if (i+1 < len)
+		if (i + 1 < len)
 		{
-			ch[1] = str[i+1] - '0';
+			ch[1] = str[i + 1] - '0';
 
 			if (ch[1] < 0 || ch[1] > 9)
 			{
@@ -429,7 +423,7 @@ bool bcd_to_str(const char* bcd, size_t len, std::string& str)
 		ch &= 0x0f;
 
 		// 如果是末尾补齐，直接返回
-		if (ch == 0x0f && i+1 == len)
+		if (ch == 0x0f && i + 1 == len)
 		{
 			return true;
 		}
@@ -456,7 +450,7 @@ bool int_to_bcd(unsigned int ui, std::string& bcd)
 		char c = (ui % 10) + '0';
 		istr.insert(0, 1, c);
 		ui /= 10;
-	} while(ui > 0);
+	} while (ui > 0);
 
 	return str_to_bcd(istr.data(), istr.size(), bcd);
 }
@@ -526,5 +520,4 @@ bool strconv(std::string& content, const char* from_code, const char* to_code)
 }
 
 } // namespace triones
-
 

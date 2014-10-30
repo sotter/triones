@@ -295,12 +295,12 @@ struct CTFOHEADER
 	unsigned char checkbit;
 
 	CTFOHEADER()
-	:ctfo_begin(CTFO_TAG), len(0), checkbit(0)
+			: ctfo_begin(CTFO_TAG), len(0), checkbit(0)
 	{
 	}
 
 	CTFOHEADER(unsigned int data_len)
-	:ctfo_begin(CTFO_TAG)
+			: ctfo_begin(CTFO_TAG)
 	{
 		len = htonl(data_len);
 		checkbit = check_sum();
@@ -484,5 +484,4 @@ TransProtocol* TransProtocolFac::get(int type)
 }
 
 } // namespace triones
-
 

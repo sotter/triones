@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2012-07-09
  * */
@@ -25,7 +25,8 @@ public:
 	void post();
 	void destroy();
 
-private:	// no copyable
+private:
+	// no copyable
 	Sem(const Sem&);
 	Sem& operator=(const Sem&);
 

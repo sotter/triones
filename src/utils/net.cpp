@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-28
  */
@@ -15,7 +15,7 @@ namespace triones
 
 bool ipv4_str_to_addr(const char *ip, struct in_addr &addr /* out */)
 {
-	if(1 != inet_pton(AF_INET, ip, &addr))
+	if (1 != inet_pton(AF_INET, ip, &addr))
 	{
 		return false;
 	}
@@ -28,7 +28,7 @@ bool ipv4_addr_to_str(const struct in_addr &addr, std::string &ip_str/* out */)
 	char ip_s[INET_ADDRSTRLEN];
 	memset(ip_s, 0, sizeof(ip_s));
 
-	if(NULL == inet_ntop(AF_INET, &addr, ip_s, sizeof(ip_s)))
+	if (NULL == inet_ntop(AF_INET, &addr, ip_s, sizeof(ip_s)))
 	{
 		return false;
 	}
@@ -39,10 +39,11 @@ bool ipv4_addr_to_str(const struct in_addr &addr, std::string &ip_str/* out */)
 }
 
 // 得到设备的 IP 地址
-bool ipv4_get_addr(const char *dev_name, struct in_addr &addr /* out */, bool skip_loopback/* = true*/)
+bool ipv4_get_addr(const char *dev_name, struct in_addr &addr /* out */,
+        bool skip_loopback/* = true*/)
 {
 	int fd, i;
-	struct ifreq  ifs[16];
+	struct ifreq ifs[16];
 	struct ifconf ifc;
 	struct sockaddr_in* sa = NULL;
 
@@ -52,7 +53,7 @@ bool ipv4_get_addr(const char *dev_name, struct in_addr &addr /* out */, bool sk
 	}
 
 	ifc.ifc_len = sizeof(ifs);
-	ifc.ifc_buf = (caddr_t)ifs;
+	ifc.ifc_buf = (caddr_t) ifs;
 
 	if (ioctl(fd, SIOCGIFCONF, &ifc) < 0)
 	{
@@ -102,7 +103,7 @@ bool ipv4_get_addr(const char *dev_name, struct in_addr &addr /* out */, bool sk
 bool ipv4_is_local(const struct in_addr &addr /* out */, bool skip_loopback/* = true*/)
 {
 	int fd, i;
-	struct ifreq  ifs[16];
+	struct ifreq ifs[16];
 	struct ifconf ifc;
 	struct sockaddr_in* sa = NULL;
 
@@ -112,7 +113,7 @@ bool ipv4_is_local(const struct in_addr &addr /* out */, bool skip_loopback/* = 
 	}
 
 	ifc.ifc_len = sizeof(ifs);
-	ifc.ifc_buf = (caddr_t)ifs;
+	ifc.ifc_buf = (caddr_t) ifs;
 
 	if (ioctl(fd, SIOCGIFCONF, &ifc) < 0)
 	{
@@ -162,7 +163,7 @@ bool ipv4_is_local(const struct in_addr &addr /* out */, bool skip_loopback/* = 
 void ipv4_ip_port_to_str(uint64_t ip_port, std::string& str)
 {
 	char buf[32];
-	uint32_t ip   = (uint32_t) (ip_port & 0xffffffff);
+	uint32_t ip = (uint32_t) (ip_port & 0xffffffff);
 	uint16_t port = (uint16_t) ((ip_port >> 32) & 0xffff);
 	unsigned char *bytes = (unsigned char *) &ip;
 

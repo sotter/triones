@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: IOComponent.h
  *     Author: triones  2014-9-18
  *Description:
@@ -21,7 +21,7 @@ public:
 	enum
 	{
 		TRIONES_TCPACCETOR = 1, //TCP listen socket
-		TRIONES_TCPCONN ,       //TCP 主动发起连接的socket
+		TRIONES_TCPCONN,       //TCP 主动发起连接的socket
 		TRIONES_TCPACTCONN,     //TCP 被动连接的socket，由Acceptor派生出来的
 		TRIONES_UDPACCETOR,     //UDP 服务端socket
 		TRIONES_UDPCONN,        //UDP 主动起连接的socket
@@ -54,7 +54,7 @@ public:
 	{
 	}
 
-	virtual  bool postPacket(Packet *packet)
+	virtual bool postPacket(Packet *packet)
 	{
 		UNUSED(packet);
 		return false;
@@ -98,11 +98,11 @@ public:
 		_socketEvent = socketEvent;
 	}
 
-    //为了适配baseService的接口而增加的  2014-10-14
-    void setServerAdapter(IServerAdapter *sa)
-    {
-    	_serverAdapter = sa;
-    }
+	//为了适配baseService的接口而增加的  2014-10-14
+	void setServerAdapter(IServerAdapter *sa)
+	{
+		_serverAdapter = sa;
+	}
 
 	/*
 	 * 设置能读写
@@ -203,7 +203,7 @@ public:
 	triones::Transport *getOwner();
 
 public:
-    IServerAdapter *_serverAdapter;         // 服务器适配器
+	IServerAdapter *_serverAdapter;         // 服务器适配器
 	IOComponent *_pre; // 用于链表
 	IOComponent *_next; // 用于链表
 protected:

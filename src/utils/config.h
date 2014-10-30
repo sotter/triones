@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -26,64 +26,64 @@ private:
 
 	struct Token
 	{
-		int     type;
-		int     index;
-		char   *name;
-		char   *value;
-		Token  *next;      // point to the next token in this line
-		Token  *snext;     // point to the next token within a
-		                   // section. This pointer is valid only
-		                   // when type is TYPE_TOKEN_*.
-		Line   *line;      // point to the line which contains
-		                   // this token.
+		int type;
+		int index;
+		char *name;
+		char *value;
+		Token *next;      // point to the next token in this line
+		Token *snext;     // point to the next token within a
+		                  // section. This pointer is valid only
+		                  // when type is TYPE_TOKEN_*.
+		Line *line;      // point to the line which contains
+		                 // this token.
 	};
 
 	struct Line
 	{
-		Token  *token;     // point to the first token in this line
-		Token  *etoken;    // point to the first TYPE_TOKEN_*
-		                   // token within a section. This pointer
-		                   // is valid only when this line is the
-		                   // definition of a section.
-		Line   *prev;      // previous line
-		Line   *next;      // next line
+		Token *token;     // point to the first token in this line
+		Token *etoken;    // point to the first TYPE_TOKEN_*
+		                  // token within a section. This pointer
+		                  // is valid only when this line is the
+		                  // definition of a section.
+		Line *prev;      // previous line
+		Line *next;      // next line
 	};
 
-	char        _filename[PATH_MAX];
-	FILE       *_fp;
+	char _filename[PATH_MAX];
+	FILE *_fp;
 
-	Line       *_lines;
-	Line      **_sections;
+	Line *_lines;
+	Line **_sections;
 
-	int         _total_sections;
+	int _total_sections;
 
 	// If configuration was changed by function call like 'set' since
 	// the loading at very beginning, '_dirty_flag' will be set to 1. When
 	// the instance is deleted, changes will be saved to file.
 	// But if _write_now flag is set, your modification will be written
 	// to file immediately.
-	int         _dirty_flag;
-	int         _write_now;
+	int _dirty_flag;
+	int _write_now;
 
-	int         _tokens_per_line;
+	int _tokens_per_line;
 
-	int         _case_sensitive;
+	int _case_sensitive;
 
 	// This flag indicates whether the instance is properly initialized.
-	int         _ready;
+	int _ready;
 
 public:
 	Config(const char *fname);
 	virtual ~Config();
 
-	int  reload(const char *path = NULL);
-	int  load(const char *path);
-	int  ready();
-	int  set_wirte_now(int writenow = 1);
-	int  set_case_sensitive(int yes = 1);
-	int  set_column(int column = 0);
-	int  dump(const char *path);
-	int  dump();
+	int reload(const char *path = NULL);
+	int load(const char *path);
+	int ready();
+	int set_wirte_now(int writenow = 1);
+	int set_case_sensitive(int yes = 1);
+	int set_column(int column = 0);
+	int dump(const char *path);
+	int dump();
 	void release();
 
 	/*
@@ -158,7 +158,8 @@ public:
 	 * which has the corresponding type and the index number equals to
 	 * 'where'. The newly added item will be the first one by default.
 	 */
-	int add_token(const char *section, int where = 0, const char *id = NULL, const char *value = NULL);
+	int add_token(const char *section, int where = 0, const char *id = NULL, const char *value =
+	        NULL);
 
 	/*
 	 * Function add_comment adds comment line to configuration file. If
@@ -171,7 +172,8 @@ public:
 	 * By the way, a blank line other than comment line will be added
 	 * if parameter comment is NULL pointer.
 	 */
-	int add_comment(const char *comment, int where = 0, const char *section = NULL, const char *id = NULL);
+	int add_comment(const char *comment, int where = 0, const char *section = NULL, const char *id =
+	        NULL);
 
 	/*
 	 * If id is a NULL pointer, del_token deletes a TYPE_TOKEN_VECTOR token
@@ -197,4 +199,3 @@ public:
 } // namespace triones
 
 #endif // #ifndef __TRIONES_CONFIG_H__
-

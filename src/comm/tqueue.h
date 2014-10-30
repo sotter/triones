@@ -1,4 +1,4 @@
-﻿#ifndef __TQUEUE_H__
+#ifndef __TQUEUE_H__
 #define __TQUEUE_H__
 
 template<typename T>
@@ -37,8 +37,7 @@ public:
 	// 移出队列
 	T * pop(void)
 	{
-		if (_size == 0)
-			return NULL;
+		if (_size == 0) return NULL;
 
 		T *p = _head;
 		if (_head == _tail)

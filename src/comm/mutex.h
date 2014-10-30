@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : source from apache some edited
@@ -63,8 +63,8 @@ private:
 class Guard
 {
 public:
-	Guard(const Mutex& value, int64_t timeout = 0) :
-			_mutex(&value)
+	Guard(const Mutex& value, int64_t timeout = 0)
+			: _mutex(&value)
 	{
 		if (timeout == 0)
 		{
@@ -105,15 +105,14 @@ private:
 
 enum RWGuardType
 {
-	RW_READ = 0,
-	RW_WRITE = 1,
+	RW_READ = 0, RW_WRITE = 1,
 };
 
 class RWGuard
 {
 public:
-	RWGuard(const RWMutex& value, bool write = false) :
-			_rw_mutex(value)
+	RWGuard(const RWMutex& value, bool write = false)
+			: _rw_mutex(value)
 	{
 		if (write)
 		{
@@ -125,8 +124,8 @@ public:
 		}
 	}
 
-	RWGuard(const RWMutex& value, RWGuardType type) :
-			_rw_mutex(value)
+	RWGuard(const RWMutex& value, RWGuardType type)
+			: _rw_mutex(value)
 	{
 		if (type == RW_WRITE)
 		{
@@ -148,4 +147,3 @@ private:
 } // namespace triones
 
 #endif // #ifndef __TRIONES_MUTEX_H__
-

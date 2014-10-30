@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: debug.h
  *     Author: Triones  2013-10-17
  *Description:
@@ -14,7 +14,7 @@ class debug
 public:
 	static void print_trace(void)
 	{
-        printf("into print_trace \n");
+		printf("into print_trace \n");
 		int i;
 		const int MAX_CALLSTACK_DEPTH = 32; /* 需要打印堆栈的最大深度 */
 		void *traceback[MAX_CALLSTACK_DEPTH]; /* 用来存储调用堆栈中的地址 */

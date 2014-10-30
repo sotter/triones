@@ -1,4 +1,4 @@
-﻿/*
+/*
  * (C) 2007-2010 Taobao Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,23 +16,25 @@
 #ifndef TBNET_STATS_H_
 #define TBNET_STATS_H_
 
-namespace triones {
+namespace triones
+{
 
-class StatCounter {
+class StatCounter
+{
 public:
-    StatCounter();
-    ~StatCounter();
-    void log();
-    void clear();
-
-public:
-    uint64_t _packetReadCnt;  // # packets read
-    uint64_t _packetWriteCnt; // # packets written
-    uint64_t _dataReadCnt;    // # bytes read
-    uint64_t _dataWriteCnt;   // # bytes written
+	StatCounter();
+	~StatCounter();
+	void log();
+	void clear();
 
 public:
-    static StatCounter _gStatCounter; // 全局
+	uint64_t _packetReadCnt;  // # packets read
+	uint64_t _packetWriteCnt; // # packets written
+	uint64_t _dataReadCnt;    // # bytes read
+	uint64_t _dataWriteCnt;   // # bytes written
+
+public:
+	static StatCounter _gStatCounter; // 全局
 
 };
 

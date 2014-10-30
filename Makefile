@@ -1,4 +1,4 @@
-MAKE     = make
+MAKE	= make
 
 
 SUB_DIRS = src

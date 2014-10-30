@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-20
  */
@@ -61,5 +61,3 @@ namespace triones
 }  // namespace triones
 
 #endif // #ifndef __TRIONES_COMLOG_H__
-
-

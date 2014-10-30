@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -42,17 +42,17 @@ public:
 	Packet* head();
 	Packet* tail();
 	Packet* pop();
-	void    push(Packet *packet);
-	void    clear();
-	int     size();
-	bool    empty();
-	void    moveto(PacketQueue *destQueue);
+	void push(Packet *packet);
+	void clear();
+	int size();
+	bool empty();
+	void moveto(PacketQueue *destQueue);
 
 public:
-	Mutex  *_mutex;
+	Mutex *_mutex;
 	Packet *_head;
 	Packet *_tail;
-	int     _size;
+	int _size;
 };
 
 } // namespace triones

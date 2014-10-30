@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-28
  */
@@ -32,20 +32,12 @@ namespace triones
 #define YEAR    (365*DAY)
 
 /* interestingly, we assume leap-years */
-static int month[12] = {
-		0,
-		DAY*(31),
-		DAY*(31+29),
-		DAY*(31+29+31),
-		DAY*(31+29+31+30),
-		DAY*(31+29+31+30+31),
-		DAY*(31+29+31+30+31+30),
-		DAY*(31+29+31+30+31+30+31),
-		DAY*(31+29+31+30+31+30+31+31),
-		DAY*(31+29+31+30+31+30+31+31+30),
-		DAY*(31+29+31+30+31+30+31+31+30+31),
-		DAY*(31+29+31+30+31+30+31+31+30+31+30)
-};
+static int month[12] = { 0, DAY * (31), DAY * (31 + 29), DAY * (31 + 29 + 31), DAY
+        * (31 + 29 + 31 + 30), DAY * (31 + 29 + 31 + 30 + 31), DAY * (31 + 29 + 31 + 30 + 31 + 30),
+        DAY * (31 + 29 + 31 + 30 + 31 + 30 + 31), DAY * (31 + 29 + 31 + 30 + 31 + 30 + 31 + 31), DAY
+                * (31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30), DAY
+                * (31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31), DAY
+                * (31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30) };
 
 long kernel_mktime(struct tm * tm)
 {
@@ -61,8 +53,7 @@ long kernel_mktime(struct tm * tm)
 
 	/* and (y+2) here. If it wasn't a leap-year, we have to adjust */
 
-	if (tm->tm_mon > 1 && ((year + 2) % 4))
-		res -= DAY;
+	if (tm->tm_mon > 1 && ((year + 2) % 4)) res -= DAY;
 	res += DAY * (tm->tm_mday - 1);
 	res += HOUR * tm->tm_hour;
 	res += MINUTE * tm->tm_min;
@@ -75,21 +66,17 @@ long kernel_mktime(struct tm * tm)
 // 检测IP的合法性
 bool check_addr(const char *ip)
 {
-	if (ip == NULL)
-		return false;
-	if (inet_addr(ip) == (in_addr_t) -1)
-		return false;
+	if (ip == NULL) return false;
+	if (inet_addr(ip) == (in_addr_t) -1) return false;
 	return true;
 }
 
 // 这里主要处理分析路径中带有 env:LBS_ROOT/lbs 之类的路径
 bool get_env_path(const char *value, char *szbuf)
 {
-	if (value == NULL)
-		return false;
+	if (value == NULL) return false;
 
-	char buf[1024] =
-	{ 0 };
+	char buf[1024] = { 0 };
 	strcpy(buf, value);
 
 	if (strncmp(buf, "env:", 4) == 0)
@@ -119,8 +106,7 @@ bool get_env_path(const char *value, char *szbuf)
  *  取得当前环境对象路径,
  *	env 为环境对象名称，buf 存放路径的缓存, sz 为附加后缀, def 默认的中径
  */
-const char * get_run_path(const char *env, char *buf, const char *sz,
-		const char *def)
+const char * get_run_path(const char *env, char *buf, const char *sz, const char *def)
 {
 	if (env == NULL)
 	{
@@ -147,11 +133,10 @@ const char * get_run_path(const char *env, char *buf, const char *sz,
 }
 
 // 取得默认的CONF路径
-const char * get_conf_path(const char *env, char *buf, const char *sz,
-		const char *def, const char *conf)
+const char * get_conf_path(const char *env, char *buf, const char *sz, const char *def,
+        const char *conf)
 {
-	char temp[512] =
-	{ 0 };
+	char temp[512] = { 0 };
 	get_run_path(env, temp, sz, def);
 	sprintf(buf, "%s/%s", temp, conf);
 	return buf;

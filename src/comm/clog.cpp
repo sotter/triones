@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-20
  */
@@ -19,7 +19,7 @@
 #  include <strings.h>
 #  include <errno.h>
 #  include <pthread.h>
-   extern int errno;
+extern int errno;
 #  include <sys/syscall.h>
 #else
 #  include <process.h>
@@ -29,7 +29,6 @@
 #include "monitor.h"
 #include "thread.h"
 #include "clog.h"
-
 
 namespace triones
 {
@@ -47,8 +46,8 @@ using namespace std;
 #  define S_IRWXUGO (S_IRWXU | S_IRWXG | S_IRWXO)
 #endif
 
-const char const_char[] =
-	{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+const char const_char[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
+        'e', 'f' };
 
 static string ustodecstr_log(unsigned short us)
 {
@@ -65,8 +64,7 @@ static string ustodecstr_log(unsigned short us)
 static bool mkdirs_log(char *szDirPath)
 {
 	struct stat stats;
-	if (lstat(szDirPath, &stats) == 0 && S_ISDIR(stats.st_mode))
-		return true;
+	if (lstat(szDirPath, &stats) == 0 && S_ISDIR(stats.st_mode)) return true;
 
 	mode_t umask_value = umask(0);
 	umask(umask_value);
@@ -79,8 +77,7 @@ static bool mkdirs_log(char *szDirPath)
 	while (1)
 	{
 		slash = strchr(slash, '/');
-		if (slash == NULL)
-			break;
+		if (slash == NULL) break;
 
 		*slash = '\0';
 		int ret = mkdir(szDirPath, mode);
@@ -101,11 +98,11 @@ static bool mkdirs_log(char *szDirPath)
 }
 
 //========================== 日志线程  =============================
-class CLogThread : public Runnable
+class CLogThread: public Runnable
 {
 public:
 	CLogThread(CLog *p)
-	:_inited(false)
+			: _inited(false)
 	{
 		_pLog = p;
 		start();
@@ -119,7 +116,7 @@ public:
 	// 运行线程
 	void run(void *param)
 	{
-		(void)param; // make compiler happy
+		(void) param; // make compiler happy
 
 		while (_inited)
 		{
@@ -154,8 +151,7 @@ private:
 	void stop(void)
 	{
 		perror(" stop log check thread\n");
-		if (!_inited)
-			return;
+		if (!_inited) return;
 		_inited = false;
 		_monitor.notify_end();
 		_threadmgr.stop();
@@ -208,20 +204,16 @@ void CLog::stop()
 }
 
 //安全性和效率的统一
-bool CLog::print_net_msg(unsigned short log_level, const char *file, int line,
-		const char *function, const char *key_word, const char * ip, int port,
-		const char *user_id, const char *format, ...)
+bool CLog::print_net_msg(unsigned short log_level, const char *file, int line, const char *function,
+        const char *key_word, const char * ip, int port, const char *user_id, const char *format,
+        ...)
 {
-	if(!_stop)
-		return true;
+	if (!_stop) return true;
 	//日志级别，1-7，数字越小日志日志级别越高。
-	if (_log_level == 0)
-		return false;
-	if (log_level > _log_level)
-		return false;
+	if (_log_level == 0) return false;
+	if (log_level > _log_level) return false;
 
-	char msg[BUF_LEN] =
-	{ 0 };
+	char msg[BUF_LEN] = { 0 };
 	int offset = 0;
 	int n = 0;
 
@@ -230,9 +222,8 @@ bool CLog::print_net_msg(unsigned short log_level, const char *file, int line,
 	struct tm local_tm;
 	struct tm *tm = localtime_r(&t, &local_tm);
 
-	snprintf(msg, TIME_BUF_LEN - 1, "%04d%02d%02d-%02d:%02d:%02d",
-			tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
-			tm->tm_min, tm->tm_sec);
+	snprintf(msg, TIME_BUF_LEN - 1, "%04d%02d%02d-%02d:%02d:%02d", tm->tm_year + 1900,
+	        tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	offset += 17;
 
@@ -302,23 +293,19 @@ bool CLog::print_net_msg(unsigned short log_level, const char *file, int line,
 		va_end(ap);
 	}
 
-	private_log(msg, file, line, function,
-			(strncmp(key_word, "RUNNING", 7) == 0));
+	private_log(msg, file, line, function, (strncmp(key_word, "RUNNING", 7) == 0));
 
 	return true;
 }
 
 // 输出十六制的日志数据
-void CLog::print_net_hex(unsigned short log_level, const char *file, int line,
-		const char *function, const char * ip, int port, const char *user_id,
-		const char *data, const int len)
+void CLog::print_net_hex(unsigned short log_level, const char *file, int line, const char *function,
+        const char * ip, int port, const char *user_id, const char *data, const int len)
 {
-	if(!_stop)
-		return ;
+	if (!_stop) return;
 
 	// 如果关闭调试日志
-	if (log_level > _log_level)
-		return;
+	if (log_level > _log_level) return;
 	// 先确定一下是否超出长度
 	if (3 * len + 256 > MAX_LOG_LENGTH || len <= 0 || data == NULL)
 	{
@@ -326,25 +313,22 @@ void CLog::print_net_hex(unsigned short log_level, const char *file, int line,
 	}
 
 	// 使用堆上面空间效率会高一点
-	char buf[MAX_LOG_LENGTH] =
-	{ 0 };
+	char buf[MAX_LOG_LENGTH] = { 0 };
 	char *ptr = buf;
-	char temp[1024] =
-	{ 0 };
+	char temp[1024] = { 0 };
 
 	time_t t;
 	time(&t);
 	struct tm local_tm;
 	struct tm *tm = localtime_r(&t, &local_tm);
 	// 记录来源时间
-	snprintf(temp, TIME_BUF_LEN - 1, "%04d%02d%02d-%02d:%02d:%02d",
-			tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
-			tm->tm_min, tm->tm_sec);
+	snprintf(temp, TIME_BUF_LEN - 1, "%04d%02d%02d-%02d:%02d:%02d", tm->tm_year + 1900,
+	        tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 	// 添加时间
 	memset(temp + 17, '-', 3);
 	// 记录来源IP
 	snprintf(temp + TIME_BUF_LEN, sizeof(temp) - 1 - TIME_BUF_LEN, "%s:%d--%s:",
-			(ip == NULL) ? "null" : ip, port, (user_id) ? user_id : "null");
+	        (ip == NULL) ? "null" : ip, port, (user_id) ? user_id : "null");
 	snprintf(ptr, sizeof(buf) - 1, "%s", temp);
 	ptr += strlen(temp);
 
@@ -372,16 +356,14 @@ static int getfilesize(const char *filename)
 }
 
 // 写入文件
-void CLog::private_log(const char *msg, const char *file, int line,
-		const char *function, bool run)
+void CLog::private_log(const char *msg, const char *file, int line, const char *function, bool run)
 {
 	if (msg == NULL)
 	{
 		return;
 	}
 
-	char buf[256] =
-	{ 0 };
+	char buf[256] = { 0 };
 	if (file != NULL && line > 0 && function != NULL && !run)
 	{
 		sprintf(buf, ",%s,%s:%d\n", function, file, line);
@@ -434,8 +416,8 @@ bool CLog::update_file()
 	struct tm *tm = localtime_r(&t, &local_tm);
 
 	char buf[128] = { 0 };
-	sprintf(buf, "%04d%02d%02d-%02d%02d%02d", tm->tm_year + 1900,
-			tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+	sprintf(buf, "%04d%02d%02d-%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+	        tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	// 对目录按照日期目录进行归类处理
 	char szdir[256] = { 0 };
@@ -491,11 +473,9 @@ void CLog::closefile(void)
 
 void CLog::set_log_file(const char *s)
 {
-	if(!_stop)
-		return;
+	if (!_stop) return;
 
-	if (s == NULL)
-		return;
+	if (s == NULL) return;
 	_file_name = s;
 	size_t pos = _file_name.rfind('/');
 	if (pos != string::npos)
@@ -526,8 +506,7 @@ public:
 		map<string, string> filemap;
 		// 取得文件个数据处理
 		int count = GetLogFileList(root, name, filemap);
-		if (count <= log_num)
-			return false;
+		if (count <= log_num) return false;
 
 		int num = count - log_num;
 		// 遍历删除需要删除的文件
@@ -535,8 +514,7 @@ public:
 		for (it = filemap.begin(); it != filemap.end(); ++it)
 		{
 			unlink((it->second).c_str());
-			if (--num <= 0)
-				break;
+			if (--num <= 0) break;
 		}
 		//filemap.clear() ;
 
@@ -548,18 +526,15 @@ private:
 	bool isDirectory(const char *szDirPath)
 	{
 		struct stat stats;
-		if (lstat(szDirPath, &stats) == 0 && S_ISDIR(stats.st_mode))
-			return true;
+		if (lstat(szDirPath, &stats) == 0 && S_ISDIR(stats.st_mode)) return true;
 		return false;
 	}
 
 	// 查找所有文件列表
-	int GetLogFileList(const char* root_dir, const char *name,
-			map<string, string> &filemap)
+	int GetLogFileList(const char* root_dir, const char *name, map<string, string> &filemap)
 	{
 		DIR* dir_handle = opendir(root_dir);
-		if (dir_handle == NULL)
-			return 0;
+		if (dir_handle == NULL) return 0;
 
 		int count = 0;
 		char buf[1024] = { 0 };
@@ -635,8 +610,7 @@ void CLog::dumpfile(void)
 	}
 
 	// 打开文件，如果该文件不能被打开，就返回错误
-	if (_file_fd <= 0)
-		openfile();
+	if (_file_fd <= 0) openfile();
 	if (_file_fd > 0)
 	{
 		int size = 0, cnt = 0;
@@ -645,11 +619,9 @@ void CLog::dumpfile(void)
 		{
 			// 写入消息
 			size += write(_file_fd, _log_block.data, _log_block.offset);
-			if (size <= 0)
-				openfile();
+			if (size <= 0) openfile();
 			// 如果无法打开文件描述符就直接退出了
-			if (_file_fd <= 0)
-				break;
+			if (_file_fd <= 0) break;
 		}
 	}
 	else
@@ -676,8 +648,7 @@ void CLog::checkfile(void)
 {
 	// printf( "check log file\n" ) ;
 	// 如果需要保留的文件数有限制则只保留这么长时间的文件数
-	if (_log_num <= 0)
-		return;
+	if (_log_num <= 0) return;
 
 	time_t now = time(NULL);
 	// 如果没有到时间重新处理,每隔5分钟检测一次

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -32,7 +32,8 @@ class IUnpackMgr
 public:
 	virtual ~IUnpackMgr()
 	{
-	};
+	}
+	;
 
 	// 实现数据解包接口方法
 	virtual IPacket* unpack(unsigned short msgtype, Packet &pack) = 0;

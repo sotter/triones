@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  * desc  : source from apache some edited
@@ -19,8 +19,8 @@ namespace triones
 class Mutex::impl
 {
 public:
-	impl(Initializer init) :
-			_initialized(false)
+	impl(Initializer init)
+			: _initialized(false)
 	{
 		init(&_pthread_mutex);
 		_initialized = true;
@@ -63,7 +63,7 @@ public:
 		PROFILE_MUTEX_NOT_LOCKED();
 		return false;
 #else
-		(void)milliseconds; // make compiler happy
+		(void) milliseconds; // make compiler happy
 		// If pthread_mutex_timedlock isn't supported, the safest thing to do
 		// is just do a nonblocking trylock.
 		return try_lock();
@@ -85,15 +85,14 @@ private:
 	mutable bool _initialized;
 };
 
-Mutex::Mutex(Initializer init) :
-		_impl(new Mutex::impl(init))
+Mutex::Mutex(Initializer init)
+		: _impl(new Mutex::impl(init))
 {
 }
 
 Mutex::~Mutex()
 {
-	if (_impl != NULL)
-		delete _impl;
+	if (_impl != NULL) delete _impl;
 }
 
 void* Mutex::get_impl() const
@@ -175,8 +174,8 @@ void Mutex::RECURSIVE_INITIALIZER(void* arg)
 class RWMutex::impl
 {
 public:
-	impl() :
-			_initialized(false)
+	impl()
+			: _initialized(false)
 	{
 		int ret = pthread_rwlock_init(&_rw_lock, NULL);
 		assert(ret == 0);
@@ -223,15 +222,14 @@ private:
 	mutable bool _initialized;
 };
 
-RWMutex::RWMutex() :
-		_impl(new RWMutex::impl())
+RWMutex::RWMutex()
+		: _impl(new RWMutex::impl())
 {
 }
 
 RWMutex::~RWMutex()
 {
-	if (_impl != NULL)
-		delete _impl;
+	if (_impl != NULL) delete _impl;
 }
 
 void RWMutex::rdlock() const

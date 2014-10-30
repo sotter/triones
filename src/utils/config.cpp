@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -26,13 +26,13 @@ Config::Config(const char *fname)
 {
 	char caBakFilename[148];
 
-	_ready           = 0;
-	_lines           = NULL;
-	_sections        = NULL;
-	_dirty_flag      = 0;
-	_write_now       = 1;
-	_case_sensitive  = 1;
-	_total_sections  = 0;
+	_ready = 0;
+	_lines = NULL;
+	_sections = NULL;
+	_dirty_flag = 0;
+	_write_now = 1;
+	_case_sensitive = 1;
+	_total_sections = 0;
 	_tokens_per_line = 0;
 
 	memset(_filename, 0, sizeof(_filename));
@@ -49,7 +49,7 @@ Config::Config(const char *fname)
 
 	strcpy(_filename, fname);
 
-	if (load(_filename) ==  - 1)
+	if (load(_filename) == -1)
 	{
 		return;
 	}
@@ -64,7 +64,7 @@ Config::Config(const char *fname)
 
 Config::~Config()
 {
-	if (_ready && _dirty_flag && (dump() ==  - 1))
+	if (_ready && _dirty_flag && (dump() == -1))
 	{
 		// What should we do?
 	}
@@ -116,7 +116,7 @@ int Config::reload(const char *path)
 	_case_sensitive = 1;
 	_total_sections = 0;
 
-	if (load((path == NULL) ? _filename : path) ==  - 1)
+	if (load((path == NULL) ? _filename : path) == -1)
 	{
 		return (-1);
 	}
@@ -143,17 +143,17 @@ int Config::dump()
 	memset(caTempFilename, 0, sizeof(caTempFilename));
 	sprintf(caTempFilename, "%s.lftmp", _filename);
 
-	if (dump(caTempFilename) ==  - 1)
+	if (dump(caTempFilename) == -1)
 	{
 		return (-1);
 	}
 
-	if (unlink(_filename) ==  - 1)
+	if (unlink(_filename) == -1)
 	{
 		return (-1);
 	}
 
-	if (rename(caTempFilename, _filename) ==  - 1)
+	if (rename(caTempFilename, _filename) == -1)
 	{
 		return (-1);
 	}
@@ -259,8 +259,8 @@ int Config::load(const char *path)
 	int iEqualSignPos, iSectionDefined;
 	int iTokenScalarDefined, iTokenVectorDefined;
 	int i, j, k, l, m, flag, iStart, iEnd, iTokenEnd, iIndex;
-	Token *token = NULL,  *curtoken = NULL,  *ptoken = NULL,  *ntoken = NULL;
-	Line *line = NULL,  *curline = NULL;
+	Token *token = NULL, *curtoken = NULL, *ptoken = NULL, *ntoken = NULL;
+	Line *line = NULL, *curline = NULL;
 
 	if ((_fp = fopen(path, "r")) == NULL)
 	{
@@ -301,8 +301,7 @@ int Config::load(const char *path)
 		//判断末尾是否是换行，这一点尤其注意，windows下是回车换行，所以不能在win下编辑该配置文件
 		if (caLine[iEnd] == '\n')
 		{
-			if (caLine[iEnd - 1] == '\r')
-				iEnd--;
+			if (caLine[iEnd - 1] == '\r') iEnd--;
 			caLine[iEnd--] = '\0';
 		}
 
@@ -790,8 +789,7 @@ void Config::release()
 	}
 }
 
-int Config::get(const char *section, const char *id, std::string &value,
-		int index)
+int Config::get(const char *section, const char *id, std::string &value, int index)
 {
 	Line *line;
 	Token *token;
@@ -843,7 +841,7 @@ int Config::get(const char *section, const char *id, std::string &value,
 		else
 		{
 			if ((token->type == TYPE_TOKEN_SCALAR) && (token->index == index)
-					&& !STRCMP(token->name, id))
+			        && !STRCMP(token->name, id))
 			{
 				value = token->value;
 				return (0);
@@ -856,8 +854,7 @@ int Config::get(const char *section, const char *id, std::string &value,
 	return (-1);
 }
 
-int Config::set(const char *section, const char *id, const char *value,
-		int index)
+int Config::set(const char *section, const char *id, const char *value, int index)
 {
 	Line *line;
 	Token *token;
@@ -899,10 +896,9 @@ int Config::set(const char *section, const char *id, const char *value,
 
 	while (token != NULL)
 	{
-		if (((id == NULL) && (token->type == TYPE_TOKEN_VECTOR)
-				&& (token->index == index))
-				|| ((id != NULL) && (token->type == TYPE_TOKEN_SCALAR)
-						&& (token->index == index) && !STRCMP(token->name, id)))
+		if (((id == NULL) && (token->type == TYPE_TOKEN_VECTOR) && (token->index == index))
+		        || ((id != NULL) && (token->type == TYPE_TOKEN_SCALAR) && (token->index == index)
+		                && !STRCMP(token->name, id)))
 		{
 			if (!STRCMP(token->value, value))
 			{
@@ -1321,8 +1317,8 @@ int Config::add_token(const char *section, int where, const char *id, const char
 				}
 
 				while ((curline != NULL)
-						&& ((curline->token->type == TYPE_COMMENT)
-								|| (curline->token->type == TYPE_BLANK)))
+				        && ((curline->token->type == TYPE_COMMENT)
+				                || (curline->token->type == TYPE_BLANK)))
 				{
 					curline = curline->prev;
 				}
@@ -1548,8 +1544,7 @@ int Config::add_token(const char *section, int where, const char *id, const char
 	return (-1); // make editor happy.
 }
 
-int Config::add_comment(const char *comment, int where, const char *section,
-		const char *id)
+int Config::add_comment(const char *comment, int where, const char *section, const char *id)
 {
 	Line *line, *curline;
 	Token *token, *curtoken;
@@ -1774,7 +1769,7 @@ int Config::del_token(const char *section, const char *id, int index)
 	}
 
 	if (((id == NULL) && (token->type != TYPE_TOKEN_VECTOR))
-			|| ((id != NULL) && (token->type != TYPE_TOKEN_SCALAR)))
+	        || ((id != NULL) && (token->type != TYPE_TOKEN_SCALAR)))
 	{
 		return (-1);
 	}
@@ -1949,8 +1944,7 @@ int Config::del_section(const char *section)
 	pline = line->prev;
 
 	while ((pline != NULL)
-			&& ((pline->token->type == TYPE_COMMENT)
-					|| (pline->token->type == TYPE_BLANK)))
+	        && ((pline->token->type == TYPE_COMMENT) || (pline->token->type == TYPE_BLANK)))
 	{
 		pline = pline->prev;
 	}
@@ -1963,8 +1957,7 @@ int Config::del_section(const char *section)
 	}
 
 	while ((stopline != line)
-			&& ((stopline->token->type == TYPE_COMMENT)
-					|| (stopline->token->type == TYPE_BLANK)))
+	        && ((stopline->token->type == TYPE_COMMENT) || (stopline->token->type == TYPE_BLANK)))
 	{
 		stopline = stopline->prev;
 	}
@@ -2072,7 +2065,8 @@ int Config::test(void)
 {
 	Line *line;
 	Token *token;
-	char caType[6][32] = { "", "TYPE_SECTION", "TYPE_TOKEN_SCALAR", "TYPE_TOKEN_VECTOR", "TYPE_COMMENT", "TYPE_BLANK" };
+	char caType[6][32] = { "", "TYPE_SECTION", "TYPE_TOKEN_SCALAR", "TYPE_TOKEN_VECTOR",
+	        "TYPE_COMMENT", "TYPE_BLANK" };
 
 	char caBuffer[512];
 
@@ -2086,11 +2080,10 @@ int Config::test(void)
 		for (token = line->token; token != NULL; token = token->next)
 		{
 			sprintf(caBuffer,
-					"Token %p (next %p, snext %p, line %p).\n(type %s, index %d)\n name %p \"%s\"\nvalue %p \"%s\"",
-					token, token->next, token->snext, token->line,
-					caType[token->type], token->index, token->name,
-					(token->name ? token->name : ""), token->value,
-					(token->value ? token->value : ""));
+			        "Token %p (next %p, snext %p, line %p).\n(type %s, index %d)\n name %p \"%s\"\nvalue %p \"%s\"",
+			        token, token->next, token->snext, token->line, caType[token->type],
+			        token->index, token->name, (token->name ? token->name : ""), token->value,
+			        (token->value ? token->value : ""));
 		}
 	}
 

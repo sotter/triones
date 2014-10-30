@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-09-03
  */
@@ -54,13 +54,19 @@ struct DRIVER_INFO_NEW808
 class GBHandler: public Ref
 {
 public:
-	GBHandler(){}
-	virtual ~GBHandler(){};
+	GBHandler()
+	{
+	}
+	virtual ~GBHandler()
+	{
+	}
+	;
 
 	//打印头的相关信息
 	// void HeaderDecode(GBheader *header, int len, int flag);
 
-	PlatFormCommonResp build_plat_form_common_resp(const GBheader*reqheaderptr, unsigned short downreq, unsigned char result);
+	PlatFormCommonResp build_plat_form_common_resp(const GBheader*reqheaderptr,
+	        unsigned short downreq, unsigned char result);
 	//转换为内部的 位置�?
 	std::string convert_gps_info(GpsInfo *gps_info, const char *append_data, int append_data_len);
 
@@ -71,7 +77,7 @@ public:
 	//
 	bool get_driver_info(const char *buf, int len, DRIVER_INFO_NEW808 &);
 	//
-	bool check_driver( unsigned char *ptr, int len ) ;
+	bool check_driver(unsigned char *ptr, int len);
 
 	//把驾驶员信息转换为内部协�?
 	std::string convert_driver_info(char *buf, int buf_len, unsigned char result);
@@ -82,16 +88,19 @@ public:
 	std::string convert_event_gps(GpsInfo *gps);
 
 	// 构建参数设制
-	bool build_param_set(DataBuffer *pbuf, std::map<std::string, std::string> &map, unsigned char &pnum);
+	bool build_param_set(DataBuffer *pbuf, std::map<std::string, std::string> &map,
+	        unsigned char &pnum);
 
 	// 构建扩展参数上报处理
 	bool convert_report(const char *pbuf, int len, std::string &data);
 	// 构建参数查询处理
 	bool convert_get_param2(const char *pbuf, int len, std::string &data);
 	// 解析下发参数设置
-	bool build_set_param2(DataBuffer &buf, std::map<std::string, std::string> &mp, unsigned char &num);
+	bool build_set_param2(DataBuffer &buf, std::map<std::string, std::string> &mp,
+	        unsigned char &num);
 	// 解析扩展参数设置2
-	bool build_set_param_2ex(std::vector<DataBuffer*> &vbuf, std::map<std::string, std::string> &mp);
+	bool build_set_param_2ex(std::vector<DataBuffer*> &vbuf,
+	        std::map<std::string, std::string> &mp);
 	//
 	bool convert_report_new808(const char *buf, int len, char * datap);
 	//

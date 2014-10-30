@@ -1,4 +1,4 @@
-﻿/*
+/*
  * dataqueue.h
  *
  *  Created on: 2011-11-16

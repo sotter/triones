@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: ServerSocket.h
  *     Author: triones  2014-9-18
  *Description:
@@ -10,7 +10,7 @@
 namespace triones
 {
 
-class ServerSocket : public Socket
+class ServerSocket: public Socket
 {
 public:
 	ServerSocket();

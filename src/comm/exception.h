@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-21
  */
@@ -19,8 +19,8 @@ public:
 	{
 	}
 
-	TException(const std::string& message) :
-			_message(message)
+	TException(const std::string& message)
+			: _message(message)
 	{
 	}
 
@@ -64,13 +64,13 @@ class IllegalStateException: public TException
 class TimedOutException: public TException
 {
 public:
-	TimedOutException() :
-			TException("TimedOutException")
+	TimedOutException()
+			: TException("TimedOutException")
 	{
 	}
 	;
-	TimedOutException(const std::string& message) :
-			TException(message)
+	TimedOutException(const std::string& message)
+			: TException(message)
 	{
 	}
 };
@@ -78,13 +78,13 @@ public:
 class TooManyPendingTasksException: public TException
 {
 public:
-	TooManyPendingTasksException() :
-			TException("TooManyPendingTasksException")
+	TooManyPendingTasksException()
+			: TException("TooManyPendingTasksException")
 	{
 	}
 	;
-	TooManyPendingTasksException(const std::string& message) :
-			TException(message)
+	TooManyPendingTasksException(const std::string& message)
+			: TException(message)
 	{
 	}
 };
@@ -96,14 +96,12 @@ public:
 	{
 	}
 
-	SystemResourceException(const std::string& message) :
-			TException(message)
+	SystemResourceException(const std::string& message)
+			: TException(message)
 	{
 	}
 };
 
-
 } // namespace triones
 
 #endif // #ifndef __TRIONES_EXCEPTION_H__
-

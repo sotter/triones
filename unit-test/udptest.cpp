@@ -22,7 +22,7 @@ using namespace std;
 //int udp_server(const char *host);
 //int udp_client(const char *host);
 
-//·¢ËÍ64KBµÄÊı¾İ°ü
+//å‘é€64KBçš„æ•°æ®åŒ…
 #define TEST_PACK_SIZE (1024 * 128)
 
 //void *thd_server(void *arg)
@@ -141,17 +141,17 @@ int main()
 //int udp_server(const char *host)
 //{
 //	int sock;
-//	//sendtoÖĞÊ¹ÓÃµÄ¶Ô·½µØÖ·
+//	//sendtoä¸­ä½¿ç”¨çš„å¯¹æ–¹åœ°å€
 //
 //	struct sockaddr_in toAddr;
-//	//ÔÚrecvfromÖĞÊ¹ÓÃµÄ¶Ô·½Ö÷»úµØÖ·
+//	//åœ¨recvfromä¸­ä½¿ç”¨çš„å¯¹æ–¹ä¸»æœºåœ°å€
 //	struct sockaddr_in fromAddr;
 //	int recvLen;
 //	unsigned int addrLen;
 //	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 //	if (sock < 0)
 //	{
-//		printf("´´½¨Ì×½Ó×ÖÊ§°ÜÁË.\r\n");
+//		printf("åˆ›å»ºå¥—æ¥å­—å¤±è´¥äº†.\r\n");
 //		exit(0);
 //	}
 //	if( ! setIntOpt(sock, SO_SNDBUF, TEST_PACK_SIZE * 2))
@@ -166,7 +166,7 @@ int main()
 //	fromAddr.sin_port = htons(4000);
 //	if (bind(sock, (struct sockaddr*) &fromAddr, sizeof(fromAddr)) < 0)
 //	{
-//		printf("bind() º¯ÊıÊ¹ÓÃÊ§°ÜÁË.\r\n");
+//		printf("bind() å‡½æ•°ä½¿ç”¨å¤±è´¥äº†.\r\n");
 //		close(sock);
 //		exit(1);
 //	}
@@ -203,9 +203,9 @@ int main()
 //int udp_client(const char *host)
 //{
 //	int sock;
-////sendtoÖĞÊ¹ÓÃµÄ¶Ô·½µØÖ·
+////sendtoä¸­ä½¿ç”¨çš„å¯¹æ–¹åœ°å€
 //	struct sockaddr_in toAddr;
-////ÔÚrecvfromÖĞÊ¹ÓÃµÄ¶Ô·½Ö÷»úµØÖ·
+////åœ¨recvfromä¸­ä½¿ç”¨çš„å¯¹æ–¹ä¸»æœºåœ°å€
 //	struct sockaddr_in fromAddr;
 //	unsigned int fromLen;
 //
@@ -213,7 +213,7 @@ int main()
 //	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 //	if (sock < 0)
 //	{
-//		printf("´´½¨Ì×½Ó×ÖÊ§°ÜÁË.\r\n");
+//		printf("åˆ›å»ºå¥—æ¥å­—å¤±è´¥äº†.\r\n");
 //		exit(1);
 //	}
 //

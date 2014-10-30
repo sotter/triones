@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -29,4 +29,3 @@ private:
 } // namespace triones
 
 #endif // #ifndef __TRIONES_BASE64_H__
-

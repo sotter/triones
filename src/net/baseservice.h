@@ -1,4 +1,4 @@
-﻿/******************************************************
+/******************************************************
  *   FileName: baseservice.h
  *     Author: triones  2014-9-26
  *Description: （1）BaseService进行封装，封装为一个已经增加一个异步队列的transport
@@ -36,7 +36,6 @@ class BaseService: public IServerAdapter, public IQueueHandler
 public:
 
 #define MAXQUEUE_LENGTH        102400    // 最大队列长度
-
 	//queuethread 异步队列，业务线程的处理数据, thread_num
 	bool init(int thread_num = 1);
 
@@ -78,7 +77,7 @@ private:
 	bool _inited;
 
 	//异步队列， 供_queue_thread使用
-	CDataQueue<Packet>	* _packqueue;
+	CDataQueue<Packet> * _packqueue;
 
 	//packet线程队列
 	QueueThread *_queue_thread;

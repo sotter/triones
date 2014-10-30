@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-20
  */
@@ -56,13 +56,12 @@ public:
 	void stop();
 
 	// 输出日志信息
-	bool print_net_msg(unsigned short log_level, const char *file, int line,
-			const char *function, const char *key_word, const char * ip,
-			int port, const char *user_id, const char *format, ...);
+	bool print_net_msg(unsigned short log_level, const char *file, int line, const char *function,
+	        const char *key_word, const char * ip, int port, const char *user_id,
+	        const char *format, ...);
 	// 输出十六制的日志数据
-	void print_net_hex(unsigned short log_level, const char *file, int line,
-			const char *function, const char * ip, int port,
-			const char *user_id, const char *data, const int len);
+	void print_net_hex(unsigned short log_level, const char *file, int line, const char *function,
+	        const char * ip, int port, const char *user_id, const char *data, const int len);
 
 	void set_log_file(const char *s);
 	void set_log_num(unsigned short num = 20)
@@ -77,8 +76,7 @@ public:
 	{
 		if (newsize < 1000)
 			_log_size = newsize * 1000 * 1000;
-		else
-			_log_size = 20 * 1000 * 1000;
+		else _log_size = 20 * 1000 * 1000;
 	}
 	// 检测日志文件个数
 	void checklogfile(void);
@@ -86,8 +84,7 @@ public:
 private:
 	bool update_file();
 	// 写入文件
-	void private_log(const char *msg, const char *file, int line,
-			const char *function, bool run);
+	void private_log(const char *msg, const char *file, int line, const char *function, bool run);
 	// 打文件操作
 	void openfile(void);
 	// 关闭文件FD
@@ -100,20 +97,19 @@ private:
 	void writedisk(void);
 
 private:
-	bool  _stop;              // 是否停止标志
+	bool _stop;              // 是否停止标志
 	std::string _file_name;   // 记录日志的的文件名
-	long  _log_size;          // 日志文件大小
-	int   _log_num;           // 最多记录日志文件个数
-	int   _log_level;         // 日志级别
-	int   _file_fd;           // 打开文件的文件ID
-	int   _check_time;        // 最后一次检测时间
+	long _log_size;          // 日志文件大小
+	int _log_num;           // 最多记录日志文件个数
+	int _log_level;         // 日志级别
+	int _file_fd;           // 打开文件的文件ID
+	int _check_time;        // 最后一次检测时间
 	Mutex _mutex;             // 操作日志锁
 	CLogThread *_pthread;     // 定时处理线程对象
-	LogBlock    _log_block;   // 当前日志记录数据队列
+	LogBlock _log_block;   // 当前日志记录数据队列
 	std::string _run_name;    // 运行日志统计
 };
 
 } // namespace triones
 
 #endif // #ifndef __TRIONES_CLOG_H__
-

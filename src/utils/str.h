@@ -1,4 +1,4 @@
-﻿/**
+/**
  * author: Triones
  * date  : 2014-08-26
  */
@@ -42,11 +42,13 @@ int stricmp(const std::string& ls, const std::string& rs);
 
 // The second parameter is a set of separators, i.e. each char is one separator.
 // If the separators is "sep", string "theseptember" will be split into "th", "","","","t","mb" and "r".
-void strsplit(const std::string& str, const std::string& separators, std::vector<std::string> & str_list, bool skip = false);
+void strsplit(const std::string& str, const std::string& separators,
+        std::vector<std::string> & str_list, bool skip = false);
 
 // The second parameter is THE separator.
 // If the separator is "sep", string "theseptember" will be split into "the" and "tember".
-void strsplit2(const std::string& str, const std::string& separator, std::vector<std::string> & str_list, bool skip = false);
+void strsplit2(const std::string& str, const std::string& separator,
+        std::vector<std::string> & str_list, bool skip = false);
 
 //
 // replace:

@@ -18,110 +18,107 @@ namespace triones
 //////////////////////////////////////////////////////////////////////////////////
 // 消息类型
 // 共用
-const uint16_t LOGIN_REQ                       = 0x1001; // 登录请求
-const uint16_t LOGIN_RSP                       = 0x8001; // 登录应答
-const uint16_t ACTIVE_REQ                      = 0x1002; // 链路检测请求
-const uint16_t ACTIVE_RSP                      = 0x8002; // 链路检测应答
-const uint16_t SRVLIST_REQ                     = 0x1003; // 查询服务列表请求
-const uint16_t SRVLIST_RSP                     = 0x8003; // 查询服务列表请求应答
-const uint16_t SRVLIST_MOD                     = 0x1004; // 服务列表变更通知
-const uint16_t SRVLIST_MOD_RSP                 = 0x8004; // 服务列表变更应答
+const uint16_t LOGIN_REQ = 0x1001; // 登录请求
+const uint16_t LOGIN_RSP = 0x8001; // 登录应答
+const uint16_t ACTIVE_REQ = 0x1002; // 链路检测请求
+const uint16_t ACTIVE_RSP = 0x8002; // 链路检测应答
+const uint16_t SRVLIST_REQ = 0x1003; // 查询服务列表请求
+const uint16_t SRVLIST_RSP = 0x8003; // 查询服务列表请求应答
+const uint16_t SRVLIST_MOD = 0x1004; // 服务列表变更通知
+const uint16_t SRVLIST_MOD_RSP = 0x8004; // 服务列表变更应答
 
 // 基本信息
-const uint16_t VEHICLE_INFO_REQ                = 0x1011; // 车辆基本信息查询
-const uint16_t VEHICLE_INFO_RSP                = 0x8011; // 车辆基本信息查询应答
-const uint16_t VEHICLE_INFO_MOD                = 0x1012; // 车辆基本信息变更通知
-const uint16_t VEHICLE_INFO_MOD_RSP            = 0x8012; // 车辆基本信息变更应答
-const uint16_t OEM_TERM_INFO_REQ               = 0x1013; // oemcode 跟车机终端类型对应关系查询
-const uint16_t OEM_TERM_INFO_RSP               = 0x8013; // oemcode 跟车机终端类型对应关系查询应答
-const uint16_t OEM_TERM_INFO_MOD               = 0x1014; // oemcode 跟车机终端类型对应关系更改通知
-const uint16_t OEM_TERM_INFO_MOD_RSP           = 0x8014; // oemcode 跟车机终端类型对应关系更改应答
-const uint16_t OEM_REG_INFO_REQ                = 0x1015; //	oemcode 跟开户注册码对应关系查询
-const uint16_t OEM_REG_INFO_RSP                = 0x8015; //	oemcode 跟开户注册码对应关系查询应答
-const uint16_t OEM_REG_INFO_MOD                = 0x1016; //	oemcode 跟开户注册码对应关系更改通知
-const uint16_t OEM_REG_INFO_MOD_RSP            = 0x8016; //	oemcode 跟开户注册码对应关系更改应答
+const uint16_t VEHICLE_INFO_REQ = 0x1011; // 车辆基本信息查询
+const uint16_t VEHICLE_INFO_RSP = 0x8011; // 车辆基本信息查询应答
+const uint16_t VEHICLE_INFO_MOD = 0x1012; // 车辆基本信息变更通知
+const uint16_t VEHICLE_INFO_MOD_RSP = 0x8012; // 车辆基本信息变更应答
+const uint16_t OEM_TERM_INFO_REQ = 0x1013; // oemcode 跟车机终端类型对应关系查询
+const uint16_t OEM_TERM_INFO_RSP = 0x8013; // oemcode 跟车机终端类型对应关系查询应答
+const uint16_t OEM_TERM_INFO_MOD = 0x1014; // oemcode 跟车机终端类型对应关系更改通知
+const uint16_t OEM_TERM_INFO_MOD_RSP = 0x8014; // oemcode 跟车机终端类型对应关系更改应答
+const uint16_t OEM_REG_INFO_REQ = 0x1015; //	oemcode 跟开户注册码对应关系查询
+const uint16_t OEM_REG_INFO_RSP = 0x8015; //	oemcode 跟开户注册码对应关系查询应答
+const uint16_t OEM_REG_INFO_MOD = 0x1016; //	oemcode 跟开户注册码对应关系更改通知
+const uint16_t OEM_REG_INFO_MOD_RSP = 0x8016; //	oemcode 跟开户注册码对应关系更改应答
 
 // 前置机相关
-const uint16_t WAS_REG_CHECK                   = 0x1021; // WAS注册检测
-const uint16_t WAS_REG_CHECK_RSP               = 0x8021; // WAS注册检测应答
-const uint16_t WAS_AUTH_CHECK                  = 0x1022; // WAS鉴权检测
-const uint16_t WAS_AUTH_CHECK_RSP              = 0x8022; // WAS鉴权检测应答
-const uint16_t WAS_DRIVER_CHECK                = 0x1023; // 驾驶员信息检测
-const uint16_t WAS_DRIVER_CHECK_RSP            = 0x8023; // 驾驶员信息检测应答
-const uint16_t WAS_LOGOUT                      = 0x1024; // WAS注销
-const uint16_t WAS_LOGOUT_RSP                  = 0x8024; // WAS注销应答
-const uint16_t WAS_VEHICLE_INFO_MOD            = 0x1025; // WAS车机数据变更通知
-const uint16_t WAS_VEHICLE_INFO_MOD_RSP        = 0x8025; // WAS车机数据变更应答
-const uint16_t WAS_BLACK_MOD                   = 0x1026; // 黑名单通知
-const uint16_t WAS_BLACK_MOD_RSP               = 0x8026; // 黑名单通知应答
+const uint16_t WAS_REG_CHECK = 0x1021; // WAS注册检测
+const uint16_t WAS_REG_CHECK_RSP = 0x8021; // WAS注册检测应答
+const uint16_t WAS_AUTH_CHECK = 0x1022; // WAS鉴权检测
+const uint16_t WAS_AUTH_CHECK_RSP = 0x8022; // WAS鉴权检测应答
+const uint16_t WAS_DRIVER_CHECK = 0x1023; // 驾驶员信息检测
+const uint16_t WAS_DRIVER_CHECK_RSP = 0x8023; // 驾驶员信息检测应答
+const uint16_t WAS_LOGOUT = 0x1024; // WAS注销
+const uint16_t WAS_LOGOUT_RSP = 0x8024; // WAS注销应答
+const uint16_t WAS_VEHICLE_INFO_MOD = 0x1025; // WAS车机数据变更通知
+const uint16_t WAS_VEHICLE_INFO_MOD_RSP = 0x8025; // WAS车机数据变更应答
+const uint16_t WAS_BLACK_MOD = 0x1026; // 黑名单通知
+const uint16_t WAS_BLACK_MOD_RSP = 0x8026; // 黑名单通知应答
 
 // 透传相关
-const uint16_t DP_TERM_AUTH_REQ                = 0x1033; // dp_term车机第三方鉴权码查询
-const uint16_t DP_TERM_AUTH_RSP                = 0x8033; // dp_term车机第三方鉴权码查询应答
-const uint16_t DP_TERM_AUTH_MOD                = 0x1034; // dp_term第三方鉴权码修改通知
-const uint16_t DP_TERM_AUTH_MOD_RSP            = 0x8034; // dp_term第三方鉴权码修改应答
-const uint16_t DP_CORP_INFO_REQ                = 0x1035; // dp_term企业信息查询
-const uint16_t DP_CORP_INFO_RSP                = 0x8035; // dp_term企业信息查询应答
-const uint16_t DP_CORP_INFO_MOD                = 0x1036; // dp_term企业信息更改通知
-const uint16_t DP_CORP_INFO_MOD_RSP            = 0x8036; // dp_term企业信息更改应答
-const uint16_t DP_CORP_INFO_ALL_REQ            = 0x1037; // dp_term企业信息列表查询请求
-const uint16_t DP_CORP_INFO_ALL_RSP            = 0x8037; // dp_term企业信息列表查询请求应答
-const uint16_t DP_TERM_CORP_REQ                = 0x1038; // dp_term 跟企业对应关系查询请求
-const uint16_t DP_TERM_CORP_RSP                = 0x8038; // dp_term 跟企业对应关系查询请求应答
-const uint16_t DP_TERM_CORP_MOD                = 0x1039; // dp_term 跟企业对应关系更改通知
-const uint16_t DP_TERM_CORP_MOD_RSP            = 0x8039; // dp_term 跟企业对应关系更改应答
-const uint16_t DP_SUBS_REQ                     = 0x1041; // 增加车辆订阅
-const uint16_t DP_SUBS_RSP                     = 0x8041; // 增加车辆订阅应答
-const uint16_t DP_TRANSFER_REQ                 = 0x1042; // 数据透传
-const uint16_t DP_TRANSFER_RSP                 = 0x8042; // 数据透传应答
+const uint16_t DP_TERM_AUTH_REQ = 0x1033; // dp_term车机第三方鉴权码查询
+const uint16_t DP_TERM_AUTH_RSP = 0x8033; // dp_term车机第三方鉴权码查询应答
+const uint16_t DP_TERM_AUTH_MOD = 0x1034; // dp_term第三方鉴权码修改通知
+const uint16_t DP_TERM_AUTH_MOD_RSP = 0x8034; // dp_term第三方鉴权码修改应答
+const uint16_t DP_CORP_INFO_REQ = 0x1035; // dp_term企业信息查询
+const uint16_t DP_CORP_INFO_RSP = 0x8035; // dp_term企业信息查询应答
+const uint16_t DP_CORP_INFO_MOD = 0x1036; // dp_term企业信息更改通知
+const uint16_t DP_CORP_INFO_MOD_RSP = 0x8036; // dp_term企业信息更改应答
+const uint16_t DP_CORP_INFO_ALL_REQ = 0x1037; // dp_term企业信息列表查询请求
+const uint16_t DP_CORP_INFO_ALL_RSP = 0x8037; // dp_term企业信息列表查询请求应答
+const uint16_t DP_TERM_CORP_REQ = 0x1038; // dp_term 跟企业对应关系查询请求
+const uint16_t DP_TERM_CORP_RSP = 0x8038; // dp_term 跟企业对应关系查询请求应答
+const uint16_t DP_TERM_CORP_MOD = 0x1039; // dp_term 跟企业对应关系更改通知
+const uint16_t DP_TERM_CORP_MOD_RSP = 0x8039; // dp_term 跟企业对应关系更改应答
+const uint16_t DP_SUBS_REQ = 0x1041; // 增加车辆订阅
+const uint16_t DP_SUBS_RSP = 0x8041; // 增加车辆订阅应答
+const uint16_t DP_TRANSFER_REQ = 0x1042; // 数据透传
+const uint16_t DP_TRANSFER_RSP = 0x8042; // 数据透传应答
 
 // PCC 相关
-const uint16_t PCC_VEHICLE_INFO_REQ            = 0x1051; // pcc车机数据查询
-const uint16_t PCC_VEHICLE_INFO_RSP            = 0x8051; // pcc车机数据查询应答
-const uint16_t PCC_VEHICLE_INFO_MOD            = 0x1052; // pcc车机数据变更通知（手机号为 KEY）
-const uint16_t PCC_VEHICLE_INFO_MOD_RSP        = 0x8052; // pcc车机数据变更应答（手机号为 KEY）
+const uint16_t PCC_VEHICLE_INFO_REQ = 0x1051; // pcc车机数据查询
+const uint16_t PCC_VEHICLE_INFO_RSP = 0x8051; // pcc车机数据查询应答
+const uint16_t PCC_VEHICLE_INFO_MOD = 0x1052; // pcc车机数据变更通知（手机号为 KEY）
+const uint16_t PCC_VEHICLE_INFO_MOD_RSP = 0x8052; // pcc车机数据变更应答（手机号为 KEY）
 
 // Ptrans(协议翻译) Was
-const uint16_t PTRANS_FORWARD_UP_REQ            = 0x1062; // was-->ptrans 808上行数据
-const uint16_t PTRANS_FORWARD_UP_RSP            = 0x8062; // ptrnas-->was 808上行数据应答
+const uint16_t PTRANS_FORWARD_UP_REQ = 0x1062; // was-->ptrans 808上行数据
+const uint16_t PTRANS_FORWARD_UP_RSP = 0x8062; // ptrnas-->was 808上行数据应答
 
-const uint16_t PTRANS_FORWARD_DOWN_REQ          = 0x1063; // ptrans-->was 808下行数据
-const uint16_t PTRANS_FORWARD_DOWN_RSP          = 0x8063; // was-->ptrans 808下行数据应答
+const uint16_t PTRANS_FORWARD_DOWN_REQ = 0x1063; // ptrans-->was 808下行数据
+const uint16_t PTRANS_FORWARD_DOWN_RSP = 0x8063; // was-->ptrans 808下行数据应答
 
-const uint16_t PTRANS_FORWARD_DISCONNECT_REQ    = 0x1064; // ptrans-->was 车机与was断开(断线)
-const uint16_t PTRANS_FORWARD_DISCONNECT_RSP    = 0x8064; // was-->ptrans 数据应答,车与was断开(断线)
+const uint16_t PTRANS_FORWARD_DISCONNECT_REQ = 0x1064; // ptrans-->was 车机与was断开(断线)
+const uint16_t PTRANS_FORWARD_DISCONNECT_RSP = 0x8064; // was-->ptrans 数据应答,车与was断开(断线)
 
-const uint16_t PTRANS_FORWARD_CONNECT_REQ       = 0x1065; // ptrans-->was 车机与was连接(上线)
-const uint16_t PTRANS_FORWARD_CONNECT_RSP       = 0x8065; // was-->ptrans 车机与was(上线)
+const uint16_t PTRANS_FORWARD_CONNECT_REQ = 0x1065; // ptrans-->was 车机与was连接(上线)
+const uint16_t PTRANS_FORWARD_CONNECT_RSP = 0x8065; // was-->ptrans 车机与was(上线)
 
-
-const uint8_t  FORWARD_UP_CMD         = 0x01;
-const uint8_t  FORWARD_DISCONNECT_CMD = 0x02;//断线
-const uint8_t  FORWARD_CONNECT_CMD    = 0x03;//上线
-
+const uint8_t FORWARD_UP_CMD = 0x01;
+const uint8_t FORWARD_DISCONNECT_CMD = 0x02; //断线
+const uint8_t FORWARD_CONNECT_CMD = 0x03; //上线
 
 // 登录用户类型
-const uint32_t LOGIN_TYPE_DC        = 0x00000001;
-const uint32_t LOGIN_TYPE_DS        = 0x00000002;
-const uint32_t LOGIN_TYPE_WAS       = 0x00000004;
-const uint32_t LOGIN_TYPE_DPMSG     = 0x00000008;
-const uint32_t LOGIN_TYPE_DPTERM    = 0x00000010;
-const uint32_t LOGIN_TYPE_PCC       = 0x00000020;
+const uint32_t LOGIN_TYPE_DC = 0x00000001;
+const uint32_t LOGIN_TYPE_DS = 0x00000002;
+const uint32_t LOGIN_TYPE_WAS = 0x00000004;
+const uint32_t LOGIN_TYPE_DPMSG = 0x00000008;
+const uint32_t LOGIN_TYPE_DPTERM = 0x00000010;
+const uint32_t LOGIN_TYPE_PCC = 0x00000020;
 const uint32_t LOGIN_TYPE_SUBDPTERM = 0x00000040;
-const uint32_t LOGIN_TYPE_MSG       = 0x00000080;
-const uint32_t LOGIN_TYPE_SENDSRV   = 0x00000100;
-const uint32_t LOGIN_TYPE_PTRANS    = 0x00000200;
-const uint32_t LOGIN_TYPE_ALL       = 0xffffffff;
+const uint32_t LOGIN_TYPE_MSG = 0x00000080;
+const uint32_t LOGIN_TYPE_SENDSRV = 0x00000100;
+const uint32_t LOGIN_TYPE_PTRANS = 0x00000200;
+const uint32_t LOGIN_TYPE_ALL = 0xffffffff;
 
-
-const std::string REDIS_LBS_PHONE       ("lbs.phone");
-const std::string REDIS_LBS_CAR         ("lbs.car");
-const std::string REDIS_LBS_TERMINAL    ("lbs.terminal");
-const std::string REDIS_LBS_REGCODE     ("lbs.regcode");
-const std::string REDIS_LBS_BLACKLIST   ("lbs.blacklist");
-const std::string REDIS_LBS_DP_CORP     ("lbs.dp.corp");
-const std::string REDIS_LBS_DP_TERM_    ("lbs.dp.term.");
-const std::string REDIS_LBS_DP_AUTHCODE ("lbs.dp.authcode");
+const std::string REDIS_LBS_PHONE("lbs.phone");
+const std::string REDIS_LBS_CAR("lbs.car");
+const std::string REDIS_LBS_TERMINAL("lbs.terminal");
+const std::string REDIS_LBS_REGCODE("lbs.regcode");
+const std::string REDIS_LBS_BLACKLIST("lbs.blacklist");
+const std::string REDIS_LBS_DP_CORP("lbs.dp.corp");
+const std::string REDIS_LBS_DP_TERM_("lbs.dp.term.");
+const std::string REDIS_LBS_DP_AUTHCODE("lbs.dp.authcode");
 const std::string REDIS_LBS_LOCAL_SRVLIST_("lbs.local.srvlist.");
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -1008,14 +1005,14 @@ public:
 	}
 
 public:
-	uint8_t     _result;    // 注册结果
+	uint8_t _result;    // 注册结果
 	std::string _auth;		// 鉴权码，NOTE: 长度最大为 255 字节。
 	std::string _oem;		// 设备 OME，NOTE: 长度最大为 255 字节。
 	std::string _city;      // 城市 ID，NOTE: 长度最大为 255 字节。
-	uint8_t     _is_black;			// 是否为黑名单
-	uint8_t     _black_reason;		// 如果是，当时加入黑名单原因
-	uint64_t    _black_time_sec;	// 如果是，当时加入黑名单的时间
-	uint64_t    _black_time_usec;	// 如果是，当时加入黑名单的时间
+	uint8_t _is_black;			// 是否为黑名单
+	uint8_t _black_reason;		// 如果是，当时加入黑名单原因
+	uint64_t _black_time_sec;	// 如果是，当时加入黑名单的时间
+	uint64_t _black_time_usec;	// 如果是，当时加入黑名单的时间
 };
 
 class WASAuthCheck: public MsgPacket
@@ -1091,13 +1088,13 @@ public:
 	}
 
 public:
-	uint8_t     _result;  // 结果
+	uint8_t _result;  // 结果
 	std::string _oem;     // OEM码，NOTE: 长度最大为 255 字节。
 	std::string _city;    // 城市 ID，NOTE: 长度最大为 255 字节。
-	uint8_t     _is_black;			// 是否为黑名单
-	uint8_t     _black_reason;		// 如果是，当时加入黑名单原因
-	uint64_t    _black_time_sec;	// 如果是，当时加入黑名单的时间
-	uint64_t    _black_time_usec;	// 如果是，当时加入黑名单的时间
+	uint8_t _is_black;			// 是否为黑名单
+	uint8_t _black_reason;		// 如果是，当时加入黑名单原因
+	uint64_t _black_time_sec;	// 如果是，当时加入黑名单的时间
+	uint64_t _black_time_usec;	// 如果是，当时加入黑名单的时间
 };
 
 class WasDriverCheck: public MsgPacket
@@ -1200,8 +1197,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		if (pack->read_str(_phone) == 0)
-			return false;
+		if (pack->read_str(_phone) == 0) return false;
 		return true;
 	}
 
@@ -1643,14 +1639,14 @@ public:
 	}
 
 public:
-	uint8_t     _result;            // 结果
+	uint8_t _result;            // 结果
 	std::string _corp_id;           // 企业ID，NOTE: 长度最大为 255 字节。
 	std::string _master_ip;         // 主 IP
-	uint16_t    _master_tcp_port;   // 主 TCP 端口
-	uint16_t    _master_udp_port;   // 主 UDP 端口
+	uint16_t _master_tcp_port;   // 主 TCP 端口
+	uint16_t _master_udp_port;   // 主 UDP 端口
 	std::string _slave_ip;          // 从 IP
-	uint16_t    _slave_tcp_port;    // 从 TCP 端口
-	uint16_t    _slave_udp_port;    // 从 UPD 端口
+	uint16_t _slave_tcp_port;    // 从 TCP 端口
+	uint16_t _slave_udp_port;    // 从 UPD 端口
 };
 
 class DPCorpInfoMod: public MsgPacket
@@ -1711,14 +1707,14 @@ public:
 	}
 
 public:
-	uint8_t     _type;              // 0:添加/更新， 1：删除
+	uint8_t _type;              // 0:添加/更新， 1：删除
 	std::string _corp_id;           // 企业ID，NOTE: 长度最大为 255 字节。
 	std::string _master_ip;         // 主 IP
-	uint16_t    _master_tcp_port;   // 主 TCP 端口
-	uint16_t    _master_udp_port;   // 主 UDP 端口
+	uint16_t _master_tcp_port;   // 主 TCP 端口
+	uint16_t _master_udp_port;   // 主 UDP 端口
 	std::string _slave_ip;          // 从 IP
-	uint16_t    _slave_tcp_port;    // 从 TCP 端口
-	uint16_t    _slave_udp_port;    // 从 UPD 端口
+	uint16_t _slave_tcp_port;    // 从 TCP 端口
+	uint16_t _slave_udp_port;    // 从 UPD 端口
 };
 
 class DPCorpInfoModRsp: public MsgPacket
@@ -1813,8 +1809,7 @@ public:
 		pack->write_int16(_corp_count);
 
 		CorpInfoList::iterator it = _corp_list.begin();
-		for (uint16_t i = 0; i < _corp_count && it != _corp_list.end();
-				++i, ++it)
+		for (uint16_t i = 0; i < _corp_count && it != _corp_list.end(); ++i, ++it)
 		{
 			CorpInfo& corp = *it;
 
@@ -1909,8 +1904,7 @@ public:
 		pack->write_int16(_corp_count);
 
 		CorpSet::iterator it = _corp_set.begin();
-		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end();
-				++i, ++it)
+		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end(); ++i, ++it)
 		{
 			std::string corp = (*it).c_str();
 			pack->write_str(corp);
@@ -1981,8 +1975,7 @@ public:
 		pack->write_int16(_corp_count);
 
 		CorpSet::iterator it = _corp_set.begin();
-		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end();
-				++i, ++it)
+		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end(); ++i, ++it)
 		{
 			std::string corp = (*it).c_str();
 			pack->write_str(corp);
@@ -2406,7 +2399,7 @@ public:
 
 public:
 	std::string _oemcode;
-	uint8_t     _result;  // 0 成功，1失败
+	uint8_t _result;  // 0 成功，1失败
 };
 
 class PtrnasForwardDisconnectReq: public MsgPacket
@@ -2467,7 +2460,7 @@ public:
 
 public:
 	std::string _oemcode;
-	uint8_t     _result;  // 0 成功，1失败
+	uint8_t _result;  // 0 成功，1失败
 };
 
 class PtrnasForwardUpReq: public MsgPacket
@@ -2537,7 +2530,7 @@ public:
 	}
 public:
 	std::string _phone;
-	uint8_t     _result;  // 0 成功，1失败
+	uint8_t _result;  // 0 成功，1失败
 };
 
 class PtrnasForwardDownReq: public MsgPacket
@@ -2576,8 +2569,8 @@ public:
 	PtrnasForwardDownRsp(uint32_t seq = 0)
 	{
 		_header._type = PTRANS_FORWARD_DOWN_RSP;
-		_header._seq  = seq;
-		_result       = 1;
+		_header._seq = seq;
+		_result = 1;
 	}
 	virtual ~PtrnasForwardDownRsp()
 	{
@@ -2598,7 +2591,7 @@ public:
 
 public:
 	std::string _phone;
-	uint8_t     _result;  // 0 成功，1失败
+	uint8_t _result;  // 0 成功，1失败
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -2619,205 +2612,205 @@ public:
 		MsgPacket *msg = NULL;
 		switch (msgtype)
 		{
-		// 共用
-		case LOGIN_REQ:
-			msg = unpack < LoginReq > (pack, "LOGIN_REQ");
-			break;
-		case LOGIN_RSP:
-			msg = unpack < LoginRsp > (pack, "LOGIN_RSP");
-			break;
-		case ACTIVE_REQ:
-			msg = unpack < ActiveReq > (pack, "ACTIVE_REQ");
-			break;
-		case ACTIVE_RSP:
-			msg = unpack < ActiveRsp > (pack, "ACTIVE_RSP");
-			break;
-		case SRVLIST_REQ:
-			msg = unpack < SrvListReq > (pack, "SRVLIST_REQ");
-			break;
-		case SRVLIST_RSP:
-			msg = unpack < SrvListRsp > (pack, "SRVLIST_RSP");
-			break;
-		case SRVLIST_MOD:
-			msg = unpack < SrvListMod > (pack, "SRVLIST_MOD");
-			break;
-		case SRVLIST_MOD_RSP:
-			msg = unpack < SrvListModRsp > (pack, "SRVLIST_MOD_RSP");
-			break;
+			// 共用
+			case LOGIN_REQ:
+				msg = unpack < LoginReq > (pack, "LOGIN_REQ");
+				break;
+			case LOGIN_RSP:
+				msg = unpack < LoginRsp > (pack, "LOGIN_RSP");
+				break;
+			case ACTIVE_REQ:
+				msg = unpack < ActiveReq > (pack, "ACTIVE_REQ");
+				break;
+			case ACTIVE_RSP:
+				msg = unpack < ActiveRsp > (pack, "ACTIVE_RSP");
+				break;
+			case SRVLIST_REQ:
+				msg = unpack < SrvListReq > (pack, "SRVLIST_REQ");
+				break;
+			case SRVLIST_RSP:
+				msg = unpack < SrvListRsp > (pack, "SRVLIST_RSP");
+				break;
+			case SRVLIST_MOD:
+				msg = unpack < SrvListMod > (pack, "SRVLIST_MOD");
+				break;
+			case SRVLIST_MOD_RSP:
+				msg = unpack < SrvListModRsp > (pack, "SRVLIST_MOD_RSP");
+				break;
 
-			//MARK: 基本信息
-		case VEHICLE_INFO_REQ:
-			msg = unpack < VehicleInfoReq > (pack, "VEHICLE_INFO_REQ");
-			break;
-		case VEHICLE_INFO_RSP:
-			msg = unpack < VehicleInfoRsp > (pack, "VEHICLE_INFO_RSP");
-			break;
-		case VEHICLE_INFO_MOD:
-			msg = unpack < VehicleInfoMod > (pack, "VEHICLE_INFO_MOD");
-			break;
-		case VEHICLE_INFO_MOD_RSP:
-			msg = unpack < VehicleInfoModRsp > (pack, "VEHICLE_INFO_MOD");
-			break;
-		case OEM_TERM_INFO_REQ:
-			msg = unpack < OemTermInfoReq > (pack, "OEM_TERM_INFO_REQ");
-			break;
-		case OEM_TERM_INFO_RSP:
-			msg = unpack < OemTermInfoRsp > (pack, "OEM_TERM_INFO_REQ");
-			break;
-		case OEM_TERM_INFO_MOD:
-			msg = unpack < OemTermInfoMod > (pack, "OEM_TERM_INFO_REQ");
-			break;
-		case OEM_TERM_INFO_MOD_RSP:
-			msg = unpack < OemTermInfoModRsp > (pack, "OEM_TERM_INFO_MOD_RSP");
-			break;
-		case OEM_REG_INFO_REQ:
-			msg = unpack < OemRegInfoReq > (pack, "OEM_REG_INFO_REQ");
-			break;
-		case OEM_REG_INFO_RSP:
-			msg = unpack < OemRegInfoRsp > (pack, "OEM_REG_INFO_REQ");
-			break;
-		case OEM_REG_INFO_MOD:
-			msg = unpack < OemRegInfoMod > (pack, "OEM_REG_INFO_MOD");
-			break;
-		case OEM_REG_INFO_MOD_RSP:
-			msg = unpack < OemRegInfoModRsp > (pack, "OEM_REG_INFO_MOD_RSP");
-			break;
+				//MARK: 基本信息
+			case VEHICLE_INFO_REQ:
+				msg = unpack < VehicleInfoReq > (pack, "VEHICLE_INFO_REQ");
+				break;
+			case VEHICLE_INFO_RSP:
+				msg = unpack < VehicleInfoRsp > (pack, "VEHICLE_INFO_RSP");
+				break;
+			case VEHICLE_INFO_MOD:
+				msg = unpack < VehicleInfoMod > (pack, "VEHICLE_INFO_MOD");
+				break;
+			case VEHICLE_INFO_MOD_RSP:
+				msg = unpack < VehicleInfoModRsp > (pack, "VEHICLE_INFO_MOD");
+				break;
+			case OEM_TERM_INFO_REQ:
+				msg = unpack < OemTermInfoReq > (pack, "OEM_TERM_INFO_REQ");
+				break;
+			case OEM_TERM_INFO_RSP:
+				msg = unpack < OemTermInfoRsp > (pack, "OEM_TERM_INFO_REQ");
+				break;
+			case OEM_TERM_INFO_MOD:
+				msg = unpack < OemTermInfoMod > (pack, "OEM_TERM_INFO_REQ");
+				break;
+			case OEM_TERM_INFO_MOD_RSP:
+				msg = unpack < OemTermInfoModRsp > (pack, "OEM_TERM_INFO_MOD_RSP");
+				break;
+			case OEM_REG_INFO_REQ:
+				msg = unpack < OemRegInfoReq > (pack, "OEM_REG_INFO_REQ");
+				break;
+			case OEM_REG_INFO_RSP:
+				msg = unpack < OemRegInfoRsp > (pack, "OEM_REG_INFO_REQ");
+				break;
+			case OEM_REG_INFO_MOD:
+				msg = unpack < OemRegInfoMod > (pack, "OEM_REG_INFO_MOD");
+				break;
+			case OEM_REG_INFO_MOD_RSP:
+				msg = unpack < OemRegInfoModRsp > (pack, "OEM_REG_INFO_MOD_RSP");
+				break;
 
-			// MARK: 前置机相关
-		case WAS_REG_CHECK:
-			msg = unpack < WASRegCheck > (pack, "WAS_REG_CHECK");
-			break;
-		case WAS_REG_CHECK_RSP:
-			msg = unpack < WASRegCheckRsp > (pack, "WAS_REG_CHECK");
-			break;
-		case WAS_AUTH_CHECK:
-			msg = unpack < WASAuthCheck > (pack, "WAS_AUTH_CHECK");
-			break;
-		case WAS_AUTH_CHECK_RSP:
-			msg = unpack < WASAuthCheckRsp > (pack, "WAS_AUTH_CHECK_RSP");
-			break;
-		case WAS_DRIVER_CHECK:
-			msg = unpack < WasDriverCheck > (pack, "WAS_DRIVER_CHECK");
-			break;
-		case WAS_DRIVER_CHECK_RSP:
-			msg = unpack < WasDriverCheckRsp > (pack, "WAS_DRIVER_CHECK_RSP");
-			break;
-		case WAS_LOGOUT:
-			msg = unpack < WasLogout > (pack, "WAS_LOGOUT");
-			break;
-		case WAS_LOGOUT_RSP:
-			msg = unpack < WasLogoutRsp > (pack, "WAS_LOGOUT");
-			break;
-		case WAS_VEHICLE_INFO_MOD:
-			msg = unpack < WasVehicleInfoMod > (pack, "WAS_VEHICLE_INFO_MOD");
-			break;
-		case WAS_VEHICLE_INFO_MOD_RSP:
-			msg = unpack < WasVehicleInfoModRsp > (pack, "WAS_VEHICLE_INFO_MOD");
-			break;
-		case WAS_BLACK_MOD:
-			msg = unpack < WasBlackMod > (pack, "WAS_BLACK_MOD");
-			break;
-		case WAS_BLACK_MOD_RSP:
-			msg = unpack < WasBlackModRsp > (pack, "WAS_BLACK_MOD_RSP");
-			break;
+				// MARK: 前置机相关
+			case WAS_REG_CHECK:
+				msg = unpack < WASRegCheck > (pack, "WAS_REG_CHECK");
+				break;
+			case WAS_REG_CHECK_RSP:
+				msg = unpack < WASRegCheckRsp > (pack, "WAS_REG_CHECK");
+				break;
+			case WAS_AUTH_CHECK:
+				msg = unpack < WASAuthCheck > (pack, "WAS_AUTH_CHECK");
+				break;
+			case WAS_AUTH_CHECK_RSP:
+				msg = unpack < WASAuthCheckRsp > (pack, "WAS_AUTH_CHECK_RSP");
+				break;
+			case WAS_DRIVER_CHECK:
+				msg = unpack < WasDriverCheck > (pack, "WAS_DRIVER_CHECK");
+				break;
+			case WAS_DRIVER_CHECK_RSP:
+				msg = unpack < WasDriverCheckRsp > (pack, "WAS_DRIVER_CHECK_RSP");
+				break;
+			case WAS_LOGOUT:
+				msg = unpack < WasLogout > (pack, "WAS_LOGOUT");
+				break;
+			case WAS_LOGOUT_RSP:
+				msg = unpack < WasLogoutRsp > (pack, "WAS_LOGOUT");
+				break;
+			case WAS_VEHICLE_INFO_MOD:
+				msg = unpack < WasVehicleInfoMod > (pack, "WAS_VEHICLE_INFO_MOD");
+				break;
+			case WAS_VEHICLE_INFO_MOD_RSP:
+				msg = unpack < WasVehicleInfoModRsp > (pack, "WAS_VEHICLE_INFO_MOD");
+				break;
+			case WAS_BLACK_MOD:
+				msg = unpack < WasBlackMod > (pack, "WAS_BLACK_MOD");
+				break;
+			case WAS_BLACK_MOD_RSP:
+				msg = unpack < WasBlackModRsp > (pack, "WAS_BLACK_MOD_RSP");
+				break;
 
-			// MARK: 透传相关
-		case DP_SUBS_REQ:
-			msg = unpack < DPSubsReq > (pack, "DP_SUBS_REQ");
-			break;
-		case DP_SUBS_RSP:
-			msg = unpack < DPSubsRsp > (pack, "DP_SUBS_RSP");
-			break;
-		case DP_TRANSFER_REQ:
-			msg = unpack < DPTransferReq > (pack, "DP_TRANSFER_REQ");
-			break;
-		case DP_TRANSFER_RSP:
-			msg = unpack < DPTransferRsp > (pack, "DP_TRANSFER_RSP");
-			break;
-		case DP_TERM_AUTH_REQ:
-			msg = unpack < DPTermAuthReq > (pack, "DP_TERM_AUTH_REQ");
-			break;
-		case DP_TERM_AUTH_RSP:
-			msg = unpack < DPTermAuthRsp > (pack, "DP_TERM_AUTH_RSP");
-			break;
-		case DP_TERM_AUTH_MOD:
-			msg = unpack < DPTermAuthMod > (pack, "DP_TERM_AUTH_MOD");
-			break;
-		case DP_TERM_AUTH_MOD_RSP:
-			msg = unpack < DPTermAuthModRsp > (pack, "DP_TERM_AUTH_MOD");
-			break;
-		case DP_CORP_INFO_REQ:
-			msg = unpack < DPCorpInfoReq > (pack, "DP_CORP_INFO_REQ");
-			break;
-		case DP_CORP_INFO_RSP:
-			msg = unpack < DPCorpInfoRsp > (pack, "DP_CORP_INFO_RSP");
-			break;
-		case DP_CORP_INFO_MOD:
-			msg = unpack < DPCorpInfoMod > (pack, "DP_CORP_INFO_MOD");
-			break;
-		case DP_CORP_INFO_MOD_RSP:
-			msg = unpack < DPCorpInfoModRsp > (pack, "DP_CORP_INFO_MOD_RSP");
-			break;
-		case DP_CORP_INFO_ALL_REQ:
-			msg = unpack < DPCorpInfoAllReq > (pack, "DP_CORP_INFO_ALL_REQ");
-			break;
-		case DP_CORP_INFO_ALL_RSP:
-			msg = unpack < DPCorpInfoAllRsp > (pack, "DP_CORP_INFO_ALL_REQ");
-			break;
-		case DP_TERM_CORP_REQ:
-			msg = unpack < DPTermCorpReq > (pack, "DP_TERM_CORP_REQ");
-			break;
-		case DP_TERM_CORP_RSP:
-			msg = unpack < DPTermCorpRsp > (pack, "DP_TERM_CORP_RSP");
-			break;
-		case DP_TERM_CORP_MOD:
-			msg = unpack < DPTermCorpMod > (pack, "DP_TERM_CORP_MOD");
-			break;
-		case DP_TERM_CORP_MOD_RSP:
-			msg = unpack < DPTermCorpModRsp > (pack, "DP_TERM_CORP_MOD_RSP");
-			break;
+				// MARK: 透传相关
+			case DP_SUBS_REQ:
+				msg = unpack < DPSubsReq > (pack, "DP_SUBS_REQ");
+				break;
+			case DP_SUBS_RSP:
+				msg = unpack < DPSubsRsp > (pack, "DP_SUBS_RSP");
+				break;
+			case DP_TRANSFER_REQ:
+				msg = unpack < DPTransferReq > (pack, "DP_TRANSFER_REQ");
+				break;
+			case DP_TRANSFER_RSP:
+				msg = unpack < DPTransferRsp > (pack, "DP_TRANSFER_RSP");
+				break;
+			case DP_TERM_AUTH_REQ:
+				msg = unpack < DPTermAuthReq > (pack, "DP_TERM_AUTH_REQ");
+				break;
+			case DP_TERM_AUTH_RSP:
+				msg = unpack < DPTermAuthRsp > (pack, "DP_TERM_AUTH_RSP");
+				break;
+			case DP_TERM_AUTH_MOD:
+				msg = unpack < DPTermAuthMod > (pack, "DP_TERM_AUTH_MOD");
+				break;
+			case DP_TERM_AUTH_MOD_RSP:
+				msg = unpack < DPTermAuthModRsp > (pack, "DP_TERM_AUTH_MOD");
+				break;
+			case DP_CORP_INFO_REQ:
+				msg = unpack < DPCorpInfoReq > (pack, "DP_CORP_INFO_REQ");
+				break;
+			case DP_CORP_INFO_RSP:
+				msg = unpack < DPCorpInfoRsp > (pack, "DP_CORP_INFO_RSP");
+				break;
+			case DP_CORP_INFO_MOD:
+				msg = unpack < DPCorpInfoMod > (pack, "DP_CORP_INFO_MOD");
+				break;
+			case DP_CORP_INFO_MOD_RSP:
+				msg = unpack < DPCorpInfoModRsp > (pack, "DP_CORP_INFO_MOD_RSP");
+				break;
+			case DP_CORP_INFO_ALL_REQ:
+				msg = unpack < DPCorpInfoAllReq > (pack, "DP_CORP_INFO_ALL_REQ");
+				break;
+			case DP_CORP_INFO_ALL_RSP:
+				msg = unpack < DPCorpInfoAllRsp > (pack, "DP_CORP_INFO_ALL_REQ");
+				break;
+			case DP_TERM_CORP_REQ:
+				msg = unpack < DPTermCorpReq > (pack, "DP_TERM_CORP_REQ");
+				break;
+			case DP_TERM_CORP_RSP:
+				msg = unpack < DPTermCorpRsp > (pack, "DP_TERM_CORP_RSP");
+				break;
+			case DP_TERM_CORP_MOD:
+				msg = unpack < DPTermCorpMod > (pack, "DP_TERM_CORP_MOD");
+				break;
+			case DP_TERM_CORP_MOD_RSP:
+				msg = unpack < DPTermCorpModRsp > (pack, "DP_TERM_CORP_MOD_RSP");
+				break;
 
-			// PCC 相关
-		case PCC_VEHICLE_INFO_REQ:
-			msg = unpack < PccVehicleInfoReq > (pack, "PCC_VEHICLE_INFO_REQ");
-			break;
-		case PCC_VEHICLE_INFO_RSP:
-			msg = unpack < PccVehicleInfoRsp > (pack, "PCC_VEHICLE_INFO_RSP");
-			break;
-		case PCC_VEHICLE_INFO_MOD:
-			msg = unpack < PccVehicleInfoMod > (pack, "PCC_VEHICLE_INFO_MOD");
-			break;
-		case PCC_VEHICLE_INFO_MOD_RSP:
-			msg = unpack < PccVehicleInfoModRsp > (pack, "PCC_VEHICLE_INFO_MOD_RSP");
-			break;
-			//was ptrans		case PTRANS_FORWARD_UP_REQ:
-			msg = unpack < PtrnasForwardUpReq > (pack, "PTRANS_FORWARD_UP_REQ");
-			break;
-		case PTRANS_FORWARD_UP_RSP:
-			msg = unpack < PtrnasForwardUpRsp > (pack, "PTRANS_FORWARD_UP_RSP");
-			break;
-		case PTRANS_FORWARD_DOWN_REQ:
-			msg = unpack < PtrnasForwardDownReq > (pack, "PTRANS_FORWARD_DOWN_REQ");
-			break;
-		case PTRANS_FORWARD_DOWN_RSP:
-			msg = unpack < PtrnasForwardDownRsp > (pack, "PTRANS_FORWARD_DOWN_RSP");
-			break;
-		case PTRANS_FORWARD_DISCONNECT_REQ:
-			msg = unpack < PtrnasForwardDisconnectReq > (pack, "PTRANS_FORWARD_DISCONNECT_REQ");
-			break;
-		case PTRANS_FORWARD_DISCONNECT_RSP:
-			msg = unpack < PtrnasForwardDisconnectRsp > (pack, "PTRANS_FORWARD_DISCONNECT_RSP");
-			break;
+				// PCC 相关
+			case PCC_VEHICLE_INFO_REQ:
+				msg = unpack < PccVehicleInfoReq > (pack, "PCC_VEHICLE_INFO_REQ");
+				break;
+			case PCC_VEHICLE_INFO_RSP:
+				msg = unpack < PccVehicleInfoRsp > (pack, "PCC_VEHICLE_INFO_RSP");
+				break;
+			case PCC_VEHICLE_INFO_MOD:
+				msg = unpack < PccVehicleInfoMod > (pack, "PCC_VEHICLE_INFO_MOD");
+				break;
+			case PCC_VEHICLE_INFO_MOD_RSP:
+				msg = unpack < PccVehicleInfoModRsp > (pack, "PCC_VEHICLE_INFO_MOD_RSP");
+				break;
+				//was ptrans		case PTRANS_FORWARD_UP_REQ:
+				msg = unpack < PtrnasForwardUpReq > (pack, "PTRANS_FORWARD_UP_REQ");
+				break;
+			case PTRANS_FORWARD_UP_RSP:
+				msg = unpack < PtrnasForwardUpRsp > (pack, "PTRANS_FORWARD_UP_RSP");
+				break;
+			case PTRANS_FORWARD_DOWN_REQ:
+				msg = unpack < PtrnasForwardDownReq > (pack, "PTRANS_FORWARD_DOWN_REQ");
+				break;
+			case PTRANS_FORWARD_DOWN_RSP:
+				msg = unpack < PtrnasForwardDownRsp > (pack, "PTRANS_FORWARD_DOWN_RSP");
+				break;
+			case PTRANS_FORWARD_DISCONNECT_REQ:
+				msg = unpack < PtrnasForwardDisconnectReq > (pack, "PTRANS_FORWARD_DISCONNECT_REQ");
+				break;
+			case PTRANS_FORWARD_DISCONNECT_RSP:
+				msg = unpack < PtrnasForwardDisconnectRsp > (pack, "PTRANS_FORWARD_DISCONNECT_RSP");
+				break;
 
-		case PTRANS_FORWARD_CONNECT_REQ:
-			msg = unpack < PtrnasForwardConnectReq > (pack, "PTRANS_FORWARD_CONNECT_REQ");
-			break;
-		case PTRANS_FORWARD_CONNECT_RSP:
-			msg = unpack < PtrnasForwardConnectRsp > (pack, "PTRANS_FORWARD_CONNECT_RSP");
-			break;
-			// 其他
-		default:
-			break;
+			case PTRANS_FORWARD_CONNECT_REQ:
+				msg = unpack < PtrnasForwardConnectReq > (pack, "PTRANS_FORWARD_CONNECT_REQ");
+				break;
+			case PTRANS_FORWARD_CONNECT_RSP:
+				msg = unpack < PtrnasForwardConnectRsp > (pack, "PTRANS_FORWARD_CONNECT_RSP");
+				break;
+				// 其他
+			default:
+				break;
 		}
 		return msg;
 	}
