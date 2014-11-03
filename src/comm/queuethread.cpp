@@ -21,6 +21,7 @@ QueueThread::QueueThread(IPackQueue *queue, IQueueHandler *handler)
 QueueThread::~QueueThread()
 {
 	stop();
+	_threadmgr.stop();
 }
 
 // 初始化

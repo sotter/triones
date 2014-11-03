@@ -35,7 +35,7 @@
 namespace triones
 {
 
-const int64_t Util::current_time_ticks(int64_t ticks_per_sec)
+int64_t Util::current_time_ticks(int64_t ticks_per_sec)
 {
 	int64_t result;
 

@@ -70,7 +70,7 @@ public:
 		result.tv_usec = (value % MS_PER_S) * US_PER_MS; // ms to us
 	}
 
-	static const void to_ticks(int64_t& result, int64_t secs, int64_t old_ticks,
+	static void to_ticks(int64_t& result, int64_t secs, int64_t old_ticks,
 	        int64_t old_ticks_per_sec, int64_t new_ticks_per_sec)
 	{
 		result = secs * new_ticks_per_sec;
@@ -86,7 +86,7 @@ public:
 	/**
 	 * Converts struct timespec to arbitrary-sized ticks since epoch
 	 */
-	static const void to_ticks(int64_t& result, const struct timespec& value, int64_t ticks_per_sec)
+	static void to_ticks(int64_t& result, const struct timespec& value, int64_t ticks_per_sec)
 	{
 		return to_ticks(result, value.tv_sec, value.tv_nsec, NS_PER_S, ticks_per_sec);
 	}
@@ -94,7 +94,7 @@ public:
 	/**
 	 * Converts struct timeval to arbitrary-sized ticks since epoch
 	 */
-	static const void to_ticks(int64_t& result, const struct timeval& value, int64_t ticks_per_sec)
+	static void to_ticks(int64_t& result, const struct timeval& value, int64_t ticks_per_sec)
 	{
 		return to_ticks(result, value.tv_sec, value.tv_usec, US_PER_S, ticks_per_sec);
 	}
@@ -102,7 +102,7 @@ public:
 	/**
 	 * Converts struct timespec to milliseconds
 	 */
-	static const void to_mseconds(int64_t& result, const struct timespec& value)
+	static void to_mseconds(int64_t& result, const struct timespec& value)
 	{
 		return to_ticks(result, value, MS_PER_S);
 	}
@@ -110,7 +110,7 @@ public:
 	/**
 	 * Converts struct timeval to milliseconds
 	 */
-	static const void to_mseconds(int64_t& result, const struct timeval& value)
+	static void to_mseconds(int64_t& result, const struct timeval& value)
 	{
 		return to_ticks(result, value, MS_PER_S);
 	}
@@ -118,7 +118,7 @@ public:
 	/**
 	 * Converts struct timespec to microseconds
 	 */
-	static const void to_useconds(int64_t& result, const struct timespec& value)
+	static void to_useconds(int64_t& result, const struct timespec& value)
 	{
 		return to_ticks(result, value, US_PER_S);
 	}
@@ -126,7 +126,7 @@ public:
 	/**
 	 * Converts struct timeval to microseconds
 	 */
-	static const void to_useconds(int64_t& result, const struct timeval& value)
+	static void to_useconds(int64_t& result, const struct timeval& value)
 	{
 		return to_ticks(result, value, US_PER_S);
 	}
@@ -134,12 +134,12 @@ public:
 	/**
 	 * Get current time as a number of arbitrary-size ticks from epoch
 	 */
-	static const int64_t current_time_ticks(int64_t ticks_per_sec);
+	static int64_t current_time_ticks(int64_t ticks_per_sec);
 
 	/**
 	 * Get current time as milliseconds from epoch
 	 */
-	static const int64_t current_time()
+	static int64_t current_time()
 	{
 		return current_time_ticks(MS_PER_S);
 	}
@@ -147,7 +147,7 @@ public:
 	/**
 	 * Get current time as micros from epoch
 	 */
-	static const int64_t current_time_useconds()
+	static  int64_t current_time_useconds()
 	{
 		return current_time_ticks(US_PER_S);
 	}

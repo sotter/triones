@@ -12,6 +12,7 @@
 #include <cstring>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 #include "ref.h"
 
 namespace triones

@@ -3,6 +3,7 @@
  * date  : 2014-08-26
  */
 #include <stdarg.h>
+#include <stdio.h>
 #include <algorithm>
 #include <iconv.h>
 #include <limits.h>

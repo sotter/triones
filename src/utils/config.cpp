@@ -3,6 +3,7 @@
  * date  : 2014-08-26
  */
 #include <stdlib.h>
+#include <stdio.h>
 #ifndef _NI_WIN_
 #include <unistd.h>
 #endif

@@ -12,31 +12,30 @@
 namespace triones
 {
 
-Thread::Thread(Runnable *runner, void *param, int policy, int priority, int stackSize,
-        bool detached)
-		: _runner(runner)
+/**
+ * 线程数据初始化
+ */
+Thread::Thread( Runnable *runner , void *param,  int policy , int priority , int stackSize , bool detached )
+:_runner(runner)
 {
-	_param = NULL;
-	_param = param;
-	_pthread = (pthread_t) -1;
-	_policy = policy;
-	_priority = priority;
-	_detached = detached;
-	_stackSize = stackSize;
-	_selfRef = this;
-	_state = uninitialized;
+	_param     = NULL ;
+	_param     = param ;
+	_pthread   = (pthread_t) -1 ;
+	_policy    = policy   ;
+	_priority  = priority ;
+	_detached  = detached ;
+	_stackSize = stackSize ;
+	_selfRef   = this ;
+	_state     = uninitialized ;
 }
 
 Thread::~Thread(void)
 {
 	if (!_detached)
 	{
-		try
-		{
+		try {
 			join();
-		}
-		catch (...)
-		{
+		} catch (...) {
 			// We're really hosed.
 		}
 	}
@@ -61,7 +60,9 @@ void Thread::start(void)
 	}
 
 	if (pthread_attr_setdetachstate(&thread_attr,
-	        _detached ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE) != 0)
+			_detached ?
+			PTHREAD_CREATE_DETACHED :
+						PTHREAD_CREATE_JOINABLE) != 0)
 	{
 		throw SystemResourceException("pthread_attr_setdetachstate failed");
 	}
@@ -90,7 +91,8 @@ void Thread::start(void)
 	// Create reference
 	_state = starting;
 
-	if (pthread_create(&_pthread, &thread_attr, ThreadMain, (void*) _selfRef) != 0)
+	if (pthread_create(&_pthread, &thread_attr, ThreadMain, (void*) _selfRef)
+			!= 0)
 	{
 		throw SystemResourceException("pthread_create failed");
 	}
@@ -110,7 +112,7 @@ void Thread::join()
 }
 
 /**
- * 绾跨▼杩愯瀵硅薄
+ * 线程运行对象
  */
 void * Thread::ThreadMain(void *param)
 {
@@ -126,7 +128,7 @@ void * Thread::ThreadMain(void *param)
 		return (void*) 0;
 	}
 
-	// 杩涜绾跨▼娣诲姞寮曠敤
+	// 进行线程添加引用
 	thread->add_ref();
 	thread->_state = starting;
 	thread->runable()->run(thread->_param);
@@ -135,13 +137,13 @@ void * Thread::ThreadMain(void *param)
 	{
 		thread->_state = stopping;
 	}
-	// 绾跨▼缁撴潫鍑忓皯寮曠敤
+	// 线程结束减少引用
 	thread->release();
 
 	return (void*) 0;
 }
 
-//===================================== 绾跨▼绠＄悊瀵硅薄 =========================================//
+//===================================== 线程管理对象 =========================================//
 
 ThreadManager::~ThreadManager()
 {
@@ -165,15 +167,17 @@ ThreadManager::~ThreadManager()
 }
 
 /**
- *  鍒濆鍖栫嚎绋嬪璞� */
+ *  初始化线程对象
+ */
 bool ThreadManager::init(unsigned int nthread, void *param, Runnable *runner)
 {
-	if (nthread == 0) return false;
+	if (nthread == 0)
+		return false;
 
 	for (unsigned int i = 0; i < nthread; ++i)
 	{
 		Thread *p = new Thread(runner, param);
-		assert(p != NULL);
+		assert( p != NULL );
 		p->add_ref();
 		_thread_lst.push_back(p);
 	}
@@ -181,7 +185,7 @@ bool ThreadManager::init(unsigned int nthread, void *param, Runnable *runner)
 }
 
 /**
- *  寮�杩愯绾跨▼
+ *  开始运行线程
  */
 void ThreadManager::start(void)
 {
@@ -190,18 +194,19 @@ void ThreadManager::start(void)
 	for (it = _thread_lst.begin(); it != _thread_lst.end(); ++it)
 	{
 		p = *it;
-		assert(p != NULL);
+		assert( p != NULL );
 		p->start();
 	}
 	_thread_state = true;
 }
 
 /**
- *  鍋滄绾跨▼
+ *  停止线程
  */
 void ThreadManager::stop(void)
 {
-	if (!_thread_state) return;
+	if (!_thread_state)
+		return;
 
 	_thread_state = false;
 
@@ -210,7 +215,7 @@ void ThreadManager::stop(void)
 	for (it = _thread_lst.begin(); it != _thread_lst.end(); ++it)
 	{
 		p = *it;
-		assert(p != NULL);
+		assert( p != NULL );
 		p->join();
 	}
 }

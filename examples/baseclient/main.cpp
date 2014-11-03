@@ -9,15 +9,20 @@
 
 int main()
 {
+
 	BaseClient base_client;
-//	base_client.start("tcp:127.0.0.1:7406", 1);
-	base_client.start("udp:127.0.0.1:7407", 1);
+	base_client.start("tcp:127.0.0.1:7406", 1);
+//	base_client.start("udp:127.0.0.1:7407", 1);
 
 //	while (1)
 //	{
 //		sleep(30);
 //	}
 	base_client.destroy();
+
+	OUT_INFO(NULL, 0, NULL, "good luck");
+
+	sleep(8);
 
 	LOGSTOP();
 }

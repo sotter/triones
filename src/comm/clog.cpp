@@ -127,6 +127,8 @@ public:
 			// 每隔3秒将内存日志写入文件
 			_monitor.wait(5);
 		}
+
+		printf("end log thread run \n");
 	}
 
 	// 发送通知信号
@@ -150,7 +152,7 @@ private:
 
 	void stop(void)
 	{
-		perror(" stop log check thread\n");
+		perror("stop log check thread\n");
 		if (!_inited) return;
 		_inited = false;
 		_monitor.notify_end();
@@ -626,7 +628,7 @@ void CLog::dumpfile(void)
 	}
 	else
 	{
-		printf("%s\n", _log_block.data);
+//		printf("%s\n", _log_block.data);
 	}
 	_log_block.offset = 0;
 

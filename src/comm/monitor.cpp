@@ -9,7 +9,7 @@
 #include <iostream>
 #include <pthread.h>
 #include "mutex.h"
-#include "util.h"
+#include "./util.h"
 #include "exception.h"
 #include "monitor.h"
 
