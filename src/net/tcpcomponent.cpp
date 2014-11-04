@@ -46,7 +46,14 @@ TCPComponent::~TCPComponent()
 	//tcpconnection 无内容
 	//connection内容
 	disconnect();
-	_socket = NULL;
+
+	if (_socket)
+	{
+		_socket->close();
+		delete _socket;
+		_socket = NULL;
+	}
+
 //	_iocomponent = NULL;
 }
 

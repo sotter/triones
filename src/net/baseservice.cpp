@@ -119,6 +119,9 @@ void BaseService::handle_queue(void *packet)
 {
 	__INTO_FUN__
 	handle_packet((IOComponent*) (((Packet*) packet)->_ioc), (Packet*) packet);
+
+	//todo:当前的实现为无论handle_packet的处理结果如何，都将packet释放，后面的实现中需要增加返回值来判定是否释放packet
+	delete (Packet*)packet;
 }
 
 //处理有同步业务层的处理，子类的service来实现

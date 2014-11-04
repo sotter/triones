@@ -23,7 +23,15 @@ UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 
 UDPComponent::~UDPComponent()
 {
-
+	if (_type == TRIONES_UDPCONN)
+	{
+		if (_socket)
+		{
+			_socket->close();
+			delete _socket;
+			_socket = NULL;
+		}
+	}
 }
 
 bool UDPComponent::init(bool isServer)

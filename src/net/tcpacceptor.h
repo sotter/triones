@@ -28,6 +28,12 @@ public:
 
 	virtual ~TCPAcceptor()
 	{
+			if (_socket)
+			{
+				_socket->close();
+				delete _socket;
+				_socket = NULL;
+			}
 	}
 	/*
 	 * 初始化

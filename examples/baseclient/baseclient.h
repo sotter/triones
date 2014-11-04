@@ -38,16 +38,16 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-//		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
-//		        packet->getDataLen(), packet->getData());
+		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
+		        packet->getDataLen(), packet->getData());
 
-		Packet *pack = new Packet;
-		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
-		if (!ioc->postPacket(pack))
-		{
-			delete pack;
-			pack = NULL;
-		}
+//		Packet *pack = new Packet;
+//		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
+//		if (!ioc->postPacket(pack))
+//		{
+//			delete pack;
+//			pack = NULL;
+//		}
 	}
 
 

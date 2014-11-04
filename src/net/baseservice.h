@@ -71,7 +71,7 @@ protected:
 	Transport* _transport;
 
 	//做性能测试使用
-	char _send_buffer[1024 * 64 - 1024];
+	char _send_buffer[16];
 private:
 	//是否已经经过初始化
 	bool _inited;

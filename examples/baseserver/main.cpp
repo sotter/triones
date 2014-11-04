@@ -13,11 +13,11 @@ int main()
 //	base_server.start("tcp:127.0.0.1:7406", 1);
 	base_server.start("udp:127.0.0.1:7407", 1);
 
-	while(1)
-	{
+//	while(1)
+//	{
 		//100s将此服务关闭掉
-		sleep(5);
-	}
+		sleep(10);
+//	}
 
 	base_server.destroy();
 	LOGSTOP();

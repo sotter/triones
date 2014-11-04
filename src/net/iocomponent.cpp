@@ -9,6 +9,7 @@
 
 namespace triones
 {
+
 IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 {
 	assert(socket);
@@ -23,19 +24,19 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 	_pre = _next = NULL;
 	_lastUseTime = triones::CTimeUtil::getTime();
 	_inUsed = false;
+	_isServer = false;
 }
 
-/*
- * 析构函数
- */
+//socket放到子类中根据具体情况去释放。
+//所有由UDPAcceptor派生出来的UDPComponent公用一个socket,所以不能在这里释放。
 IOComponent::~IOComponent()
 {
-	if (_socket)
-	{
-		_socket->close();
-		delete _socket;
-		_socket = NULL;
-	}
+//	if (_socket)
+//	{
+//		_socket->close();
+//		delete _socket;
+//		_socket = NULL;
+//	}
 }
 
 /**

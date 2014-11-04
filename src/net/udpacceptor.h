@@ -28,7 +28,12 @@ public:
 
 	virtual ~UDPAcceptor()
 	{
-
+		if (_socket)
+		{
+			_socket->close();
+			delete _socket;
+			_socket = NULL;
+		}
 	}
 
 	bool init(bool isServer = false);
@@ -83,9 +88,6 @@ private:
 	//下面的部分，针对Acceptor UDP进行的用户管理
 	// 数据队列头
 	TQueue<IOComponent> _queue;
-
-//	// 在线队列查找索引
-//	std::set<UDPComponent*> _index ;
 
 	// 在线队列管理
 	TQueue<IOComponent> _online;
