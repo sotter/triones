@@ -17,9 +17,7 @@
 
 namespace triones
 {
-/*
- * 构造函数
- */
+
 Transport::Transport()
 {
 	_stop = false;
@@ -29,19 +27,12 @@ Transport::Transport()
 	_iocListCount = 0;
 }
 
-/*
- * 析造函数
- */
 Transport::~Transport()
 {
 	destroy();
 }
 
-/*
- * 起动运输层，创建两个线程，一个用于读，一个用写。
- *
- * @return 是否成功, true - 成功, false - 失败。
- */
+//  起动运输层，创建两个线程，一个用于读，一个用写。
 bool Transport::start()
 {
 	signal(SIGPIPE, SIG_IGN );
@@ -50,21 +41,14 @@ bool Transport::start()
 	return true;
 }
 
-/*
- * 停止，停掉读写线程，及销毁。
- * @return 是否成功, true - 成功, false - 失败。
- */
+// 停止，停掉读写线程，及销毁。
 bool Transport::stop()
 {
 	_stop = true;
-	return true;
+	return wait();
 }
 
-/*
- * 等待线程完全退出。
- *
- * @return 是否成功, true - 成功, false - 失败。
- */
+// 等待线程完全退出。
 bool Transport::wait()
 {
 	_readWriteThread.join();
@@ -73,9 +57,7 @@ bool Transport::wait()
 	return true;
 }
 
-/*
- * socket event 的检测, 被run函数调用
- */
+// socket event 的检测, 被run函数调用
 void Transport::eventLoop(SocketEvent *socketEvent)
 {
 	IOEvent events[MAX_SOCKET_EVENTS];
@@ -84,9 +66,10 @@ void Transport::eventLoop(SocketEvent *socketEvent)
 	{
 		// 检查是否有事件发生
 		int cnt = socketEvent->getEvents(1000, events, MAX_SOCKET_EVENTS);
+
 		if (cnt < 0)
 		{
-			OUT_INFO(NULL, 0, NULL, "得到events出错了: %s(%d)\n", strerror(errno), errno);
+			OUT_INFO(NULL, 0, NULL, "get events error, errno %d \n", errno);
 		}
 
 		for (int i = 0; i < cnt; i++)
@@ -96,23 +79,26 @@ void Transport::eventLoop(SocketEvent *socketEvent)
 			{
 				continue;
 			}
+
 			if (events[i]._errorOccurred)
-			{ // 错误发生了
+			{
+				// 错误发生了
 				removeComponent(ioc);
 				continue;
 			}
 
 			ioc->addRef();
-			// 读写
 			bool rc = true;
 			if (events[i]._readOccurred)
 			{
 				rc = ioc->handleReadEvent();
 			}
+
 			if (rc && events[i]._writeOccurred)
 			{
 				rc = ioc->handleWriteEvent();
 			}
+
 			ioc->subRef();
 
 			if (!rc)
@@ -123,9 +109,7 @@ void Transport::eventLoop(SocketEvent *socketEvent)
 	}
 }
 
-/*
- * 超时检查, 被run函数调用
- */
+//  超时检查, 被run函数调用
 void Transport::timeoutLoop()
 {
 	IOComponent *mydelHead = NULL;
@@ -283,7 +267,6 @@ int Transport::parseAddr(char *src, char **args, int cnt)
  * @param serverAdapter: 用在服务器端，当Connection初始化及Channel创建时回调时用
  * @return IO组件一个对象的指针
  */
-
 IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streamer,
         IServerAdapter *serverAdapter)
 {
@@ -357,7 +340,6 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 
 /*
  * 创建一个Connection，连接到指定的地址，并加入到Socket的监听事件中。
- *
  * @param spec: 格式 [upd|tcp]:ip:port
  * @param streamer: 数据包的双向流，用packet创建，解包，组包。
  * @return  返回一个Connectoion对象指针
@@ -388,6 +370,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
 			return NULL;
 		}
+
 		// TCPComponent
 		TCPComponent *component = new TCPComponent(this, socket, streamer, NULL);
 		// 设置是否自动重连
@@ -492,39 +475,37 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn)
 	OUT_INFO(NULL, 0, NULL, "ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
 	        socket->getSocketHandle(), ioc->getSocket()->getAddr().c_str(), readOn, writeOn,
 	        _iocListCount, ioc);
-
-	printf("ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
-	        socket->getSocketHandle(), ioc->getSocket()->getAddr().c_str(), readOn, writeOn,
-	        _iocListCount, ioc);
 }
 
-/*
- * 删除iocomponet
- * @param ioc: IO组件
- */
+//从Transport的链表管理中将其去掉， 业务层在主动销毁IOC时，可调用removeComponent
+//不能直接调用IOC的 close， disconnect等接口。
 void Transport::removeComponent(IOComponent *ioc)
 {
 	assert(ioc != NULL);
-
 	triones::Guard guard(_iocsMutex);
+
 	ioc->close();
+
+	// 需要重连, 不从iocomponents去掉
 	if (ioc->isAutoReconn())
-	{ // 需要重连, 不从iocomponents去掉
+	{
 		return;
 	}
+
+	// 不在iocList中
 	if (ioc->isUsed() == false)
-	{ // 不在iocList中
+	{
 		return;
 	}
 
 	// 从_iocList删除
 	if (ioc == _iocListHead)
-	{ // head
+	{
 		_iocListHead = ioc->_next;
 	}
 
 	if (ioc == _iocListTail)
-	{ // tail
+	{
 		_iocListTail = ioc->_pre;
 	}
 
@@ -553,9 +534,6 @@ void Transport::removeComponent(IOComponent *ioc)
 	        _iocListCount, ioc);
 }
 
-/*
- * 释放变量
- */
 void Transport::destroy()
 {
 	triones::Guard guard(_iocsMutex);

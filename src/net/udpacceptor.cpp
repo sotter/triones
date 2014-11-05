@@ -47,7 +47,7 @@ bool UDPAcceptor::readData()
 		Packet *pack = NULL;
 		while ((pack = _inputQueue.pop()) != NULL)
 		{
-			_serverAdapter->SynHandlePacket(ioc, pack);
+			_serverAdapter->synHandlePacket(ioc, pack);
 		}
 	}
 

@@ -39,9 +39,6 @@ IOComponent::~IOComponent()
 //	}
 }
 
-/**
- * owner
- */
 triones::Transport *IOComponent::getOwner()
 {
 	return _owner;

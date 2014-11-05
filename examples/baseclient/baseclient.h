@@ -38,8 +38,15 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-		printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
-		        packet->getDataLen(), packet->getData());
+		if (packet->get_type() == IServerAdapter::CMD_DISCONN_PACKET)
+		{
+			printf("receive disconnection %s \n", ioc->getSocket()->getAddr().c_str());
+		}
+		else if (packet->get_type() == IServerAdapter::CMD_DATA_PACKET)
+		{
+			printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
+			        packet->getDataLen(), packet->getData());
+		}
 
 //		Packet *pack = new Packet;
 //		pack->writeBytes(_send_buffer, sizeof(_send_buffer));

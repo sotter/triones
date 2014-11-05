@@ -79,7 +79,7 @@ IOComponent* BaseService::listen(const char *spec, int streamer)
 }
 
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
-bool BaseService::SynHandlePacket(IOComponent *connection, Packet *packet)
+bool BaseService::synHandlePacket(IOComponent *connection, Packet *packet)
 {
 	__INTO_FUN__
 

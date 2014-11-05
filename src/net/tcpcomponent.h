@@ -31,60 +31,53 @@ public:
 
 	void close();
 
-	bool handleWriteEvent();
+	// socket异常事件的处理函数EPOLLERR| EPOLLHUP
+	// virtual bool handleExpEvent();
 
-	bool handleReadEvent();
+	// socket写事件处理函数 EPOLLOUT
+	virtual bool handleWriteEvent();
 
+	// socket读事件处理函数 EOPLLIN
+	virtual bool handleReadEvent();
+
+	// TransPort定时器定时回调处理的函数
 	void checkTimeout(int64_t now);
 
+	// 异步连接处理
 	bool socket_connect();
 
-	//connection的disconn
 	void disconnect();
 
-	/*
-	 * 设置是否为服务器端
-	 */
+	// 设置是否为服务器端
 	void setServer(bool isServer)
 	{
 		_isServer = isServer;
 	}
 
+	//postPacket作为客户端，主动发送数据的接口，client可以不用等到conn success回调成功，就调用这个接口。
 	bool postPacket(Packet *packet);
-	/*
-	 * 当数据收到时的处理函数
-	 */
+
+	//readData后直接调用的handlePakcet
 	bool handlePacket(Packet *packet);
 
-	/*
-	 * 写出数据
-	 */
+	//写事件，调用的发送函数
 	virtual bool writeData();
 
-	/*
-	 * 读入数据
-	 */
+	//从socket中读取数据
 	virtual bool readData();
 
-	/*
-	 * 设置对列的超时时间
-	 */
+	//设置对列的超时时间
 	void setQueueTimeout(int queueTimeout)
 	{
 		_queueTimeout = queueTimeout;
 	}
 
-	/*
-	 * 设置queue最大长度, 0 - 不限制
-	 */
+	// 设置queue最大长度, 0 - 不限制
 	void setQueueLimit(int limit)
 	{
 		_queueLimit = limit;
 	}
 
-	/**
-	 * serverId
-	 */
 	uint64_t getServerId()
 	{
 		if (_socket)
@@ -103,9 +96,6 @@ public:
 		return 0;
 	}
 
-	/**
-	 * localPort
-	 */
 	int getLocalPort()
 	{
 		if (_socket)
@@ -120,26 +110,17 @@ public:
 		_writeFinishClose = v;
 	}
 
-	/*
-	 * 清空output的buffer
-	 */
+	//  清空output的buffer
 	void clearOutputBuffer()
 	{
 		_output.clear();
 	}
 
-	/*
-	 * clear input buffer
-	 */
+	// clear input buffer
 	void clearInputBuffer()
 	{
 		_input.clear();
 	}
-
-	/**
-	 * 发送setDisconnState
-	 */
-	void setDisconnState();
 
 private:
 	// TCP连接
@@ -163,8 +144,7 @@ private:
 	/**  TCPCONNECTION 部分  ******************/
 	DataBuffer _output;      // 输出的buffer
 	DataBuffer _input;       // 读入的buffer
-	bool _gotHeader;            // packet header已经取过
-	bool _writeFinishClose;     // 写完断开
+	bool _writeFinishClose;  // 写完断开, 供短连接业务使用的
 };
 
 } /* namespace triones */

@@ -22,29 +22,20 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 	_startConnectTime = 0;
 	_isServer = false;
 
-	/**connection ****/
 	_socket = socket;
 	_streamer = streamer;
 	_serverAdapter = serverAdapter;
-//	_defaultPacketHandler = NULL;
-//	_iocomponent = NULL;
 	_queueTimeout = 5000;
 	_queueLimit = 50;
 	_queueTotalSize = 0;
-
-	/**tcpconnection ****/
-	_gotHeader = false;
 	_writeFinishClose = false;
-//	memset(&_packetHeader, 0, sizeof(_packetHeader));
 }
 
 //析构函数
 TCPComponent::~TCPComponent()
 {
 	__INTO_FUN__
-	//将CONNECTION和TCPCONNECTION的析构函数放到这里
-	//tcpconnection 无内容
-	//connection内容
+
 	disconnect();
 
 	if (_socket)
@@ -53,18 +44,22 @@ TCPComponent::~TCPComponent()
 		delete _socket;
 		_socket = NULL;
 	}
-
-//	_iocomponent = NULL;
 }
 
 //连接断开，降所有发送队列中的packet全部超时
 void TCPComponent::disconnect()
 {
 	__INTO_FUN__
+
 	_output_mutex.lock();
 	_myQueue.moveto(&_outputQueue);
 	_output_mutex.unlock();
-	checkTimeout(TBNET_MAX_TIME);
+
+	//业务层的回调这个回调时需要排队的
+	if(_serverAdapter != NULL)
+	{
+		_serverAdapter->synHandlePacket(this, new Packet(IServerAdapter::CMD_DISCONN_PACKET));
+	}
 }
 
 //连接到指定的机器, isServer: 是否初始化一个服务器的Connection
@@ -81,29 +76,23 @@ bool TCPComponent::init(bool isServer)
 
 	if (!isServer)
 	{
-		printf("%s %d \n", __FILE__, __LINE__);
 		if (!socket_connect() && _autoReconn == false)
 		{
-			printf("%s %d \n", __FILE__, __LINE__);
 			return false;
 		}
 	}
 	else
 	{
-		printf("%s %d \n", __FILE__, __LINE__);
 		_state = TRIONES_CONNECTED;
 	}
 
-	printf("%s %d \n", __FILE__, __LINE__);
 	setServer(isServer);
 	_isServer = isServer;
 
 	return true;
 }
 
-/*
- * 连接到socket
- */
+//  连接到socket
 bool TCPComponent::socket_connect()
 {
 	__INTO_FUN__
@@ -116,8 +105,10 @@ bool TCPComponent::socket_connect()
 	_socket->setSoBlocking(false);
 
 	_startConnectTime = time(NULL);
+
 	if (_socket->connect())
 	{
+		printf("connect %s success \n", _socket->getAddr().c_str());
 		if (_socketEvent)
 		{
 			_socketEvent->addEvent(_socket, true, true);
@@ -126,9 +117,11 @@ bool TCPComponent::socket_connect()
 	}
 	else
 	{
+
 		int error = Socket::getLastError();
 		if (error == EINPROGRESS || error == EWOULDBLOCK)
 		{
+			printf("connect %s, EINPROGRESS waiting result \n", _socket->getAddr().c_str());
 			_state = TRIONES_CONNECTING;
 
 			if (_socketEvent)
@@ -148,33 +141,43 @@ bool TCPComponent::socket_connect()
 	return true;
 }
 
+/* **********************************************
+ * IOComponent的实现函数，供Transport::removeComponent调用
+ * removeComponent的触发条件为检测到网络断开。
+ * 由业务层触发的关闭应怎么来实现呢？
+ * **********************************************/
 void TCPComponent::close()
 {
 	__INTO_FUN__
-	if (_socket)
+
+	//如果是异步连接的socket，需要检测关闭的原因， 如果TRIONES_CONNECTING同时还会回调onPacket
+	if (_state == TRIONES_CONNECTING)
 	{
-		if (_socketEvent)
-		{
-			_socketEvent->removeEvent(_socket);
-		}
-		if (isConnectState())
-		{
-			//将这个事件转化成一个socket转发出去
-			setDisconnState();
-		}
-		_socket->close();
+		int error = _socket->getSoError();
+		OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->getAddr().c_str(),
+		        strerror(error), error);
 
-		clearInputBuffer(); // clear input buffer after socket closed
-
-		_state = TRIONES_CLOSED;
+		printf("connect %s fail: %s(%d) \n", _socket->getAddr().c_str(), strerror(error), error);
 	}
+
+	if (_socketEvent)
+	{
+		_socketEvent->removeEvent(_socket);
+	}
+
+	//只有 TRIONES_CONNECTED 和 TRIONES_CONNECTING会有回调
+	if (isConnectState())
+	{
+		_state = TRIONES_CLOSED;
+		disconnect();
+	}
+
+	//将socket真正的关闭
+	_socket->close();
+	clearInputBuffer();
 }
 
-/*
- * 当有数据可写到时被Transport调用
- *
- * @return 是否成功, true - 成功, false - 失败。
- */
+//处理socket写事件
 bool TCPComponent::handleWriteEvent()
 {
 	__INTO_FUN__
@@ -192,12 +195,18 @@ bool TCPComponent::handleWriteEvent()
 		{
 			enableWrite(true);
 			clearOutputBuffer();
+			//todo : 增加日志
+			printf("connect %s success \n", _socket->getAddr().c_str());
 			_state = TRIONES_CONNECTED;
 		}
 		else
 		{
-			OUT_ERROR(NULL, 0, NULL, "连接到 %s 失败: %s(%d)", _socket->getAddr().c_str(),
+			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->getAddr().c_str(),
 			        strerror(error), error);
+
+			printf("connect %s fail: %s(%d) \n", _socket->getAddr().c_str(),
+			        strerror(error), error);
+
 			if (_socketEvent)
 			{
 				_socketEvent->removeEvent(_socket);
@@ -206,14 +215,11 @@ bool TCPComponent::handleWriteEvent()
 			_state = TRIONES_CLOSED;
 		}
 	}
+
 	return rc;
 }
 
-/**
- * 当有数据可读时被Transport调用
- *
- * @return 是否成功, true - 成功, false - 失败。
- */
+// 当有数据可读时被Transport调用
 bool TCPComponent::handleReadEvent()
 {
 	__INTO_FUN__
@@ -226,10 +232,7 @@ bool TCPComponent::handleReadEvent()
 	return rc;
 }
 
-/*
- * 超时检查
- * @param    now 当前时间(单位us)
- */
+//超时检查
 void TCPComponent::checkTimeout(int64_t now)
 {
 	//	__INTO_FUN__
@@ -237,23 +240,30 @@ void TCPComponent::checkTimeout(int64_t now)
 	if (_state == TRIONES_CONNECTING)
 	{
 		if (_startConnectTime > 0 && _startConnectTime < (now - static_cast<int64_t>(2000000)))
-		{ // 连接超时 2 秒
+		{
+			// 连接超时 2 秒
 			_state = TRIONES_CLOSED;
-			OUT_ERROR(NULL, 0, NULL, "连接到 %s 超时.", _socket->getAddr().c_str());
+			OUT_ERROR(NULL, 0, NULL, "connect to %s timeout", _socket->getAddr().c_str());
 			_socket->shutdown();
 		}
 	}
+
 	else if (_state == TRIONES_CONNECTED && _isServer == true && _autoReconn == false)
-	{ // 连接的时候, 只用在服务器端
+	{
+		// 连接的时候, 只用在服务器端
 		int64_t idle = now - _lastUseTime;
 		if (idle > static_cast<int64_t>(900000000))
-		{ // 空闲15min断开
+		{
+			// 空闲15min断开
 			_state = TRIONES_CLOSED;
-			OUT_INFO(NULL, 0, NULL, "%s 空闲了: %d (s) 被断开.", _socket->getAddr().c_str(),
-			        (idle / static_cast<int64_t>(1000000)));
+			OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
+			        _socket->getAddr().c_str(), (idle / static_cast<int64_t>(1000000)));
+
+			//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
 			_socket->shutdown();
 		}
 	}
+
 	//需要重连的socket
 	else if (_state == TRIONES_CLOSED && _isServer == false && _autoReconn == true)
 	{
@@ -265,23 +275,16 @@ void TCPComponent::checkTimeout(int64_t now)
 			socket_connect();
 		}
 	}
-
-	// 原先connect的超时检查
-	// checkTimeout(now);
 }
 
 /**** 原先connectiong的部分 *********************/
-
-/*
- * handlePacket 数据
- */
 bool TCPComponent::handlePacket(Packet *packet)
 {
 	__INTO_FUN__
 	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
 	this->addRef();
 
-	return _serverAdapter->SynHandlePacket(this, packet);
+	return _serverAdapter->synHandlePacket(this, packet);
 }
 
 /*** 说明 2014-09-21
@@ -429,7 +432,7 @@ bool TCPComponent::readData()
 			Packet *pack = NULL;
 			while ((pack = _inputQueue.pop()) != NULL)
 			{
-				_serverAdapter->SynHandlePacket(this, pack);
+				_serverAdapter->synHandlePacket(this, pack);
 			}
 		}
 	}
@@ -507,18 +510,6 @@ bool TCPComponent::postPacket(Packet *packet)
 	}
 
 	return true;
-}
-
-/**
- * 发送setDisconnState, 客户端的on_dis_connection
- */
-void TCPComponent::setDisconnState()
-{
-	disconnect();
-//	if (_defaultPacketHandler && _isServer == false)
-//	{
-//		_defaultPacketHandler->handlePacket(&ControlPacket::DisconnPacket, _socket);
-//	}
 }
 
 } /* namespace triones */

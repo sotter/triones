@@ -64,7 +64,7 @@ public:
 	virtual ~BaseService();
 
 	//IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
-	virtual bool SynHandlePacket(IOComponent *connection, Packet *packet);
+	virtual bool synHandlePacket(IOComponent *connection, Packet *packet);
 
 protected:
 	//网络模型， 设置成protected, 子类有可能会调用

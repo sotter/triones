@@ -23,9 +23,18 @@ class IServerAdapter
 {
 	friend class TCPComponent;
 	friend class UDPComponent;
+
+public:
+    enum {
+    	CMD_DATA_PACKET = 0,
+        CMD_BAD_PACKET,
+        CMD_TIMEOUT_PACKET,
+        CMD_DISCONN_PACKET
+    };
+
 public:
 	// 单个packet回调， 直接从整个网络层，直接回调上去的
-	virtual bool SynHandlePacket(IOComponent *connection, Packet *packet) = 0;
+	virtual bool synHandlePacket(IOComponent *connection, Packet *packet) = 0;
 
 	// 批量packet回调, 可以不用实现
 	virtual bool handleBatchPacket(IOComponent *connection, PacketQueue &packetQueue)
@@ -49,6 +58,7 @@ public:
 	{
 		_batchPushPacket = value;
 	}
+
 private:
 	bool _batchPushPacket;          // 批量post packet
 };

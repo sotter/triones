@@ -7,10 +7,10 @@
 namespace triones
 {
 
-Packet::Packet()
+Packet::Packet(int type)
 {
 	_next = NULL;
-	_type = 0;
+	_type = type;
 }
 
 Packet::~Packet()
@@ -86,6 +86,12 @@ bool Packet::write_time(uint64_t n)
 {
 	writeInt64(n);
 	return true;
+}
+
+
+int  Packet::get_type()
+{
+	return _type;
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -20,14 +20,7 @@ SocketEvent::~SocketEvent()
 	close(_iepfd);
 }
 
-/*
- * 增加Socket到事件中
- *
- * @param socket 被加的socket
- * @param enableRead: 设置是否可读
- * @param enable_write: 设置是否可写
- * @return  操作是否成功, true – 成功, false – 失败
- */
+// 增加Socket到事件中
 bool SocketEvent::addEvent(Socket *socket, bool enableRead, bool enable_write)
 {
 	struct epoll_event ev;
@@ -48,18 +41,10 @@ bool SocketEvent::addEvent(Socket *socket, bool enableRead, bool enable_write)
 	//_mutex.lock();
 	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_ADD, socket->getSocketHandle(), &ev) == 0);
 	//_mutex.unlock();
-	//TBSYS_LOG(ERROR, "EPOLL_CTL_ADD: %d => %d,%d, %d", socket->getSocketHandle(), enableRead, enable_write, pthread_self());
 	return rc;
 }
 
-/*
- * 设置删除Socket到事件中
- *
- * @param socket 被加的socket
- * @param enableRead: 设置是否可读
- * @param enable_write: 设置是否可写
- * @return  操作是否成功, true – 成功, false – 失败
- */
+// 设置删除Socket到事件中
 bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
 {
 	struct epoll_event ev;
@@ -84,12 +69,7 @@ bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
 	return rc;
 }
 
-/*
- * 删除Socket到事件中
- *
- * @param socket 被删除socket
- * @return  操作是否成功, true – 成功, false – 失败
- */
+// 删除Socket到事件中
 bool SocketEvent::removeEvent(Socket *socket)
 {
 	struct epoll_event ev;
@@ -104,14 +84,12 @@ bool SocketEvent::removeEvent(Socket *socket)
 	return rc;
 }
 
-/*
- * 得到读写事件。
- *
- * @param timeout  超时时间(单位:ms)
- * @param events  事件数组
- * @param cnt   events的数组大小
- * @return 事件数, 0为超时, -1为出错了
- */
+/****************************
+EPOLLHUP事件触发：当socket的一端认为对方发来了一个不存在的4元组请求的时候,会回复一个RST响应,在epoll上会响应为EPOLLHUP事件
+[1] 当客户端向一个没有在listen的服务器端口发送的connect的时候 服务器会返回一个RST 因为服务器根本不知道这个4元组的存在.
+[2] 当已经建立好连接的一对客户端和服务器,客户端突然操作系统崩溃,或者拔掉电源导致操作系统重新启动(kill pid或者正常关机不行的,因为操作系统会发送FIN给对方).
+这时服务器在原有的4元组上发送数据,会收到客户端返回的RST,因为客户端根本不知道之前这个4元组的存在.
+ ****************************/
 int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
 {
 	struct epoll_event events[MAX_SOCKET_EVENTS];
@@ -155,7 +133,6 @@ int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
 			ioevents[i]._writeOccurred = true;
 		}
 	}
-
 	return res;
 }
 

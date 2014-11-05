@@ -43,9 +43,7 @@ bool UDPComponent::init(bool isServer)
 			return false;
 		}
 	}
-
 	_isServer = isServer;
-
 	return true;
 }
 
@@ -95,7 +93,7 @@ bool UDPComponent::readData()
 		Packet *pack = NULL;
 		while ((pack = _inputQueue.pop()) != NULL)
 		{
-			_serverAdapter->SynHandlePacket(this, pack);
+			_serverAdapter->synHandlePacket(this, pack);
 		}
 	}
 

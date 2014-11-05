@@ -17,20 +17,28 @@ namespace triones
 class Packet: public triones::DataBuffer
 {
 public:
-	Packet();
+
+	Packet(int type = 0);
+
 	virtual ~Packet();
 
 	bool read_str(std::string& s);
+
 	bool write_str(const std::string& s);
+
 	bool read_string(std::string& s);
+
 	bool write_string(const std::string& s);
+
 	bool read_time(uint64_t& t);
+
 	bool write_time(uint64_t n);
+
+	int  get_type();
 
 public:
 	Packet *_next;
 	int _type;
-
 	void *_ioc;
 };
 
