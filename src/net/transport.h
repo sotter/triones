@@ -27,47 +27,24 @@ class Transport: public triones::TBRunnable
 
 public:
 
-	/*
-	 * 构造函数
-	 */
 	Transport();
 
-	/*
-	 * 析造函数
-	 */
 	~Transport();
 
-	/*
-	 * 起动运输层，创建两个线程，一个用于读，一个用写。
-	 *
-	 * @return 是否成功, true - 成功, false - 失败。
-	 */
+	//起动运输层，创建两个线程，一个用于读，一个用写。
 	bool start();
 
-	/*
-	 * 停止，停掉读写线程，及销毁。
-	 *
-	 * @return 是否成功, true - 成功, false - 失败。
-	 */
+	//停止，停掉读写线程，及销毁。
 	bool stop();
 
-	/*
-	 * 等待线程完全退出。
-	 *
-	 * @return 是否成功, true - 成功, false - 失败。
-	 */
+	//等待线程完全退出
 	bool wait();
 
-	/*
-	 * 线程的运行函数，实现Runnable接口中的函数
-	 *
-	 * @param arg: 运行时传入参数
-	 */
+	//线程的运行函数，实现Runnable接口中的函数
 	void run(triones::TBThread *thread, void *arg);
 
 	/*
 	 * 起一个监听端口。
-	 *
 	 * @param spec: 格式 [upd|tcp]:ip:port
 	 * @param streamer: 数据包的双向流，用packet创建，解包，组包。
 	 * @param serverAdapter: 用在服务器端，当Connection初始化及Channel创建时回调时用
@@ -82,14 +59,11 @@ public:
 	 * @param spec: 格式 [upd|tcp]:ip:port
 	 * @param streamer: 数据包的双向流，用packet创建，解包，组包。
 	 * @param autoReconn: 是否重连
-	 * @return  返回一个Connectoion对象指针
 	 */
 	IOComponent *connect(const char *spec, triones::TransProtocol *streamer,
 	        bool autoReconn = false);
 
-	/*
-	 * 主动断开
-	 */
+	//主动断开
 	bool disconnect(TCPComponent *conn);
 
 	/*
@@ -101,19 +75,14 @@ public:
 	 */
 	void addComponent(IOComponent *ioc, bool readOn, bool writeOn);
 
-	/*
-	 * 从iocomponents中删除掉
-	 *
-	 * @param ioc: IO组件
-	 */
+	// 从iocomponents中删除掉
 	void removeComponent(IOComponent *ioc);
 
-	/**
-	 * 是否为stop
-	 */
+	// 是否为stop
 	bool* getStop();
 
 private:
+
 	/*
 	 * 把[upd|tcp]:ip:port分开放在args中
 	 *
@@ -124,34 +93,32 @@ private:
 	 */
 	int parseAddr(char *src, char **args, int cnt);
 
-	/*
-	 * socket event 的检测
-	 */
+	// socket event 的检测
 	void eventLoop(SocketEvent *socketEvent);
 
-	/*
-	 * 超时检查
-	 */
+	//超时检查
 	void timeoutLoop();
 
-	/*
-	 * 释放变量
-	 */
+	//释放变量
 	void destroy();
 
 private:
 
-	SocketEvent _socketEvent;      // 读写socket事件
+	SocketEvent _socketEvent;              // 读写socket事件
 	triones::TBThread _readWriteThread;    // 读写处理线程
 	triones::TBThread _timeoutThread;      // 超时检查线程
-	bool _stop;                         // 是否被停止
+	bool _stop;                            // 是否被停止
 
-	IOComponent *_delListHead, *_delListTail;  // 等待删除的IOComponent集合
+	IOComponent *_delListHead, *_delListTail;   // 等待删除的IOComponent集合
 	IOComponent *_iocListHead, *_iocListTail;   // IOComponent集合
 	bool _iocListChanged;                       // IOComponent集合被改过
 	int _iocListCount;
+
 	triones::Mutex _iocsMutex;
+
+	HashSock    _hash_socks;
 };
+
 }
 
 #endif /*TRANSPORT_H_*/

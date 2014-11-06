@@ -12,9 +12,9 @@ int main()
 	CHGLOG("client.log");
 
 	BaseClient base_client;
-	base_client.start("tcp:127.0.0.1:7406", 1);
+//	base_client.start("tcp:127.0.0.1:7406", 1);
 
-//	base_client.start("udp:127.0.0.1:7407", 1);
+	base_client.start("udp:127.0.0.1:7407", 1);
 
 //	while (1)
 //	{

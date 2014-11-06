@@ -130,6 +130,7 @@ void Transport::timeoutLoop()
 			}
 			_iocListChanged = false;
 		}
+
 		// 加入到mydel中
 		if (_delListHead != NULL && _delListTail != NULL)
 		{
@@ -168,11 +169,13 @@ void Transport::timeoutLoop()
 			{
 				// 从链中删除
 				if (tmpList == mydelHead)
-				{ // head
+				{
+					// head
 					mydelHead = tmpList->_next;
 				}
 				if (tmpList == mydelTail)
-				{ // tail
+				{
+					// tail
 					mydelTail = tmpList->_pre;
 				}
 				if (tmpList->_pre != NULL) tmpList->_pre->_next = tmpList->_next;
@@ -182,8 +185,8 @@ void Transport::timeoutLoop()
 				tmpList = tmpList->_next;
 				OUT_INFO(NULL, 0, NULL, "DELIOC, %s, IOCount:%d, IOC:%p\n",
 				        ioc->getSocket()->getAddr().c_str(), _iocListCount, ioc);
-				delete ioc;
 
+				delete ioc;
 			}
 			else
 			{
@@ -191,7 +194,6 @@ void Transport::timeoutLoop()
 			}
 		}
 
-//      usleep(500000);   // 最小间隔100ms
 		usleep(1000000);  // 最小间隔1s
 	}
 
@@ -213,11 +215,9 @@ void Transport::timeoutLoop()
 	_iocsMutex.unlock();
 }
 
-/*
+/* ***********************************
  * 线程的运行函数，实现Runnable接口中的函数
- *
- * @param arg: 运行时传入参数
- */
+ * **********************************/
 void Transport::run(triones::TBThread *thread, void *arg)
 {
 	if (thread == &_timeoutThread)
@@ -393,7 +393,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		if (!socket->setAddress(host, port))
 		{
 			delete socket;
-			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
+			OUT_ERROR(NULL, 0, NULL, "set udp address error: %s:%d, %s", host, port, spec);
 			return NULL;
 		}
 
@@ -403,7 +403,8 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		if (!component->init())
 		{
 			delete component;
-			OUT_ERROR(NULL, 0, NULL, "初始化失败TCPComponent: %s:%d", host, port);
+			printf("init updcomponent fail: %s:%d \n", host, port);
+			OUT_ERROR(NULL, 0, NULL, "init updcomponent fail: %s:%d", host, port);
 			return NULL;
 		}
 
@@ -434,7 +435,6 @@ bool Transport::disconnect(TCPComponent *conn)
 
 /*
  * 加入到iocomponents中
- *
  * @param  ioc: IO组件
  * @param  isWrite: 加入读或写事件到socketEvent中
  */

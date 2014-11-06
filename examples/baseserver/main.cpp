@@ -16,7 +16,7 @@ int main()
 	while(1)
 	{
 		//100s将此服务关闭掉
-		sleep(10);
+		sleep(5);
 	}
 
 	base_server.destroy();
