@@ -9,26 +9,24 @@
 
 namespace triones
 {
-
 //将网络地址转换为一个64位的无符号整型，方便key值的的操作
 uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr)
 {
-	seriaddr id;
-	id.sockaddr.family = sockaddr->sin_family;
-	id.sockaddr.port = sockaddr->sin_port;
-	id.sockaddr.host = sockaddr->sin_addr.s_addr;
+	uint64_t sockid = sockaddr->sin_family;
+	sockid <<= 16;
+	sockid |= ntohs(sockaddr->sin_port);
+	sockid <<= 32;
+	sockid |= sockaddr->sin_addr.s_addr;
 
-	return id.sockid;
+	return sockid;
 }
 
 //将ID回转为网络地址类型
 void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
-	seriaddr addr;
-	addr.sockid = sockid;
-	sockaddr->sin_family = addr.sockaddr.family;
-	sockaddr->sin_port = addr.sockaddr.port;
-	sockaddr->sin_addr.s_addr = addr.sockaddr.host;
+	sockaddr->sin_family = (sockid >> 48);
+	sockaddr->sin_port = htons(sockid >> 32);
+	sockaddr->sin_addr.s_addr = sockid;
 
 	return;
 }

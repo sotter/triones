@@ -170,10 +170,6 @@ public:
 	 */
 	int getSoError();
 
-	/*
-	 * 得到ip地址, 写到tmp上
-	 */
-	std::string getAddr();
 
 	/*
 	 * 得到64位数字的ip地址

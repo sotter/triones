@@ -12,7 +12,6 @@ namespace triones
 BaseServer::BaseServer()
 {
 	// TODO Auto-generated constructor stub
-
 }
 
 BaseServer::~BaseServer()

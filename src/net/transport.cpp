@@ -479,6 +479,9 @@ void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn)
 
 //从Transport的链表管理中将其去掉， 业务层在主动销毁IOC时，可调用removeComponent
 //不能直接调用IOC的 close， disconnect等接口。
+
+/* (1) 调用IOC close 函数，清除网络层数据，回调业务层的链路断开。
+ * (2) 从sock_hash清除，然后将其放入到待回收的删除队列， 定时器检测待删除队列，当引入计数为0时，将其删除。  */
 void Transport::removeComponent(IOComponent *ioc)
 {
 	assert(ioc != NULL);

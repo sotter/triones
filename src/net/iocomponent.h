@@ -58,7 +58,7 @@ public:
 
 	virtual bool handleReadEvent() = 0;
 
-	virtual void checkTimeout(int64_t now) = 0;
+	virtual void checkTimeout(uint64_t now) = 0;
 
 	Socket *getSocket()
 	{
@@ -100,6 +100,12 @@ public:
 	int getRef()
 	{
 		return atomic_read(&_refcount);
+	}
+
+	//获取IOC的ID
+	uint64_t getid()
+	{
+		return _id;
 	}
 
 	// 是否连接状态, 包括正在连接
@@ -154,17 +160,10 @@ public:
 	IOComponent *_next;             // 用于链表
 
 protected:
-	/*******************************************
-		 对于每一个IOComponent都有一个唯一的ID，这个ID是由网络通信地址生成的：type表示tcp还是UDP
-		TRIONES_TCPACCETOR  由type， socket监听的地址和端口号生成
-		TRIONES_TCPCONN,    由type，由本端的IP，PORT生成
-		TRIONES_TCPACTCONN, 由type，和对端的IP，PORT生成
-		TRIONES_UDPACCETOR, 由type，本端绑定的IP、PORT生成
-		TRIONES_UDPCONN,    每一个有单独的socket，由需要连接的对端IP、PORT生成。若果多个人同时连接同一个IP、PORT呢？
-							公用一个还是产生多个，这是个问题。（采用本端的IP和端口）
-		TRIONES_UDPACTCONN  没有真实的socket和TRIONES_UDPACCETOR共用一个socket，由type，对端到来的IP、PORT生成
-	*******************************************/
-	int64_t  _id;
+
+	//对于服务端产生的socket，_id为socket的本端ADDRESS ID
+	//对于服务端产生的socket，_id为socket的对端ADDRESS ID
+	uint64_t  _id;
 
 	triones::Transport *_owner;
 	Socket *_socket;                // 一个Socket的文件句柄
@@ -176,7 +175,6 @@ protected:
 	bool _isServer;                 // 是否为服务器端
 	bool _inUsed;                   // 是否在用
 	int64_t _lastUseTime;           // 最近使用的系统时间
-
 };
 } /* namespace triones */
 #endif /* IOCOMPONENT_H_ */
