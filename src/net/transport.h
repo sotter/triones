@@ -109,10 +109,10 @@ private:
 	triones::TBThread _timeoutThread;      // 超时检查线程
 	bool _stop;                            // 是否被停止
 
-	IOComponent *_delListHead, *_delListTail;   // 等待删除的IOComponent集合
-	IOComponent *_iocListHead, *_iocListTail;   // IOComponent集合
-	bool _iocListChanged;                       // IOComponent集合被改过
-	int _iocListCount;
+//	IOComponent *_delListHead, *_delListTail;   // 等待删除的IOComponent集合
+//	IOComponent *_iocListHead, *_iocListTail;   // IOComponent集合
+//	bool _iocListChanged;                       // IOComponent集合被改过
+//	int _iocListCount;
 
 	triones::Mutex _iocsMutex;
 

@@ -67,6 +67,7 @@ class ConnectionManager;
 #include "sockutil.h"
 #include "tbtimeutil.h"
 
+#include "sockutil.h"
 #include "socket.h"
 #include "serversocket.h"
 #include "socketevent.h"

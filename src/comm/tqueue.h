@@ -66,6 +66,33 @@ public:
 		return p;
 	}
 
+	//将自己的数据全部移送到dest队列中，新增接口2014-11-09
+	void moveto(TQueue &dest)
+	{
+		//说明是同一个队列，直接返回
+		if (dest._head == _head) return;
+		if (_size == 0) return;
+
+		//说明dest是一个空队列
+		int size = 0;
+		if (dest._head == NULL)
+		{
+			dest._head = _head;
+			dest._tail = _tail;
+			dest._size = _size;
+			move(size);
+		}
+		else
+		{
+			(dest._tail)->_next = dest._head;
+			dest._tail = _tail;
+			dest._size += _size;
+			move(size);
+		}
+
+		return;
+	}
+
 	// 从队列中移走
 	T * erase(T *o)
 	{

@@ -31,12 +31,6 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type)
 //所有由UDPAcceptor派生出来的UDPComponent公用一个socket,所以不能在这里释放。
 IOComponent::~IOComponent()
 {
-//	if (_socket)
-//	{
-//		_socket->close();
-//		delete _socket;
-//		_socket = NULL;
-//	}
 }
 
 triones::Transport *IOComponent::getOwner()

@@ -360,29 +360,19 @@ std::string Socket::getAddr()
 
 uint64_t Socket::getId()
 {
-	uint64_t ip = ntohs(_address.sin_port);
-	ip <<= 32;
-	ip |= _address.sin_addr.s_addr;
-	return ip;
-}
-
-uint64_t ipToAddr(uint32_t ip, int port)
-{
-	uint64_t ipport = port;
-	ipport <<= 32;
-	ipport |= ip;
-	return ipport;
+	if (_socketHandle == -1) return 0;
+	return sockutil::sock_addr2id(&_address);
 }
 
 uint64_t Socket::getPeerId()
 {
 	if (_socketHandle == -1) return 0;
 
-	struct sockaddr_in peer;
-	socklen_t length = sizeof(peer);
-	if (getpeername(_socketHandle, (struct sockaddr*) &peer, &length) == 0)
+	struct sockaddr_in peeraddr;
+	socklen_t length = sizeof(peeraddr);
+	if (getpeername(_socketHandle, (struct sockaddr*) &peeraddr, &length) == 0)
 	{
-		return ipToAddr(peer.sin_addr.s_addr, ntohs(peer.sin_port));
+		return sockutil::sock_addr2id(&peeraddr);
 	}
 	return 0;
 }

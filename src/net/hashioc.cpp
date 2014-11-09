@@ -6,6 +6,16 @@
 
 #include "hashioc.h"
 
+HashSock::HashSock(Transport *t)
+{
+	_transport = t;
+}
+
+HashSock::~HashSock()
+{
+
+}
+
 bool HashSock::init(size_t capacity, size_t locks)
 {
 	size_t factor = 4;
@@ -15,50 +25,128 @@ bool HashSock::init(size_t capacity, size_t locks)
 	_lock_size = next_power(locks, LOCK_INITIAL_SIZE);
 	_lock_mask = _lock_size - 1;
 
-	_hash_table = new EntryQueue[_ht_size];
+	_hash_table = new IOCQueue[_ht_size];
 	_lock_array = new triones::RWMutex[_lock_size];
 
 	return true;
 }
 
 //如果返回失败的话，需要外部将自己的ioc删除, 锁由外面进行显式调用
-bool HashSock::put(int64_t sockid, IOComponent *ioc)
+bool HashSock::put(IOComponent *ioc)
 {
-	if (ioc == NULL) return false;
+	if (ioc == NULL || ioc->getid() == 0) return false;
 
-	bool ret = false;
-	unsigned index = sock_hash(sockid);
-	EntryQueue &queue = _hash_table[index & _ht_mask];
+	unsigned index = sock_hash(ioc->getid());
+	IOCQueue &queue = _hash_table[index & _ht_mask];
 
-	//注意：这个地方不检测是否已经存在该ioc,外部加入调用的时候已经先调用了get在get为NULL时
-	//且get操作和add操作是在同一把锁当中同步的。
-	entry *e = new entry;
-	e->_sockid = sockid;
-	e->_ioc = ioc;
-	queue.push(e);
-	ret = true;
+	//是否已经有这个sockid的数据，暂时不做检查，由业务层保证sockid的唯一性
+	ct_write_lock(index);
+	queue.push(ioc);
+	_size++;
+	ct_write_unlock(index);
 
 	return true;
 }
 
 //不提供get出去的接口。
-IOComponent* HashSock::get(int64_t sockid)
+IOComponent* HashSock::get(uint64_t sockid)
 {
 	IOComponent* v = NULL;
 
 	unsigned index = sock_hash(sockid);
-	EntryQueue &queue = _hash_table[index & _ht_mask];
-	entry *e = queue.begin();
+	IOCQueue &queue = _hash_table[index & _ht_mask];
+
+	ct_read_lock(index);
+	IOComponent *e = queue.begin();
 	for (; e != NULL; e = queue.next(e))
 	{
-		if (e->_sockid == sockid)
+		if (e->getid() == sockid)
 		{
-			v = e->_ioc;
+			v = e;
 			break;
 		}
 	}
+	ct_read_unlock(index);
 
 	return v;
+}
+
+//将sockid从列表管理中删除, 放入到recycle队列中
+bool HashSock::erase(uint64_t sockid)
+{
+	IOComponent* v = NULL;
+	unsigned index = sock_hash(sockid);
+
+	ct_read_lock(index);
+	IOCQueue &queue = _hash_table[index & _ht_mask];
+	IOComponent *e = queue.begin();
+	for (; e != NULL; e = queue.next(e))
+	{
+		if (e->getid() == sockid)
+		{
+			break;
+		}
+	}
+	ct_read_unlock(index);
+
+	if(e == NULL)
+		return false;
+
+	//从队列总将其删除
+	ct_write_lock(index);
+	queue.erase(e);
+	_size--;
+	ct_write_unlock(index);
+
+	if (e->getRef() <= 0)
+	{
+		_recycle_lock.lock();
+		_del.push(e);
+		_recycle_lock.unlock();
+	}
+	else
+	{
+		_del_lock.lock();
+		_recycle.push(e);
+		_del_lock.unlock();
+	}
+
+	return true;
+}
+
+//暂未实现
+IOComponent *HashSock::remove(IOComponent *ioc)
+{
+	return ioc;
+}
+
+//获取需要删除的IOC, IOC的引用计数为0时，将其删除
+void HashSock::get_del(IOCQueue &del)
+{
+	int size = 0;
+
+	//先把要删除的移送到del中
+	_del_lock.lock();
+	_del.moveto(del);
+	_del_lock.unlock();
+
+	//检查_recycle队列的引用计数
+	_recycle_lock.lock();
+	IOComponent *e = _recycle.begin();
+	for (; e != NULL; e = _recycle.next(e))
+	{
+		//检查引用计数是否为0， 如果为0将这条数据放入到del中， 将这条数据放入到del中
+		if (e->getRef() == 0)
+		{
+			IOComponent *cur = e->_next;
+			_recycle.erase(e);
+			del.push(e);
+			e = cur;
+		}
+	}
+	_recycle_lock.unlock();
+
+	return;
 }
 
 string HashSock::run_info()
@@ -67,64 +155,60 @@ string HashSock::run_info()
 	return runinfo;
 }
 
-int HashSock::clear(time_t timeout)
+int HashSock::check_timeout()
 {
-	UNUSED(timeout);
-	return 0;
+	time_t now = time(0);
 
-//		int cnt = 0;
-//
-//		for (size_t i = 0; i < _ht_size; i++)
-//		{
-//			ct_write_lock(i);
-//			EntryQueue &queue = _hash_table[i];
-//			entry *e = queue.begin();
-//			time_t now = time(NULL);
-//
-//			for (; e != NULL;)
-//			{
-//				entry *p = e;
-//				e = queue.next(e);
-//
-//				if (p->_value->_vstate == iocfsm::OFF_LINE
-//				        && now - p->_value->_last_access_time > timeout)
-//				{
-//					queue.erase(p);
-//					delete p->_value;
-//					delete p;
-//					cnt++;
-//				}
-//			}
-//			ct_write_unlock(i);
-//		}
-//
-//		return cnt;
+	IOCQueue timeoutlist;
+	for(size_t i = 0; i < _ht_size; i++)
+	{
+		ct_write_lock(i);
+		IOCQueue &queue = _hash_table[index & _ht_mask];
+		IOComponent *e = queue.begin();
+		for (; e != NULL; e = queue.next(e))
+		{
+			//如果检测到超时了，将其放入到超时队列中
+			if(e->checkTimeout(now))
+			{
+				IOComponent *cur = e->_next;
+				queue.erase(e);
+				timeoutlist.push(e);
+				e = cur;
+			}
+		}
+		ct_write_unlock(i);
+	}
+	IOComponent *e = NULL;
+	while((e = timeoutlist.pop()) != NULL)
+	{
+		e->close();
+		if (e->getRef() <= 0)
+		{
+			_recycle_lock.lock();
+			_del.push(e);
+			_recycle_lock.unlock();
+		}
+		else
+		{
+			_del_lock.lock();
+			_recycle.push(e);
+			_del_lock.unlock();
+		}
+	}
+
+	return 0;
 }
 
-unsigned int HashSock::sock_hash(int64_t sockid)
+//采用IPVS的hash算法，均衡性未经测试
+unsigned int HashSock::sock_hash(uint64_t sockid)
 {
-
 #define TAB_BITS 8
 
-	struct triones_sockaddr
-	{
-		unsigned short family;
-		unsigned short port;
-		unsigned int host;
-	};
+	unsigned port = htons(sockid >> 32);
+	unsigned family = (sockid >> 48);
+	unsigned host = sockid;
 
-	union seriaddr
-	{
-		uint64_t sockid;
-		triones_sockaddr sockaddr;
-	};
-
-	seriaddr s;
-	s.sockid = sockid;
-
-	unsigned porth = ntohs(s.sockaddr.port);
-
-	return (s.sockaddr.family ^ ntohl(s.sockaddr.host) ^ (porth >> TAB_BITS) ^ porth);
+	return (family ^ ntohl(host) ^ (port >> TAB_BITS) ^ port);
 }
 
 size_t HashSock::next_power(size_t size, size_t mini)
