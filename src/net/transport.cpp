@@ -411,6 +411,7 @@ void Transport::remove_component(IOComponent *ioc)
 //
 //	OUT_INFO(NULL, 0, NULL, "RMIOC, %s IOCount:%d, IOC:%p\n", ioc->getSocket()->getAddr().c_str(),
 //	        _iocListCount, ioc);
+
 }
 
 void Transport::destroy()
