@@ -21,11 +21,11 @@ SocketEvent::~SocketEvent()
 }
 
 // 增加Socket到事件中
-bool SocketEvent::addEvent(Socket *socket, bool enableRead, bool enable_write)
+bool SocketEvent::add_event(Socket *socket, bool enableRead, bool enable_write)
 {
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
-	ev.data.ptr = socket->getIOComponent();
+	ev.data.ptr = socket->get_ioc();
 	// 设置要处理的事件类型
 	ev.events = 0;
 
@@ -39,17 +39,17 @@ bool SocketEvent::addEvent(Socket *socket, bool enableRead, bool enable_write)
 	}
 
 	//_mutex.lock();
-	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_ADD, socket->getSocketHandle(), &ev) == 0);
+	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_ADD, socket->get_fd(), &ev) == 0);
 	//_mutex.unlock();
 	return rc;
 }
 
 // 设置删除Socket到事件中
-bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
+bool SocketEvent::set_event(Socket *socket, bool enableRead, bool enable_write)
 {
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
-	ev.data.ptr = socket->getIOComponent();
+	ev.data.ptr = socket->get_ioc();
 	// 设置要处理的事件类型
 	ev.events = 0;
 
@@ -63,22 +63,22 @@ bool SocketEvent::setEvent(Socket *socket, bool enableRead, bool enable_write)
 	}
 
 	//_mutex.lock();
-	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_MOD, socket->getSocketHandle(), &ev) == 0);
+	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_MOD, socket->get_fd(), &ev) == 0);
 	//_mutex.unlock();
 	//TBSYS_LOG(ERROR, "EPOLL_CTL_MOD: %d => %d,%d, %d", socket->getSocketHandle(), enableRead, enable_write, pthread_self());
 	return rc;
 }
 
 // 删除Socket到事件中
-bool SocketEvent::removeEvent(Socket *socket)
+bool SocketEvent::remove_event(Socket *socket)
 {
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
-	ev.data.ptr = socket->getIOComponent();
+	ev.data.ptr = socket->get_ioc();
 	// 设置要处理的事件类型
 	ev.events = 0;
 	//_mutex.lock();
-	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_DEL, socket->getSocketHandle(), &ev) == 0);
+	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_DEL, socket->get_fd(), &ev) == 0);
 	//_mutex.unlock();
 	//TBSYS_LOG(ERROR, "EPOLL_CTL_DEL: %d", socket->getSocketHandle());
 	return rc;
@@ -90,7 +90,7 @@ EPOLLHUP事件触发：当socket的一端认为对方发来了一个不存在的
 [2] 当已经建立好连接的一对客户端和服务器,客户端突然操作系统崩溃,或者拔掉电源导致操作系统重新启动(kill pid或者正常关机不行的,因为操作系统会发送FIN给对方).
 这时服务器在原有的4元组上发送数据,会收到客户端返回的RST,因为客户端根本不知道之前这个4元组的存在.
  ****************************/
-int SocketEvent::getEvents(int timeout, IOEvent *ioevents, int cnt)
+int SocketEvent::get_events(int timeout, IOEvent *ioevents, int cnt)
 {
 	struct epoll_event events[MAX_SOCKET_EVENTS];
 

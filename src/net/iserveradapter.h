@@ -34,10 +34,10 @@ public:
 
 public:
 	// 单个packet回调， 直接从整个网络层，直接回调上去的
-	virtual bool synHandlePacket(IOComponent *connection, Packet *packet) = 0;
+	virtual bool syn_handle_packet(IOComponent *connection, Packet *packet) = 0;
 
 	// 批量packet回调, 可以不用实现
-	virtual bool handleBatchPacket(IOComponent *connection, PacketQueue &packetQueue)
+	virtual bool handle_batch_packet(IOComponent *connection, PacketQueue &packetQueue)
 	{
 		UNUSED(packetQueue);
 		UNUSED(connection);
@@ -47,20 +47,20 @@ public:
 	// 构造函数
 	IServerAdapter()
 	{
-		_batchPushPacket = false;
+		_batch_push_packet = false;
 	}
 
 	virtual ~IServerAdapter()
 	{
 	}
 
-	void setBatchPushPacket(bool value)
+	void set_batch_push_packet(bool value)
 	{
-		_batchPushPacket = value;
+		_batch_push_packet = value;
 	}
 
 private:
-	bool _batchPushPacket;          // 批量post packet
+	bool _batch_push_packet;          // 批量post packet
 };
 }
 

@@ -24,49 +24,31 @@ public:
 	 * @param serverAdapter:  用在服务器端，当Connection初始化及Channel创建时回调时用
 	 */
 	TCPAcceptor(Transport *owner, Socket *socket, triones::TransProtocol *streamer,
-	        IServerAdapter *serverAdapter);
+	        IServerAdapter *adapter);
 
-	virtual ~TCPAcceptor()
-	{
-			if (_socket)
-			{
-				_socket->close();
-				delete _socket;
-				_socket = NULL;
-			}
-	}
-	/*
-	 * 初始化
-	 *
-	 * @return 是否成功
-	 */
-	bool init(bool isServer = false);
+	virtual ~TCPAcceptor();
 
-	/**
-	 * 当有数据可读时被Transport调用
-	 *
-	 * @return 是否成功, true - 成功, false - 失败。
-	 */
-	bool handleReadEvent();
+	//初始化
+	bool init(bool is_server = false);
 
-	/**
-	 * 在accept中没有写事件
-	 */
-	bool handleWriteEvent()
+	// 当有数据可读时被Transport调用
+	virtual bool handle_read_event();
+
+	//在accept中不处理写事件
+	virtual bool handle_write_event()
 	{
 		return true;
 	}
 
-	/*
-	 * 超时检查
-	 *
-	 * @param    now 当前时间(单位us)
-	 */
-	void checkTimeout(int64_t now);
+	//IOComponent 网络资源清理
+	virtual void close();
+
+	//超时检查
+	virtual bool check_timeout(uint64_t now);
 
 private:
 	TransProtocol *_streamer;      // 数据包解析器
-//    IServerAdapter  *_serverAdapter; // 服务器适配器
+
 };
 
 } /* namespace triones */

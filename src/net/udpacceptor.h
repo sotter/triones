@@ -39,29 +39,29 @@ public:
 	bool init(bool isServer = false);
 
 	//处理写事件
-	bool handleReadEvent();
+	bool handle_read_event();
 
 	//不处理写事件
-	bool handleWriteEvent()
+	bool handle_write_event()
 	{
 		return true;
 	}
 
-	//最大包为64KB，也就一个IP包的长度。不处理多个UDP包组成一个应用包的情况，
-	//处理一个UDP包中包含多个应用包的情况。
-	bool readData();
-
-	//不操作写操作, 对UDPAcceptor不会调用到writeData
-	bool writeData();
+	//IOComponent 网络资源清理
+	virtual void close();
 
 	//检查超时，检查_online并回调超时处理函数
-	void checkTimeout(int64_t now);
+	bool check_timeout(uint64_t now);
+
+	//最大包为64KB，也就一个IP包的长度。不处理多个UDP包组成一个应用包的情况，
+	//处理一个UDP包中包含多个应用包的情况。
+	bool read_data();
+
+	//不操作写操作, 对UDPAcceptor不会调用到writeData
+	bool write_data();
 
 	//根据sockid获取对应的UDPComponent, 如果没有找到新建一个
 	UDPComponent *get(uint64_t sockid);
-
-	//将回收的ioc放回到池子中
-	void put(UDPComponent* ioc);
 
 private:
 
@@ -76,27 +76,15 @@ private:
 	// 发送队列锁
 	triones::Mutex _output_mutex;
 
-	//UDP接收长度
+	// UDP接收长度
 	char _read_buff[TRIONES_UDP_RECV_SIZE];
 
-	//接收队列，解包时使用
+	// 接收队列，解包时使用
 	PacketQueue _inputQueue;
 
 	// packet header已经取过
 	bool _gotHeader;
 
-	//下面的部分，针对Acceptor UDP进行的用户管理
-	// 数据队列头
-	TQueue<IOComponent> _queue;
-
-	// 在线队列管理
-	TQueue<IOComponent> _online;
-
-	// 数据同步操作锁
-	triones::Mutex _mutex;
-
-	// 连接对象查找管理
-	std::map<uint64_t, UDPComponent*> _mpsock;
 };
 
 } /* namespace triones */

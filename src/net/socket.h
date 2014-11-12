@@ -1,17 +1,3 @@
-/*
- * (C) 2007-2010 Taobao Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *
- * Version: $Id$
- *
- * Authors:
- *   duolong <duolong@taobao.com>
- *
- */
 
 #ifndef TBNET_SOCKET_H_
 #define TBNET_SOCKET_H_
@@ -25,176 +11,97 @@ class Socket
 {
 
 public:
-	/*
-	 * 构造函数
-	 */
 	Socket();
 
-	/*
-	 * 析构函数
-	 */
 	virtual ~Socket();
 
-	/*
-	 * 设置地址
-	 *
-	 * @param address  host或ip地址
-	 * @param port  端口号
-	 * @return 是否成功
-	 */
-	bool setAddress(const char *address, const int port);
+	//检查socket fd, 如果没有建立
+	bool check_fd();
 
-	bool udpBind();
+	//设置地址，对端的连接地址
+	bool set_address(const char *address, const int port);
 
-	/*
-	 * 连接到_address上
-	 *
-	 * @return 是否成功
-	 */
+	//绑定udp地址
+	bool udp_bind();
+
+	//连接到_address上
 	bool connect();
 
-	/**
-	 * 关闭连接
-	 */
+	//关闭套接字
 	void close();
 
-	/*
-	 * 关闭读写
-	 */
+	// 关闭读写
 	void shutdown();
 
-	/**
-	 * 使用UDP的socket
-	 *
-	 * @return 是否成功
-	 */
-	bool createUDP();
+	// 使用UDP的socket
+	bool udp_create();
 
-	/*
-	 * 把socketHandle,及ipaddress设置到此socket中
-	 *
-	 * @param  socketHandle: socket的文件句柄
-	 * @param hostAddress: 服务器地址
-	 */
+	// 把socketHandle,及ipaddress设置到此socket中
+	void setup(int socketHandle, struct sockaddr *hostAddress);
 
-	void setUp(int socketHandle, struct sockaddr *hostAddress);
+	//返回文件句柄
+	int get_fd();
 
-	/*
-	 * 返回文件句柄
-	 *
-	 * @return 文件句柄
-	 */
-	int getSocketHandle();
+	// 返回IOComponent
+	IOComponent *get_ioc();
 
-	/*
-	 * 返回IOComponent
-	 *
-	 * @return  IOComponent
-	 */
-	IOComponent *getIOComponent();
+	// 设置IOComponent
+	void set_ioc(IOComponent *ioc);
 
-	/*
-	 * 设置IOComponent
-	 *
-	 * @param IOComponent
-	 */
-	void setIOComponent(IOComponent *ioc);
-
-	/*
-	 * 写数据
-	 */
+	//写数据
 	int write(const void *data, int len);
 
+	//UDP数据发送
 	int sendto(const void *data, int len, sockaddr_in &dest);
 
-	/*
-	 * 读数据
-	 */
+	//读数据
 	int read(void *data, int len);
 
+	//UDP数据读取
 	int recvfrom(void *data, int len, sockaddr_in &src);
 
-	/*
-	 * SetSoKeepAlive
-	 */
-	bool setKeepAlive(bool on)
-	{
-		return setIntOption(SO_KEEPALIVE, on ? 1 : 0);
-	}
+	//获取本地的address生成的ID
+	uint64_t get_sockid();
 
-	/*
-	 * setReuseAddress
-	 */
-	bool setReuseAddress(bool on)
-	{
-		return setIntOption(SO_REUSEADDR, on ? 1 : 0);
-	}
+	//获取对端address生成的ID
+	uint64_t get_peer_sockid();
 
-	/*
-	 * setSoLinger
-	 */
-	bool setSoLinger(bool doLinger, int seconds);
+	//获取_address对应的字符串形式
+	std::string get_addr();
 
-	/*
-	 * setTcpNoDelay
-	 */
-	bool setTcpNoDelay(bool noDelay);
+	bool set_keep_alive(bool on);
 
-	/*
-	 * setTcpQuickAck
-	 */
-	bool setTcpQuickAck(bool quickAck);
+	bool set_reuse_addr(bool on);
 
-	/*
-	 * setIntOption
-	 */
-	bool setIntOption(int option, int value);
+	bool set_solinger(bool doLinger, int seconds);
 
-	/*
-	 * setTimeOption
-	 */
-	bool setTimeOption(int option, int milliseconds);
+	bool set_tcp_nodelay(bool noDelay);
 
-	/*
-	 * 是否阻塞
-	 */
-	bool setSoBlocking(bool on);
+	bool set_tcp_quick_ack(bool quickAck);
 
-	/*
-	 * 检查Socket句柄是否创建
-	 */
-	bool checkSocketHandle();
+	bool set_int_option(int option, int value);
 
-	/*
-	 * 得到Socket错误
-	 */
-	int getSoError();
+	bool set_time_option(int option, int milliseconds);
 
+	bool set_so_blocking(bool on);
 
-	/*
-	 * 得到64位数字的ip地址
-	 */
-	uint64_t getId();
-	uint64_t getPeerId();
+	int get_soerror();
 
-	/**
-	 * 得到本地端口
-	 */
-	int getLocalPort();
-
-	/*
-	 * 得到最后的错误
-	 */
-	static int getLastError()
+	//得到最后错误
+	static int get_last_error()
 	{
 		return errno;
 	}
 
 protected:
-	struct sockaddr_in _address; // 地址
-	int _socketHandle;    // socket文件句柄
+	struct sockaddr_in _address;
+
+	int _fd;
+
 	IOComponent *_iocomponent;
-	static triones::Mutex _dnsMutex; //　多实例用一个dnsMutex
+
+	//　多实例用一个dnsMutex
+	static triones::Mutex _dnsMutex;
 };
 }
 

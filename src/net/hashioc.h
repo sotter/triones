@@ -7,7 +7,6 @@
 #ifndef HASHIOC_H_
 #define HASHIOC_H_
 
-#include "cnet.h"
 #include "../comm/tqueue.h"
 
 namespace triones
@@ -23,12 +22,12 @@ public:
 	typedef TQueue<IOComponent> IOCQueue;
 
 public:
-	HashSock(Transport *t);
+	HashSock();
 
 	virtual ~HashSock();
 
 	// 初始化认100w/4 = 25w个hash bucket, 128的队列锁
-	bool init(size_t capacity = (1024 * 1024), size_t locks = 128);
+	bool init(Transport *t, size_t capacity = (1024 * 1024), size_t locks = 128);
 
 	// 如果返回失败的话，需要外部将自己的ioc删除, 锁由外面进行显式调用
 	bool put(IOComponent *ioc);
@@ -44,7 +43,7 @@ public:
 	IOComponent *remove(IOComponent *ioc);
 
 	//获取需要删除的IOC, IOC的引用计数为0时，将其删除
-	void get_del(IOCQueue &del);
+	void get_del_list(IOCQueue &del);
 
 	// 获取HashSock的管理
 	string run_info();
@@ -52,7 +51,13 @@ public:
 	// 超时检测，清理等；待实现 2014-11-06
 	int check_timeout();
 
+	//清空
+	void distroy();
+
 private:
+
+	//将ioc放入到recycle或是delete队列
+	bool moveto_recycle(IOComponent *ioc);
 
 	//采用IPVS的hash算法，均衡性未经测试, todo: 待测试
 	unsigned int sock_hash(uint64_t sockid);
@@ -82,7 +87,7 @@ private:
 
 private:
 	//是否初始化标志位
-	bool _inited;
+	bool _stop;
 	//hash桶
 	IOCQueue *_hash_table;
 	//hash桶个数
@@ -91,14 +96,12 @@ private:
 	size_t _ht_mask;
 	//当前桶中的数目
 	int _size;
-
 	//hash桶锁队列
 	triones::RWMutex *_lock_array;
 	//锁队列的大小
 	size_t _lock_size;
 	//锁队列掩码
 	size_t _lock_mask;
-
 	//提供给recycle队列操作的锁
 	triones::Mutex _recycle_lock;
 	//回收后但是引用计数不为0的队列

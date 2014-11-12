@@ -45,9 +45,6 @@ public:
 	//spec:连接地址 tcp:127.0.0.1:7008, streamer分包器
 	IOComponent* listen(const char *spec, int streamer);
 
-	//QueueThread异步队列的异步回调函数
-	virtual void handle_queue(void *packet);
-
 	//处理有同步业务层的处理，子类的service来实现
 	virtual void handle_packet(IOComponent *ioc, Packet *packet);
 
@@ -64,7 +61,10 @@ public:
 	virtual ~BaseService();
 
 	//IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
-	virtual bool synHandlePacket(IOComponent *connection, Packet *packet);
+	virtual bool syn_handle_packet(IOComponent *connection, Packet *packet);
+
+	//QueueThread异步队列的异步回调函数
+	virtual void handle_queue(void *packet);
 
 protected:
 	//网络模型， 设置成protected, 子类有可能会调用
@@ -72,6 +72,7 @@ protected:
 
 	//做性能测试使用
 	char _send_buffer[16];
+
 private:
 	//是否已经经过初始化
 	bool _inited;

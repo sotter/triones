@@ -22,55 +22,60 @@ TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 		: IOComponent(owner, socket)
 {
 	_streamer = streamer;
-	_serverAdapter = serverAdapter;
+	_server_adapter = serverAdapter;
 }
 
-/*
- * 初始化, 开始监听
- */
+TCPAcceptor::~TCPAcceptor()
+{
+		if (_socket)
+		{
+			_socket->close();
+			delete _socket;
+			_socket = NULL;
+		}
+}
+
+// 初始化, 开始监听
 bool TCPAcceptor::init(bool isServer)
 {
 	UNUSED(isServer);
-	_socket->setSoBlocking(false);
+	_socket->set_so_blocking(false);
 	return ((ServerSocket*) _socket)->listen();
 }
 
-/**
- * 当有数据可读时被Transport调用
- *
- * @return 是否成功
- */
-bool TCPAcceptor::handleReadEvent()
+// 当有数据可读时被Transport调用
+bool TCPAcceptor::handle_read_event()
 {
 	Socket *socket;
 	while ((socket = ((ServerSocket*) _socket)->accept()) != NULL)
 	{
-		//TBSYS_LOG(INFO, "有新连接进来, fd: %d", socket->getSocketHandle());
 		// TCPComponent, 在服务器端
-		TCPComponent *component = new TCPComponent(_owner, socket, _streamer, _serverAdapter);
-
+		TCPComponent *component = new TCPComponent(_owner, socket, _streamer, _server_adapter);
 		if (!component->init(true))
 		{
 			delete component;
 			return true;
 		}
-
+		// 对于服务端来说，component的ID，由对端地址生成；
+		component->setid(socket->get_peer_sockid());
 		// 加入到iocomponents中，及注册可读到socketevent中
-		_owner->addComponent(component, true, false);
+		_owner->add_component(component, true, false);
 	}
 
 	return true;
 }
 
-/*
- * 超时检查
- *
- * @param    now 当前时间(单位us)
- */
-void TCPAcceptor::checkTimeout(int64_t now)
+//IOComponent 网络资源清理
+void TCPAcceptor::close()
+{
+	_socket->close();
+}
+
+// 超时检查 now 当前时间(单位us)
+bool TCPAcceptor::check_timeout(uint64_t now)
 {
 	UNUSED(now);
-	return;
+	return false;
 }
 
 } /* namespace triones */

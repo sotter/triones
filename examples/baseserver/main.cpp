@@ -11,7 +11,7 @@ int main()
 {
 	BaseServer base_server;
 	base_server.start("tcp:127.0.0.1:7406", 1);
-//	base_server.start("udp:127.0.0.1:7407", 1);
+	base_server.start("udp:127.0.0.1:7407", 1);
 
 	while(1)
 	{

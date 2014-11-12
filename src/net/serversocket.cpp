@@ -12,7 +12,7 @@ namespace triones
 
 ServerSocket::ServerSocket()
 {
-	_backLog = 256;
+	_back_log = 256;
 }
 
 ServerSocket::~ServerSocket()
@@ -31,17 +31,17 @@ Socket *ServerSocket::accept()
 	struct sockaddr_in addr;
 	int len = sizeof(addr);
 
-	int fd = ::accept(_socketHandle, (struct sockaddr *) &addr, (socklen_t*) &len);
+	int fd = ::accept(_fd, (struct sockaddr *) &addr, (socklen_t*) &len);
 
 	if (fd >= 0)
 	{
 		handleSocket = new Socket();
-		handleSocket->setUp(fd, (struct sockaddr *) &addr);
-		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", handleSocket->getAddr().c_str(), fd);
+		handleSocket->setup(fd, (struct sockaddr *) &addr);
+		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", handleSocket->get_addr().c_str(), fd);
 	}
 	else
 	{
-		int error = getLastError();
+		int error = get_last_error();
 		if (error != EAGAIN)
 		{
 			OUT_ERROR(NULL, 0, "accept error %s(%d)", strerror(error), error);
@@ -58,28 +58,28 @@ Socket *ServerSocket::accept()
  */
 bool ServerSocket::listen()
 {
-	if (!checkSocketHandle())
+	if (!check_fd())
 	{
 		return false;
 	}
 
 	// 地址可重用
-	setSoLinger(false, 0);
-	setReuseAddress(true);
-	setIntOption(SO_KEEPALIVE, 1);
-	setIntOption(SO_SNDBUF, 640000);
-	setIntOption(SO_RCVBUF, 640000);
-	setTcpNoDelay(true);
+	set_solinger(false, 0);
+	set_reuse_addr(true);
+	set_int_option(SO_KEEPALIVE, 1);
+	set_int_option(SO_SNDBUF, 640000);
+	set_int_option(SO_RCVBUF, 640000);
+	set_tcp_nodelay(true);
 
-	if (::bind(_socketHandle, (struct sockaddr *) &_address, sizeof(_address)) < 0)
+	if (::bind(_fd, (struct sockaddr *) &_address, sizeof(_address)) < 0)
 	{
-		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->getAddr().c_str(), errno);
+		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->get_addr().c_str(), errno);
 		return false;
 	}
 
-	if (::listen(_socketHandle, _backLog) < 0)
+	if (::listen(_fd, _back_log) < 0)
 	{
-		OUT_INFO(NULL, 0, NULL, "listen %s error : %d", this->getAddr().c_str(), errno);
+		OUT_INFO(NULL, 0, NULL, "listen %s error : %d", this->get_addr().c_str(), errno);
 		return false;
 	}
 

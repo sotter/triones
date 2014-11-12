@@ -51,12 +51,13 @@ class SocketEvent;
 class IOComponent;
 class TCPAcceptor;
 class TCPComponent;
+class HashSock;
 class Transport;
 class UDPAcceptor;
 class UDPComponent;
-
 class PacketQueueThread;
 class ConnectionManager;
+
 }
 
 #ifndef UNUSED
@@ -77,10 +78,11 @@ class ConnectionManager;
 #include "tcpcomponent.h"
 #include "udpacceptor.h"
 #include "udpcomponent.h"
+#include "hashioc.h"
 #include "transport.h"
 #include "baseservice.h"
 
-//#define __DEBUG_INFO__
+#define __DEBUG_INFO__
 
 #ifdef __DEBUG_INFO__
 #define __INTO_FUN__  printf("into %s\n", __FUNCTION__);

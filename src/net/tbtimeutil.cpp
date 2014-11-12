@@ -23,29 +23,26 @@
 namespace triones
 {
 
-/*
- * 得到当前时间
- */
-int64_t CTimeUtil::getTime()
+// 得到当前时间
+uint64_t CTimeUtil::get_time()
 {
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	return (static_cast<int64_t>(t.tv_sec) * static_cast<int64_t>(1000000)
-	        + static_cast<int64_t>(t.tv_usec));
+	return (static_cast<uint64_t>(t.tv_sec) * static_cast<uint64_t>(1000000)
+	        + static_cast<uint64_t>(t.tv_usec));
 }
 
-int64_t CTimeUtil::getMonotonicTime()
+// 得到单调递增的时间
+uint64_t CTimeUtil::get_monotonic_time()
 {
 	timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
-	return (static_cast<int64_t>(t.tv_sec) * static_cast<int64_t>(1000000)
-	        + static_cast<int64_t>(t.tv_nsec / 1000));
+	return (static_cast<uint64_t>(t.tv_sec) * static_cast<uint64_t>(1000000)
+	        + static_cast<uint64_t>(t.tv_nsec / 1000));
 }
 
-/**
- * 把int转成20080101101010的格式
- */
-char *CTimeUtil::timeToStr(time_t t, char *dest)
+// 把int转成20080101101010的格式
+char *CTimeUtil::time2str(time_t t, char *dest)
 {
 	struct tm r;
 	memset(&r, 0, sizeof(r));
@@ -60,10 +57,8 @@ char *CTimeUtil::timeToStr(time_t t, char *dest)
 	return dest;
 }
 
-/**
- * 把字节串转成时间(当地时间)
- */
-int CTimeUtil::strToTime(char *str)
+// 把字节串转成时间(当地时间)
+int CTimeUtil::str2time(char *str)
 {
 	if (str == NULL || strlen(str) != 14)
 	{

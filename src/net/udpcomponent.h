@@ -30,19 +30,19 @@ public:
 	void close();
 
 	//TransPort可写的回调函数
-	bool handleWriteEvent();
+	bool handle_write_event();
 
 	//TransPort可读的回调函数
-	bool handleReadEvent();
+	bool handle_read_event();
 
-	bool readData();
+	bool read_data();
 
-	bool writeData();
+	bool write_data();
 
-	bool postPacket(Packet *packet);
+	bool post_packet(Packet *packet);
 
 	//检查超时，检查_online并回调超时处理函数
-	void checkTimeout(int64_t now);
+	bool check_timeout(uint64_t now);
 
 private:
 	int _udp_type;

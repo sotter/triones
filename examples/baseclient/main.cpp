@@ -27,47 +27,45 @@ void getadress(uint64_t sockid, struct sockaddr_in &_address)
 
 int main()
 {
-	struct sockaddr_in address;
-	memset(&address, 0, sizeof(address));
-
-	address.sin_family = AF_INET;
-	address.sin_port  = htons(7008);
-	address.sin_addr.s_addr = inet_addr("192.168.100.49");
-
-	uint64_t sockid = getId(address);
-
-	printf("sockid = %llu \n", (unsigned long long )sockid);
-
-	struct sockaddr_in address1;
-	memset(&address1, 0, sizeof(address1));
-	getadress(sockid, address1);
-
-	int ret = memcmp(&address, &address1, sizeof(struct sockaddr_in));
-
-	printf("cmp ret = %d \n", ret);
-
-	printf("sockid1 = %llu \n", (unsigned long long )getId(address1));
-
-
-//	CHGLOG("client.log");
+//	struct sockaddr_in address;
+//	memset(&address, 0, sizeof(address));
 //
-//	BaseClient base_client;
-////	base_client.start("tcp:127.0.0.1:7406", 1);
+//	address.sin_family = AF_INET;
+//	address.sin_port  = htons(7008);
+//	address.sin_addr.s_addr = inet_addr("192.168.100.49");
 //
-//	base_client.start("udp:127.0.0.1:7407", 1);
+//	uint64_t sockid = getId(address);
 //
-////	while (1)
-////	{
-//		sleep(3);
-////	}
+//	printf("sockid = %llu \n", (unsigned long long )sockid);
 //
-//	base_client.destroy();
+//	struct sockaddr_in address1;
+//	memset(&address1, 0, sizeof(address1));
+//	getadress(sockid, address1);
 //
-//	OUT_INFO(NULL, 0, NULL, "good luck");
+//	int ret = memcmp(&address, &address1, sizeof(struct sockaddr_in));
 //
-//	sleep(4);
+//	printf("cmp ret = %d \n", ret);
 //
-//	LOGSTOP();
+//	printf("sockid1 = %llu \n", (unsigned long long )getId(address1));
+
+	CHGLOG("client.log");
+
+	BaseClient base_client;
+	base_client.start("tcp:127.0.0.1:7406", 1);
+	base_client.start("udp:127.0.0.1:7407", 1);
+
+	while (1)
+	{
+		sleep(3);
+	}
+
+	base_client.destroy();
+
+	OUT_INFO(NULL, 0, NULL, "good luck");
+
+	sleep(4);
+
+	LOGSTOP();
 
 
 }

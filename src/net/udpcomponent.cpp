@@ -18,7 +18,7 @@ UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 		: IOComponent(owner, socket, type)
 {
 	_streamer = streamer;
-	_serverAdapter = serverAdapter;
+	_server_adapter = serverAdapter;
 }
 
 UDPComponent::~UDPComponent()
@@ -49,30 +49,51 @@ bool UDPComponent::init(bool isServer)
 
 void UDPComponent::close()
 {
+	//对于TRIONES_UDPCONN要将socket从epoll中删掉，同时将socket关闭
+	if (_type == TRIONES_UDPCONN && _sock_event)
+	{
+		_sock_event->remove_event(_socket);
+	}
 
+	//只有 TRIONES_CONNECTED 和 TRIONES_CONNECTING会有回调
+	if (is_conn_state())
+	{
+		_state = TRIONES_CLOSED;
+		//业务层的回调这个回调时需要排队的
+		if(_server_adapter != NULL)
+		{
+			_server_adapter->syn_handle_packet(this, new Packet(IServerAdapter::CMD_DISCONN_PACKET));
+		}
+	}
+
+	if (_type == TRIONES_UDPCONN)
+	{
+		//将socket真正的关闭
+		_socket->close();
+	}
 }
 
 //UDPComponent不处理可写事件，UDPComponent的写操作是同步接口
-bool UDPComponent::handleWriteEvent()
+bool UDPComponent::handle_write_event()
 {
 	return true;
 }
 
 //UDPComponent只有TRIONES_UDPCONN才处理写事件
-bool UDPComponent::handleReadEvent()
+bool UDPComponent::handle_read_event()
 {
 	__INTO_FUN__
-	_lastUseTime = triones::CTimeUtil::getTime();
+	_last_use_time = triones::CTimeUtil::get_time();
 	bool rc = false;
 	if (_type == TRIONES_UDPCONN)
 	{
-		rc = readData();
+		rc = read_data();
 	}
 	return rc;
 }
 
 //提供给已经连接的UDPSocket使用；
-bool UDPComponent::readData()
+bool UDPComponent::read_data()
 {
 	__INTO_FUN__
 
@@ -93,7 +114,7 @@ bool UDPComponent::readData()
 		Packet *pack = NULL;
 		while ((pack = _inputQueue.pop()) != NULL)
 		{
-			_serverAdapter->synHandlePacket(this, pack);
+			_server_adapter->syn_handle_packet(this, pack);
 		}
 	}
 
@@ -101,14 +122,14 @@ bool UDPComponent::readData()
 }
 
 //提供给已经连接的UDPSocket使用；
-bool UDPComponent::writeData()
+bool UDPComponent::write_data()
 {
 	__INTO_FUN__
 	return true;
 }
 
 //数据发送的同步接口
-bool UDPComponent::postPacket(Packet *packet)
+bool UDPComponent::post_packet(Packet *packet)
 {
 	//TRIONES_UDPCONN和TRIONES_UDPACTCONN可以调用到这个地方
 	if (_type != TRIONES_UDPCONN && _type != TRIONES_UDPACTCONN)
@@ -153,10 +174,18 @@ bool UDPComponent::postPacket(Packet *packet)
 }
 
 //todo : 2014-10-29
-void UDPComponent::checkTimeout(int64_t now)
+bool UDPComponent::check_timeout(uint64_t now)
 {
-	UNUSED(now);
-	return;
+	printf("into UDPComponent::checkTimeout \n");
+
+	uint64_t t = now  - static_cast<uint64_t>(10 * 1000 * 1000);
+
+	bool ret =  (get_last_use_time() < t);
+
+	printf("ret = %d \n", ret);
+
+	return ret;
 }
+
 
 } /* namespace triones */

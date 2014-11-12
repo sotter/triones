@@ -29,7 +29,7 @@ public:
 
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
-		if (!conn->postPacket(pack))
+		if (!conn->post_packet(pack))
 		{
 			delete pack;
 			pack = NULL;
@@ -40,11 +40,11 @@ public:
 	{
 		if (packet->get_type() == IServerAdapter::CMD_DISCONN_PACKET)
 		{
-			printf("receive disconnection %s \n", ioc->getSocket()->getAddr().c_str());
+			printf("receive disconnection %s \n", ioc->get_socket()->get_addr().c_str());
 		}
 		else if (packet->get_type() == IServerAdapter::CMD_DATA_PACKET)
 		{
-			printf("receive from %s len %d : %s \n", ioc->getSocket()->getAddr().c_str(),
+			printf("receive from %s len %d : %s \n", ioc->get_socket()->get_addr().c_str(),
 			        packet->getDataLen(), packet->getData());
 		}
 

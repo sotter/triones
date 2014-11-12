@@ -31,75 +31,75 @@ public:
 
 public:
 
-	IOComponent(Transport *owner, Socket *socket, int type = 0, int64_t id = 0);
+	IOComponent(Transport *owner, Socket *socket, int type = 0, uint64_t id = 0);
 
 	virtual ~IOComponent();
 
-	virtual bool init(bool isServer = false) = 0;
+	//socket event 写事件处理
+	virtual bool handle_read_event() = 0;
 
-	virtual void close()
-	{
-	}
+	//socket event 读事件处理
+	virtual bool handle_write_event() = 0;
 
-	virtual bool postPacket(Packet *packet)
-	{
-		UNUSED(packet);
-		return false;
-	}
+	//超时检测, return false:未超时正常，true超时需要清理
+	virtual bool check_timeout(uint64_t now) = 0;
 
-	//原先的淘宝代码没有此接口，主要是为了处理TCP异步连接或是关闭时产生的异常有正确的处理。
-	//子类中非必须实现的接口。
-//	virtual bool handleExpEvent()
-//	{
-//		return true;
-//	}
+	//由子类实现，非必须实现的接口
+	virtual bool post_packet(Packet *packet);
 
-	virtual bool handleWriteEvent() = 0;
+	//IOComponent 网络资源清理
+	virtual void close() = 0;
 
-	virtual bool handleReadEvent() = 0;
+	//设置可写
+	void enable_write(bool on);
 
-	virtual void checkTimeout(uint64_t now) = 0;
+public:
 
-	Socket *getSocket()
+	Socket *get_socket()
 	{
 		return _socket;
 	}
 
-	void setSocketEvent(SocketEvent *socketEvent)
+	uint64_t get_last_use_time()
 	{
-		_socketEvent = socketEvent;
+		return _last_use_time;
+	}
+
+	triones::Transport *get_owner()
+	{
+		return _owner;
+	}
+
+	void set_sockevent(SocketEvent *socketEvent)
+	{
+		_sock_event = socketEvent;
 	}
 
 	// 为了适配baseService的接口而增加的  2014-10-14
-	void setServerAdapter(IServerAdapter *sa)
+	void set_server_adapter(IServerAdapter *sa)
 	{
-		_serverAdapter = sa;
+		_server_adapter = sa;
 	}
 
-	void enableWrite(bool writeOn)
-	{
-		if (_socketEvent)
-		{
-			_socketEvent->setEvent(_socket, true, writeOn);
-		}
-	}
-
-	// 增加引用计数
-	int addRef()
+	int add_ref()
 	{
 		return atomic_add_return(1, &_refcount);
 	}
 
-	// 减少引用计数
-	void subRef()
+	void sub_ref()
 	{
 		atomic_dec(&_refcount);
 	}
 
-	// 取出引用计数
-	int getRef()
+	int get_ref()
 	{
 		return atomic_read(&_refcount);
+	}
+
+	//设置IOC的ID
+	void setid(uint64_t id)
+	{
+		_id = id;
 	}
 
 	//获取IOC的ID
@@ -109,72 +109,76 @@ public:
 	}
 
 	// 是否连接状态, 包括正在连接
-	bool isConnectState()
+	bool is_conn_state()
 	{
 		return (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING);
 	}
 
+	void set_state(int state)
+	{
+		_state = state;
+	}
+
 	// 得到连接状态
-	int getState()
+	int get_state()
 	{
 		return _state;
 	}
 
 	// 设置是否重连
-	void setAutoReconn(bool on)
+	void set_auto_conn(bool on)
 	{
-		_autoReconn = on;
+		_auto_reconn = on;
 	}
 
 	// 得到重连标志
-	bool isAutoReconn()
+	bool is_auto_conn()
 	{
-		return (_autoReconn && !_isServer);
+		return (_auto_reconn);
 	}
 
 
-	// 是否在ioclist中
-	bool isUsed()
+	// 是否在hash_sock中
+	bool is_used()
 	{
-		return _inUsed;
+		return _inused;
 	}
 
 	// 设置是否被用
-	void setUsed(bool b)
+	void set_used(bool b)
 	{
-		_inUsed = b;
+		_inused = b;
 	}
-
-	//设置最后使用时间
-	int64_t getLastUseTime()
-	{
-		return _lastUseTime;
-	}
-
-	//设置owner
-	triones::Transport *getOwner();
 
 public:
-	IServerAdapter *_serverAdapter; // 服务器适配器
-	IOComponent *_pre;              // 用于链表
-	IOComponent *_next;             // 用于链表
+
+	IServerAdapter *_server_adapter;
+
+	IOComponent *_pre;
+	IOComponent *_next;
 
 protected:
-
 	//对于服务端产生的socket，_id为socket的本端ADDRESS ID
 	//对于服务端产生的socket，_id为socket的对端ADDRESS ID
 	uint64_t  _id;
-
+	//绑定的socket句柄，系统所产生的所有socket都有IOC绑定，一个socket可以同时被多个IOC绑定例如UDPACTCONN多个共享一个socket
+	Socket *_socket;
+	//IOC所属的Transport
 	triones::Transport *_owner;
-	Socket *_socket;                // 一个Socket的文件句柄
-	SocketEvent *_socketEvent;
-	int _type;                      // IOC类型
-	int _state;                     // 连接状态
-	atomic_t _refcount;             // 引用计数
-	bool _autoReconn;               // 是否重连
-	bool _isServer;                 // 是否为服务器端
-	bool _inUsed;                   // 是否在用
-	int64_t _lastUseTime;           // 最近使用的系统时间
+	//IOC复用句柄；todo：IOC实际用不着，可以删除
+	SocketEvent *_sock_event;
+	// IOC类型
+	int _type;
+	//当前的连接状态
+	int _state;
+	// 引用计数
+	atomic_t _refcount;
+	//是否重连标志
+	bool _auto_reconn;
+	//是否在用，指的是是否在transport的hashsock中
+	bool _inused;
+	// 最近使用的系统时间
+	uint64_t _last_use_time;
 };
 } /* namespace triones */
 #endif /* IOCOMPONENT_H_ */

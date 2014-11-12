@@ -25,28 +25,22 @@
 namespace triones
 {
 
-/** 
- * @brief linux时间操作简单的封装
- */
+//linux时间操作简单的封装
 class CTimeUtil
 {
 public:
-	/**
-	 * 得到当前时间
-	 */
-	static int64_t getTime();
-	/**
-	 * 得到单调递增的时间
-	 */
-	static int64_t getMonotonicTime();
-	/**
-	 * 把int转成20080101101010的格式
-	 */
-	static char *timeToStr(time_t t, char *dest);
-	/**
-	 * 把字节串转成时间(当地时间)
-	 */
-	static int strToTime(char *str);
+
+	// 得到当前时间
+	static uint64_t get_time();
+
+	// 得到单调递增的时间
+	static uint64_t get_monotonic_time();
+
+	// 把int转成20080101101010的格式
+	static char *time2str(time_t t, char *dest);
+
+	// 把字节串转成时间(当地时间)
+	static int str2time(char *str);
 };
 
 }

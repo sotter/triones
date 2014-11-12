@@ -21,23 +21,24 @@ namespace triones
 Transport::Transport()
 {
 	_stop = false;
-	_iocListHead = _iocListTail = NULL;
-	_delListHead = _delListTail = NULL;
-	_iocListChanged = false;
-	_iocListCount = 0;
 }
 
 Transport::~Transport()
 {
-	destroy();
+	if(_stop)
+	{
+		stop();
+	}
 }
 
 //  起动运输层，创建两个线程，一个用于读，一个用写。
 bool Transport::start()
 {
+	_hash_socks.init(this);
 	signal(SIGPIPE, SIG_IGN );
-	_readWriteThread.start(this, &_socketEvent);
-	_timeoutThread.start(this, NULL);
+	_io_thread.start(this, &_sock_event);
+	_timeout_thread.start(this, NULL);
+
 	return true;
 }
 
@@ -51,21 +52,21 @@ bool Transport::stop()
 // 等待线程完全退出。
 bool Transport::wait()
 {
-	_readWriteThread.join();
-	_timeoutThread.join();
+	_io_thread.join();
+	_timeout_thread.join();
 	destroy();
 	return true;
 }
 
 // socket event 的检测, 被run函数调用
-void Transport::eventLoop(SocketEvent *socketEvent)
+void Transport::event_loop(SocketEvent *socketEvent)
 {
 	IOEvent events[MAX_SOCKET_EVENTS];
 
 	while (!_stop)
 	{
 		// 检查是否有事件发生
-		int cnt = socketEvent->getEvents(1000, events, MAX_SOCKET_EVENTS);
+		int cnt = socketEvent->get_events(1000, events, MAX_SOCKET_EVENTS);
 
 		if (cnt < 0)
 		{
@@ -83,136 +84,51 @@ void Transport::eventLoop(SocketEvent *socketEvent)
 			if (events[i]._errorOccurred)
 			{
 				// 错误发生了
-				removeComponent(ioc);
+				remove_component(ioc);
 				continue;
 			}
 
-			ioc->addRef();
+			ioc->add_ref();
 			bool rc = true;
 			if (events[i]._readOccurred)
 			{
-				rc = ioc->handleReadEvent();
+				rc = ioc->handle_read_event();
 			}
 
 			if (rc && events[i]._writeOccurred)
 			{
-				rc = ioc->handleWriteEvent();
+				rc = ioc->handle_write_event();
 			}
 
-			ioc->subRef();
+			ioc->sub_ref();
 
 			if (!rc)
 			{
-				removeComponent(ioc);
+				remove_component(ioc);
 			}
 		}
 	}
 }
 
 //  超时检查, 被run函数调用
-void Transport::timeoutLoop()
+void Transport::timeout_loop()
 {
-	IOComponent *mydelHead = NULL;
-	IOComponent *mydelTail = NULL;
-	std::vector<IOComponent*> mylist;
+	HashSock::IOCQueue del;
+	IOComponent *ioc = NULL;
 	while (!_stop)
 	{
-		// 先写复制到list中
-		_iocsMutex.lock();
-		if (_iocListChanged)
+		//检测超时，并超时的队列放入到超时队列中
+		_hash_socks.check_timeout();
+		//获取被回收且引用计数为0的socket
+		_hash_socks.get_del_list(del);
+		while((ioc = del.pop()) != NULL)
 		{
-			mylist.clear();
-			IOComponent *iocList = _iocListHead;
-			while (iocList)
-			{
-				mylist.push_back(iocList);
-				iocList = iocList->_next;
-			}
-			_iocListChanged = false;
+			delete ioc;
+			ioc = NULL;
 		}
-
-		// 加入到mydel中
-		if (_delListHead != NULL && _delListTail != NULL)
-		{
-			if (mydelTail == NULL)
-			{
-				mydelHead = _delListHead;
-			}
-			else
-			{
-				mydelTail->_next = _delListHead;
-				_delListHead->_pre = mydelTail;
-			}
-			mydelTail = _delListTail;
-			// 清空delList
-			_delListHead = _delListTail = NULL;
-		}
-		_iocsMutex.unlock();
-
-		// 对每个iocomponent进行检查
-		for (int i = 0; i < (int) mylist.size(); i++)
-		{
-			IOComponent *ioc = mylist[i];
-			ioc->checkTimeout(triones::CTimeUtil::getTime());
-		}
-
-		// 删除掉
-		IOComponent *tmpList = mydelHead;
-		int64_t nowTime = triones::CTimeUtil::getTime() - static_cast<int64_t>(900000000); // 15min
-		while (tmpList)
-		{
-			if (tmpList->getRef() <= 0)
-			{
-				tmpList->subRef();
-			}
-			if (tmpList->getRef() <= -10 || tmpList->getLastUseTime() < nowTime)
-			{
-				// 从链中删除
-				if (tmpList == mydelHead)
-				{
-					// head
-					mydelHead = tmpList->_next;
-				}
-				if (tmpList == mydelTail)
-				{
-					// tail
-					mydelTail = tmpList->_pre;
-				}
-				if (tmpList->_pre != NULL) tmpList->_pre->_next = tmpList->_next;
-				if (tmpList->_next != NULL) tmpList->_next->_pre = tmpList->_pre;
-
-				IOComponent *ioc = tmpList;
-				tmpList = tmpList->_next;
-				OUT_INFO(NULL, 0, NULL, "DELIOC, %s, IOCount:%d, IOC:%p\n",
-				        ioc->getSocket()->getAddr().c_str(), _iocListCount, ioc);
-
-				delete ioc;
-			}
-			else
-			{
-				tmpList = tmpList->_next;
-			}
-		}
-
-		usleep(1000000);  // 最小间隔1s
+		usleep(1 * 1000 * 1000);  // 最小间隔1s
 	}
-
-	// 写回到_delList上,让destroy销毁
-	_iocsMutex.lock();
-	if (mydelHead != NULL)
-	{
-		if (_delListTail == NULL)
-		{
-			_delListHead = mydelHead;
-		}
-		else
-		{
-			_delListTail->_next = mydelHead;
-			mydelHead->_pre = _delListTail;
-		}
-		_delListTail = mydelTail;
-	}
-	_iocsMutex.unlock();
+	_hash_socks.distroy();
 }
 
 /* ***********************************
@@ -220,25 +136,18 @@ void Transport::timeoutLoop()
  * **********************************/
 void Transport::run(triones::TBThread *thread, void *arg)
 {
-	if (thread == &_timeoutThread)
+	if (thread == &_timeout_thread)
 	{
-		timeoutLoop();
+		timeout_loop();
 	}
 	else
 	{
-		eventLoop((SocketEvent*) arg);
+		event_loop((SocketEvent*) arg);
 	}
 }
 
-/*
- * 把[upd|tcp]:ip:port分开放在args中
- *
- * @param src: 源格式
- * @param args: 目标数组
- * @param   cnt: 数组中最大个数
- * @return  返回的数组中个数
- */
-int Transport::parseAddr(char *src, char **args, int cnt)
+// 把[upd|tcp]:ip:port分开放在args中,cnt:数组中最大个数, return返回的数组中个数
+int Transport::parse_addr(char *src, char **args, int cnt)
 {
 	int index = 0;
 	char *prev = src;
@@ -275,7 +184,7 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 	strncpy(tmp, spec, 1024);
 	tmp[1023] = '\0';
 
-	if (parseAddr(tmp, args, 32) != 3)
+	if (parse_addr(tmp, args, 32) != 3)
 	{
 		return NULL;
 	}
@@ -287,7 +196,7 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 	{
 		// Server Socket
 		ServerSocket *socket = new ServerSocket();
-		if (!socket->setAddress(host, port))
+		if (!socket->set_address(host, port))
 		{
 			delete socket;
 			return NULL;
@@ -302,8 +211,9 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 			return NULL;
 		}
 
+		acceptor->setid(socket->get_sockid());
 		// 加入到iocomponents中，及注册可读到socketevent中
-		addComponent(acceptor, true, false);
+		add_component(acceptor, true, false);
 
 		// 返回
 		return acceptor;
@@ -311,11 +221,11 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 	else if (strcasecmp(args[0], "udp") == 0)
 	{
 		Socket *socket = new Socket();
-		socket->createUDP();
-		if (!socket->setAddress(host, port))
+		socket->udp_create();
+		if (!socket->set_address(host, port))
 		{
 			delete socket;
-			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
+			OUT_ERROR(NULL, 0, NULL, "setAddress error: %s:%d, %s", host, port, spec);
 			return NULL;
 		}
 
@@ -328,9 +238,9 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 			return NULL;
 		}
 
+		acceptor->setid(socket->get_sockid());
 		// 加入到iocomponents中，及注册可读到socketevent中
-		addComponent(acceptor, true, false);
-
+		add_component(acceptor, true, false);
 		// 返回
 		return acceptor;
 	}
@@ -351,7 +261,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 	strncpy(tmp, spec, 1024);
 	tmp[1023] = '\0';
 
-	if (parseAddr(tmp, args, 32) != 3)
+	if (parse_addr(tmp, args, 32) != 3)
 	{
 		return NULL;
 	}
@@ -364,7 +274,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		// Socket
 		Socket *socket = new Socket();
 
-		if (!socket->setAddress(host, port))
+		if (!socket->set_address(host, port))
 		{
 			delete socket;
 			OUT_ERROR(NULL, 0, NULL, "设置setAddress错误: %s:%d, %s", host, port, spec);
@@ -374,7 +284,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		// TCPComponent
 		TCPComponent *component = new TCPComponent(this, socket, streamer, NULL);
 		// 设置是否自动重连
-		component->setAutoReconn(autoReconn);
+		component->set_auto_conn(autoReconn);
 		if (!component->init())
 		{
 			delete component;
@@ -382,15 +292,16 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
-		addComponent(component, true, true);
-		component->addRef();
+		component->setid(socket->get_sockid());
+		add_component(component, true, true);
+		component->add_ref();
 		return component;
 	}
 	else if (strcasecmp(args[0], "udp") == 0)
 	{
 		Socket *socket = new Socket();
-		socket->createUDP();
-		if (!socket->setAddress(host, port))
+		socket->udp_create();
+		if (!socket->set_address(host, port))
 		{
 			delete socket;
 			OUT_ERROR(NULL, 0, NULL, "set udp address error: %s:%d, %s", host, port, spec);
@@ -399,6 +310,9 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 
 		UDPComponent *component = new UDPComponent(this, socket, streamer, NULL,
 		        IOComponent::TRIONES_UDPCONN);
+
+		//对UDP来说， setAddress成功即连接成功
+		component->set_state(triones::IOComponent::TRIONES_CONNECTED);
 
 		if (!component->init())
 		{
@@ -409,8 +323,10 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		}
 
 		//UDP写操作采用同步行为，所有的UDP ioc都不接收写事件。
-		addComponent(component, true, false);
-		component->addRef();
+
+		component->setid(socket->get_sockid());
+		add_component(component, true, false);
+		component->add_ref();
 		return component;
 	}
 
@@ -424,8 +340,8 @@ bool Transport::disconnect(TCPComponent *conn)
 	{
 		return false;
 	}
-	ioc->setAutoReconn(false);
-	ioc->subRef();
+	ioc->set_auto_conn(false);
+	ioc->sub_ref();
 	if (ioc->_socket)
 	{
 		ioc->_socket->shutdown();
@@ -438,132 +354,68 @@ bool Transport::disconnect(TCPComponent *conn)
  * @param  ioc: IO组件
  * @param  isWrite: 加入读或写事件到socketEvent中
  */
-void Transport::addComponent(IOComponent *ioc, bool readOn, bool writeOn)
+void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 {
 	assert(ioc != NULL);
 
-	_iocsMutex.lock();
-	if (ioc->isUsed())
+	_iocs_mutex.lock();
+	if (ioc->is_used())
 	{
-		OUT_ERROR(NULL, 0, NULL, "已给加过addComponent: %p", ioc);
-		_iocsMutex.unlock();
+		OUT_ERROR(NULL, 0, NULL, "already addComponent: %p", ioc);
+		_iocs_mutex.unlock();
 		return;
 	}
-	// 加入iocList上
-	ioc->_pre = _iocListTail;
-	ioc->_next = NULL;
-	if (_iocListTail == NULL)
-	{
-		_iocListHead = ioc;
-	}
-	else
-	{
-		_iocListTail->_next = ioc;
-	}
-	_iocListTail = ioc;
-	// 设置在用
-	ioc->setUsed(true);
-	_iocListChanged = true;
-	_iocListCount++;
-	_iocsMutex.unlock();
+
+	_hash_socks.put(ioc);
+	_iocs_mutex.unlock();
 
 	// 设置socketevent
-	Socket *socket = ioc->getSocket();
-	ioc->setSocketEvent(&_socketEvent);
-	_socketEvent.addEvent(socket, readOn, writeOn);
+	Socket *socket = ioc->get_socket();
+	ioc->set_sockevent(&_sock_event);
+	_sock_event.add_event(socket, readOn, writeOn);
 
-	OUT_INFO(NULL, 0, NULL, "ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
-	        socket->getSocketHandle(), ioc->getSocket()->getAddr().c_str(), readOn, writeOn,
-	        _iocListCount, ioc);
+//	OUT_INFO(NULL, 0, NULL, "ADDIOC, SOCK: %d, %s, RON: %d, WON: %d, IOCount:%d, IOC:%p\n",
+//	        socket->getSocketHandle(), NULL, readOn, writeOn,
+//	        _hash_socks.size(), ioc);
 }
 
 //从Transport的链表管理中将其去掉， 业务层在主动销毁IOC时，可调用removeComponent
 //不能直接调用IOC的 close， disconnect等接口。
 /* (1) 调用IOC close 函数，清除网络层数据，回调业务层的链路断开。
  * (2) 从sock_hash清除，然后将其放入到待回收的删除队列， 定时器检测待删除队列，当引入计数为0时，将其删除。  */
-void Transport::removeComponent(IOComponent *ioc)
+void Transport::remove_component(IOComponent *ioc)
 {
 	assert(ioc != NULL);
-	triones::Guard guard(_iocsMutex);
+	triones::Guard guard(_iocs_mutex);
 
 	ioc->close();
 
 	// 需要重连, 不从iocomponents去掉
-	if (ioc->isAutoReconn())
+	if (ioc->is_auto_conn())
 	{
 		return;
 	}
 
 	// 不在iocList中
-	if (ioc->isUsed() == false)
+	if (!ioc->is_used())
 	{
 		return;
 	}
 
-	// 从_iocList删除
-	if (ioc == _iocListHead)
-	{
-		_iocListHead = ioc->_next;
-	}
-
-	if (ioc == _iocListTail)
-	{
-		_iocListTail = ioc->_pre;
-	}
-
-	if (ioc->_pre != NULL) ioc->_pre->_next = ioc->_next;
-	if (ioc->_next != NULL) ioc->_next->_pre = ioc->_pre;
-
-	// 加入到_delList
-	ioc->_pre = _delListTail;
-	ioc->_next = NULL;
-	if (_delListTail == NULL)
-	{
-		_delListHead = ioc;
-	}
-	else
-	{
-		_delListTail->_next = ioc;
-	}
-	_delListTail = ioc;
-
+	_hash_socks.remove(ioc);
 	// 引用计数减一
-	ioc->setUsed(false);
-	_iocListChanged = true;
-	_iocListCount--;
+	ioc->set_used(false);
 
-	OUT_INFO(NULL, 0, NULL, "RMIOC, %s IOCount:%d, IOC:%p\n", ioc->getSocket()->getAddr().c_str(),
-	        _iocListCount, ioc);
+//	_iocListChanged = true;
+//	_iocListCount--;
+//
+//	OUT_INFO(NULL, 0, NULL, "RMIOC, %s IOCount:%d, IOC:%p\n", ioc->getSocket()->getAddr().c_str(),
+//	        _iocListCount, ioc);
 }
 
 void Transport::destroy()
 {
-	triones::Guard guard(_iocsMutex);
-
-	IOComponent *list, *ioc;
-	// 删除iocList
-	list = _iocListHead;
-	while (list)
-	{
-		ioc = list;
-		list = list->_next;
-		_iocListCount--;
-		OUT_INFO(NULL, 0, NULL, "DELIOC, IOCount:%d, IOC:%p\n", _iocListCount, ioc);
-		delete ioc;
-	}
-	_iocListHead = _iocListTail = NULL;
-	_iocListCount = 0;
-	// 删除delList
-	list = _delListHead;
-	while (list)
-	{
-		ioc = list;
-		assert(ioc != NULL);
-		list = list->_next;
-		OUT_INFO(NULL, 0, NULL, "DELIOC, IOCount:%d, IOC:%p\n", _iocListCount, ioc);
-		delete ioc;
-	}
-	_delListHead = _delListTail = NULL;
+	return;
 }
 
 bool* Transport::getStop()

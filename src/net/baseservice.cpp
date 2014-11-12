@@ -57,7 +57,7 @@ IOComponent *BaseService::connect(const char *spec, int streamer, bool autoRecon
 	IOComponent *tc = _transport->connect(spec, tp, autoReconn);
 	if (tc != NULL)
 	{
-		tc->setServerAdapter(this);
+		tc->set_server_adapter(this);
 	}
 	return tc;
 }
@@ -72,14 +72,14 @@ IOComponent* BaseService::listen(const char *spec, int streamer)
 	TCPAcceptor * acceptor = (TCPAcceptor*) _transport->listen(spec, tp, this);
 	if (acceptor != NULL)
 	{
-		acceptor->setServerAdapter(this);
+		acceptor->set_server_adapter(this);
 	}
 
 	return acceptor;
 }
 
 //IServerAdapter的回调函数，处理单个packet的情况。直接加入业务队列中，这样就做到了网络层和业务层的剥离；
-bool BaseService::synHandlePacket(IOComponent *connection, Packet *packet)
+bool BaseService::syn_handle_packet(IOComponent *connection, Packet *packet)
 {
 	__INTO_FUN__
 
@@ -128,7 +128,7 @@ void BaseService::handle_queue(void *packet)
 void BaseService::handle_packet(IOComponent *ioc, Packet *packet)
 {
 	__INTO_FUN__
-	printf("BaseService handle pack %s, %s", ioc->getSocket()->getAddr().c_str(), packet->_pdata);
+	printf("BaseService handle pack %s, %s", ioc->get_socket()->get_addr().c_str(), packet->_pdata);
 	return;
 }
 

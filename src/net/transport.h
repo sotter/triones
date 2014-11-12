@@ -27,6 +27,8 @@ class Transport: public triones::TBRunnable
 
 public:
 
+	friend class UDPAcceptor;
+
 	Transport();
 
 	~Transport();
@@ -66,57 +68,45 @@ public:
 	//主动断开
 	bool disconnect(TCPComponent *conn);
 
-	/*
-	 * 加入到iocomponents中
-	 *
-	 * @param  ioc: IO组件
-	 * @param  readOn: 初始化把读事件打开
-	 * @param  writeOn: 初始化把写事件打开
-	 */
-	void addComponent(IOComponent *ioc, bool readOn, bool writeOn);
+	void add_component(IOComponent *ioc, bool readOn, bool writeOn);
 
 	// 从iocomponents中删除掉
-	void removeComponent(IOComponent *ioc);
+	void remove_component(IOComponent *ioc);
+
+	IOComponent *get_component(uint64_t id)
+	{
+		return _hash_socks.get(id);
+	}
 
 	// 是否为stop
 	bool* getStop();
 
 private:
 
-	/*
-	 * 把[upd|tcp]:ip:port分开放在args中
-	 *
-	 * @param src: 源格式
-	 * @param args: 目标数组
-	 * @param   cnt: 数组中最大个数
-	 * @return  返回的数组中个数
-	 */
-	int parseAddr(char *src, char **args, int cnt);
+	//把[upd|tcp]:ip:port分开放在args中,cnt:数组中最大个数, return返回的数组中个数
+	int parse_addr(char *src, char **args, int cnt);
 
 	// socket event 的检测
-	void eventLoop(SocketEvent *socketEvent);
+	void event_loop(SocketEvent *socketEvent);
 
 	//超时检查
-	void timeoutLoop();
+	void timeout_loop();
 
 	//释放变量
 	void destroy();
-
 private:
-
-	SocketEvent _socketEvent;              // 读写socket事件
-	triones::TBThread _readWriteThread;    // 读写处理线程
-	triones::TBThread _timeoutThread;      // 超时检查线程
-	bool _stop;                            // 是否被停止
-
-//	IOComponent *_delListHead, *_delListTail;   // 等待删除的IOComponent集合
-//	IOComponent *_iocListHead, *_iocListTail;   // IOComponent集合
-//	bool _iocListChanged;                       // IOComponent集合被改过
-//	int _iocListCount;
-
-	triones::Mutex _iocsMutex;
-
+	// 是否被停止
+	bool _stop;
+	// 读写socket事件
+	SocketEvent _sock_event;
+	// 读写处理线程
+	triones::TBThread _io_thread;
+	// 超时检查线程
+	triones::TBThread _timeout_thread;
+	// transport采用hash列表
 	HashSock    _hash_socks;
+
+	triones::Mutex _iocs_mutex;
 };
 
 }

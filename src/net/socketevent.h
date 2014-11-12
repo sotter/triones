@@ -27,13 +27,13 @@ public:
 	SocketEvent();
 	virtual ~SocketEvent();
 
-	bool addEvent(Socket *socket, bool enableRead, bool enable_write);
+	bool add_event(Socket *socket, bool enableRead, bool enable_write);
 
-	bool setEvent(Socket *socket, bool enableRead, bool enable_write);
+	bool set_event(Socket *socket, bool enableRead, bool enable_write);
 
-	bool removeEvent(Socket *socket);
+	bool remove_event(Socket *socket);
 
-	int getEvents(int timeout, IOEvent *events, int cnt);
+	int get_events(int timeout, IOEvent *events, int cnt);
 
 private:
 

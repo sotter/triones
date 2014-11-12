@@ -13,21 +13,20 @@ namespace triones
 class ServerSocket: public Socket
 {
 public:
+
 	ServerSocket();
+
 	virtual ~ServerSocket();
 
 	Socket *accept();
 
-	/*
-	 * 打开监听
-	 *
-	 * @return 是否成功
-	 */
 	bool listen();
 
 private:
-	int _backLog; // backlog
+
+	int _back_log;
 };
 
 } /* namespace triones */
+
 #endif /* SERVERSOCKET_H_ */
