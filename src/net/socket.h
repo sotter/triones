@@ -94,6 +94,7 @@ public:
 	}
 
 protected:
+
 	struct sockaddr_in _address;
 
 	int _fd;

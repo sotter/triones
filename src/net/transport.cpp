@@ -1,16 +1,4 @@
-/*
- * (C) 2007-2010 Taobao Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Version: $Id$
- *
- * Authors:
- *   duolong <duolong@taobao.com>
- *
- */
+
 #include "cnet.h"
 #include "../comm/comlog.h"
 #include "tbtimeutil.h"
@@ -411,6 +399,7 @@ void Transport::remove_component(IOComponent *ioc)
 //
 //	OUT_INFO(NULL, 0, NULL, "RMIOC, %s IOCount:%d, IOC:%p\n", ioc->getSocket()->getAddr().c_str(),
 //	        _iocListCount, ioc);
+
 }
 
 void Transport::destroy()
