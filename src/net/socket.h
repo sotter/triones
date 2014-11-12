@@ -1,4 +1,3 @@
-
 #ifndef TBNET_SOCKET_H_
 #define TBNET_SOCKET_H_
 #include <string>
