@@ -45,6 +45,8 @@ bool TCPAcceptor::init(bool isServer)
 // 当有数据可读时被Transport调用
 bool TCPAcceptor::handle_read_event()
 {
+	printf("bool TCPAcceptor::handle_read_event() \n");
+
 	Socket *socket;
 	while ((socket = ((ServerSocket*) _socket)->accept()) != NULL)
 	{

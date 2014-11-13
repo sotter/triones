@@ -186,27 +186,39 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 
 	if (strcasecmp(args[0], "tcp") == 0)
 	{
+		printf("%s : %d \n", __FILE__, __LINE__);
+
 		// Server Socket
 		ServerSocket *socket = new ServerSocket();
 
 		if (!socket->listen(host, port, Socket::TRIONES_SOCK_TCP))
 		{
+			printf("%s : %d \n", __FILE__, __LINE__);
+
 			delete socket;
 			return NULL;
 		}
+
+		printf("%s : %d \n", __FILE__, __LINE__);
 
 		// TCPAcceptor
 		TCPAcceptor *acceptor = new TCPAcceptor(this, socket, streamer, serverAdapter);
 
 		if (!acceptor->init())
 		{
+			printf("%s : %d \n", __FILE__, __LINE__);
+
 			delete acceptor;
 			return NULL;
 		}
 
+		printf("%s : %d \n", __FILE__, __LINE__);
+
 		acceptor->setid(socket->get_sockid());
 		// 加入到iocomponents中，及注册可读到socketevent中
 		add_component(acceptor, true, false);
+
+		printf("%s : %d \n", __FILE__, __LINE__);
 
 		// 返回
 		return acceptor;
@@ -259,7 +271,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 	}
 
 	char *host = args[1];
-	int port = atoi(args[2]);
+	unsigned short port = (unsigned short)atoi(args[2]);
 
 	if (strcasecmp(args[0], "tcp") == 0)
 	{
@@ -273,6 +285,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
+		printf("%s : %d \n", __FILE__, __LINE__);
 		// TCPComponent
 		TCPComponent *component = new TCPComponent(this, socket, streamer,
 				NULL, triones::IOComponent::TRIONES_TCPCONN);
@@ -281,6 +294,8 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		component->set_auto_conn(autoReconn);
 		if (!component->init())
 		{
+			printf("%s : %d \n", __FILE__, __LINE__);
+
 			delete component;
 			OUT_ERROR(NULL, 0, NULL, "init TCPComponent fail: %s:%d", host, port);
 			return NULL;
@@ -288,6 +303,9 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 
 		component->setid(socket->get_sockid());
 		add_component(component, true, true);
+
+		printf("%s : %d \n", __FILE__, __LINE__);
+
 
 		return component;
 	}
@@ -394,11 +412,11 @@ void Transport::remove_component(IOComponent *ioc)
 	}
 
 	// 不在iocList中
-	if (ioc->is_used())
-	{
+//	if (ioc->is_used())
+//	{
 		_hash_socks.remove(ioc);
 		ioc->set_used(false);
-	}
+//	}
 
 	return;
 }

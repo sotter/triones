@@ -78,6 +78,9 @@ public:
 	// 获取_address对应的字符串形式
 	std::string get_addr();
 
+	// 获取_peer_address对应的字符串形式
+	std::string get_peer_addr();
+
 	bool set_keep_alive(bool on);
 
 	bool set_reuse_addr(bool on);

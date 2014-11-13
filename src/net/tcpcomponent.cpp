@@ -101,26 +101,26 @@ bool TCPComponent::socket_connect()
 	}
 	_socket->set_so_blocking(false);
 
-	_start_conn_time = time(NULL);
+	_start_conn_time = triones::CTimeUtil::get_time();
 
 	if (_socket->connect())
 	{
-		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_addr().c_str());
+		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_peer_addr().c_str());
 
 		if (_sock_event)
 		{
 			_sock_event->add_event(_socket, true, true);
 		}
+
 		_state = TRIONES_CONNECTED;
 
 	}
 	else
 	{
-
 		int error = Socket::get_last_error();
 		if (error == EINPROGRESS || error == EWOULDBLOCK)
 		{
-			printf("connect %s, EINPROGRESS waiting result \n", _socket->get_addr().c_str());
+			printf("connect %s, EINPROGRESS waiting result \n", _socket->get_peer_addr().c_str());
 			_state = TRIONES_CONNECTING;
 
 			if (_sock_event)
@@ -322,7 +322,6 @@ bool TCPComponent::write_data()
 
 	//todo:这块代码需要重写，packet本身就是从_output继承过来的
 	//如果write出现ERRORAGAIN的情况，下一个包继续发送；
-
 	do
 	{
 		while (_output.getDataLen() < READ_WRITE_SIZE)

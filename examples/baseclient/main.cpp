@@ -28,9 +28,11 @@ int main()
 
 	base_client.destroy();
 
+	base_server.destroy();
+
 	OUT_INFO(NULL, 0, NULL, "good luck");
 
-	sleep(4);
+//	sleep(4);
 
 	LOGSTOP();
 

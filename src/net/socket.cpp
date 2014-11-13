@@ -38,7 +38,7 @@ bool Socket::connect(const char *host, const unsigned short port, int type)
 // 建立ACCEPTOR套结字，对于UDP来说仅仅是绑定address，没有listen的过程
 bool Socket::listen(const char *host, const unsigned short port, int type)
 {
-	if (!get_address(host, port, _peer_address))
+	if (!get_address(host, port, _address))
 	{
 		OUT_INFO(NULL, 0, NULL, "connect set address error, host : %s, port : %d\n", host, port);
 		return false;
@@ -202,7 +202,7 @@ bool Socket::connect()
 {
 	if (_fd < 0) return false;
 
-	return (0 == ::connect(_fd, (struct sockaddr *) &_address, sizeof(_address)));
+	return (0 == ::connect(_fd, (struct sockaddr *) &_peer_address, sizeof(_peer_address)));
 }
 
 void Socket::close()
@@ -391,6 +391,16 @@ std::string Socket::get_addr()
 	return dest;
 }
 
+std::string Socket::get_peer_addr()
+{
+	char dest[32];
+	unsigned long ad = ntohl(_peer_address.sin_addr.s_addr);
+	sprintf(dest, "%d.%d.%d.%d:%d", static_cast<int>((ad >> 24) & 255),
+	        static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
+	        static_cast<int>(ad & 255), ntohs(_peer_address.sin_port));
+	return dest;
+}
+
 uint64_t Socket::get_sockid()
 {
 	if (_fd == -1) return 0;
@@ -401,11 +411,11 @@ uint64_t Socket::get_peer_sockid()
 {
 	if (_fd == -1) return 0;
 
-	socklen_t length = sizeof(_peer_address);
-	if (getpeername(_fd, (struct sockaddr*) &_peer_address, &length) == 0)
-	{
+//	socklen_t length = sizeof(_peer_address);
+//	if (getpeername(_fd, (struct sockaddr*) &_peer_address, &length) == 0)
+//	{
 		return sockutil::sock_addr2id(&_peer_address);
-	}
+//	}
 
 	return 0;
 }
