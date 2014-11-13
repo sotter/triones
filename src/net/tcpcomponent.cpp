@@ -16,14 +16,15 @@ namespace triones
 {
 
 TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
-        IServerAdapter *serverAdapter)
-		: IOComponent(owner, socket)
+        IServerAdapter *adapter, int type)
+		: IOComponent(owner, socket, type)
 {
+	UNUSED(type);
 	_start_conn_time = 0;
 	_is_server = false;
 	_socket = socket;
 	_streamer = streamer;
-	_server_adapter = serverAdapter;
+	_server_adapter = adapter;
 	_write_finish_close = false;
 }
 
@@ -57,18 +58,19 @@ void TCPComponent::disconnect()
 }
 
 //连接到指定的机器, isServer: 是否初始化一个服务器的Connection
-bool TCPComponent::init(bool isServer)
+bool TCPComponent::init(bool is_server)
 {
 	__INTO_FUN__
+
 	_socket->set_so_blocking(false);
 	_socket->set_solinger(false, 0);
 	_socket->set_reuse_addr(true);
 	_socket->set_int_option(SO_KEEPALIVE, 1);
-	_socket->set_int_option(SO_SNDBUF, 64000);
-	_socket->set_int_option(SO_RCVBUF, 64000);
+	_socket->set_int_option(SO_SNDBUF, 64 * 1024);
+	_socket->set_int_option(SO_RCVBUF, 64 * 1024);
 	_socket->set_tcp_nodelay(true);
 
-	if (!isServer)
+	if (!is_server)
 	{
 		if (!socket_connect() && _auto_reconn == false)
 		{
@@ -80,8 +82,9 @@ bool TCPComponent::init(bool isServer)
 		_state = TRIONES_CONNECTED;
 	}
 
-	setServer(isServer);
-	_is_server = isServer;
+	setServer(is_server);
+
+	_is_server = is_server;
 
 	return true;
 }
@@ -102,12 +105,14 @@ bool TCPComponent::socket_connect()
 
 	if (_socket->connect())
 	{
-		printf("connect %s success \n", _socket->get_addr().c_str());
+		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_addr().c_str());
+
 		if (_sock_event)
 		{
 			_sock_event->add_event(_socket, true, true);
 		}
 		_state = TRIONES_CONNECTED;
+
 	}
 	else
 	{
@@ -277,15 +282,14 @@ bool TCPComponent::check_timeout(uint64_t now)
 	return ret;
 }
 
-/**** 原先connectiong的部分 *********************/
-bool TCPComponent::handle_packet(Packet *packet)
-{
-	__INTO_FUN__
-	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
-	this->add_ref();
-
-	return _server_adapter->syn_handle_packet(this, packet);
-}
+///**** 原先connectiong的部分 *********************/
+//bool TCPComponent::handle_packet(Packet *packet)
+//{
+//	__INTO_FUN__
+//	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
+//	this->add_ref();
+//	return _server_adapter->syn_handle_packet(this, packet);
+//}
 
 /*** 说明 2014-09-21
  * （1）这个地方应该限定写入次数，如果在单线程的条件下，写入的数据量过大，导致其它的socket的任务一直处于等待状态 ，
@@ -485,7 +489,7 @@ bool TCPComponent::post_packet(Packet *packet)
 		}
 	}
 
-	// 如果是client, 并且有queue长度的限制
+// 如果是client, 并且有queue长度的限制
 //	_output_mutex.lock();
 //	_queueTotalSize = _output_queue.size() + _my_queue.size();
 //	if (!_is_server && _queueLimit > 0 && _queueTotalSize >= _queueLimit)

@@ -1,6 +1,11 @@
 /******************************************************
  *   FileName: IOComponent.h
  *     Author: triones  2014-9-18
+ * IOC的引用技术规则：当其他的对象聚合IOC对象指针的时候引用计数加1，解决聚合时引用技术减1，主要有以下三个场景
+ * （1）epoll事件监测时 add_event, remove_event
+ * （2）解包形成的packet，要告知上层 是哪个IOC产生的。packet产生后加1，delete后减1
+ * （3）业务层USER绑定IOC
+ * （4）其他需要绑定IOC的场景
  *******************************************************/
 
 #ifndef IOCOMPONENT_H_
@@ -96,6 +101,11 @@ public:
 		return atomic_read(&_refcount);
 	}
 
+	bool ref_none()
+	{
+		return atomic_read(&_refcount) <= 0;
+	}
+
 	//设置IOC的ID
 	void setid(uint64_t id)
 	{
@@ -150,6 +160,11 @@ public:
 		_inused = b;
 	}
 
+	int get_type()
+	{
+		return _type;
+	}
+
 public:
 
 	IServerAdapter *_server_adapter;
@@ -161,22 +176,31 @@ protected:
 	//对于服务端产生的socket，_id为socket的本端ADDRESS ID
 	//对于服务端产生的socket，_id为socket的对端ADDRESS ID
 	uint64_t  _id;
+
 	//绑定的socket句柄，系统所产生的所有socket都有IOC绑定，一个socket可以同时被多个IOC绑定例如UDPACTCONN多个共享一个socket
 	Socket *_socket;
+
 	//IOC所属的Transport
 	triones::Transport *_owner;
+
 	//IOC复用句柄；todo：IOC实际用不着，可以删除
 	SocketEvent *_sock_event;
+
 	// IOC类型
 	int _type;
+
 	//当前的连接状态
 	int _state;
+
 	// 引用计数
 	atomic_t _refcount;
+
 	//是否重连标志
 	bool _auto_reconn;
+
 	//是否在用，指的是是否在transport的hashsock中
 	bool _inused;
+
 	// 最近使用的系统时间
 	uint64_t _last_use_time;
 };

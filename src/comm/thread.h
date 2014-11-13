@@ -109,7 +109,6 @@ public:
 	 * 线程的回调函数
 	 *
 	 */
-
 	static void *hook(void *arg)
 	{
 		TBThread *thread = (TBThread*) arg;

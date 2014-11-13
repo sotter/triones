@@ -47,6 +47,7 @@ bool HashSock::put(IOComponent *ioc)
 
 	//是否已经有这个sockid的数据，暂时不做检查，由业务层保证sockid的唯一性
 	ct_write_lock(index);
+	printf("==================hashsock put %lu type %d ==============\n", ioc->getid(), ioc->get_type());
 	queue.push(ioc);
 	_size++;
 	ct_write_unlock(index);

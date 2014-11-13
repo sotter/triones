@@ -2,6 +2,8 @@
  * author: Triones
  * date  : 2014-09-03
  */
+#include "../net/cnet.h"
+
 #include "pack.h"
 
 namespace triones
@@ -15,6 +17,11 @@ Packet::Packet(int type)
 
 Packet::~Packet()
 {
+	if(_ioc != NULL)
+	{
+		_ioc->sub_ref();
+		_ioc = NULL;
+	}
 }
 
 bool Packet::read_str(std::string& s)
@@ -88,11 +95,40 @@ bool Packet::write_time(uint64_t n)
 	return true;
 }
 
+void  Packet::set_type(int type)
+{
+	_type = type;
+}
 
 int  Packet::get_type()
 {
 	return _type;
 }
+
+
+void Packet::set_ioc(IOComponent *ioc)
+{
+	if(ioc == _ioc)
+		return;
+
+	if(_ioc != NULL)
+	{
+		_ioc->sub_ref();
+		_ioc = NULL;
+	}
+
+	_ioc = ioc;
+	if(_ioc != NULL)
+	{
+		_ioc->add_ref();
+	}
+}
+
+IOComponent* Packet::get_ioc()
+{
+	return _ioc;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 PacketQueue::PacketQueue()

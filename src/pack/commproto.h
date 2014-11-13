@@ -954,8 +954,8 @@ public:
 public:
 	std::string _color;  	 // 车牌颜色，NOTE: 长度最大为 255 字节。
 	std::string _vehicle;	 // 车牌号，NOTE: 长度最大为 255 字节。
-	std::string _phone;	 // 手机号，NOTE: 长度最大为 255 字节。
-	std::string _term_type; // 终端类型，NOTE: 长度最大为 255 字节。
+	std::string _phone;	     // 手机号，NOTE: 长度最大为 255 字节。
+	std::string _term_type;  // 终端类型，NOTE: 长度最大为 255 字节。
 	std::string _term_id;	 // 终端ID，NOTE: 长度最大为 255 字节。
 	std::string _oem;	     // 制造商ID，NOTE: 长度最大为 255 字节。
 	std::string _city;		 // 城市ID，NOTE: 长度最大为 255 字节。

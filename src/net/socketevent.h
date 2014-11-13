@@ -1,7 +1,6 @@
 /******************************************************
  *   FileName: SocketEvent.h
  *     Author: triones  2014-9-18
- *Description:
  *******************************************************/
 
 #ifndef SOCKETEVENT_H_
@@ -25,6 +24,7 @@ class SocketEvent
 {
 public:
 	SocketEvent();
+
 	virtual ~SocketEvent();
 
 	bool add_event(Socket *socket, bool enableRead, bool enable_write);

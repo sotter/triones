@@ -20,8 +20,6 @@ public:
 
 	Socket *accept();
 
-	bool listen();
-
 private:
 
 	int _back_log;

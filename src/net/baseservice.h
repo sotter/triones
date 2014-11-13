@@ -21,16 +21,6 @@ using namespace triones;
 namespace triones
 {
 
-class BasePacket
-{
-public:
-	Packet *_packet;
-	IOComponent *_ioc;
-
-	BasePacket *_next;
-	BasePacket *_pre;
-};
-
 class BaseService: public IServerAdapter, public IQueueHandler
 {
 public:

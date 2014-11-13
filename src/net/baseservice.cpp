@@ -83,33 +83,12 @@ bool BaseService::syn_handle_packet(IOComponent *connection, Packet *packet)
 {
 	__INTO_FUN__
 
-	packet->_ioc = (void*) connection;
-
+	//内部会将connection的引用技术加1
+	packet->set_ioc(connection);
 	if (!_queue_thread->push((void*) packet))
 	{
 		delete packet;
 	}
-
-//  下面是直接回调时，乒乓测试的性能测试代码
-//	UNUSED(packet);
-//	static int count = 3;
-//
-//	if (count++ > 0)
-//	{
-//		if(count > 10000)
-//		{
-//			count = 1;
-//			printf("#########################SEND %lu count %d\n", sizeof(_send_buffer), count);
-//		}
-//
-//		Packet *pack1 = new Packet;
-//		pack1->writeBytes(_send_buffer, sizeof(_send_buffer));
-//		if (!connection->postPacket(pack1))
-//		{
-//			delete pack1;
-//			pack1 = NULL;
-//		}
-//	}
 
 	return true;
 }
@@ -118,7 +97,7 @@ bool BaseService::syn_handle_packet(IOComponent *connection, Packet *packet)
 void BaseService::handle_queue(void *packet)
 {
 	__INTO_FUN__
-	handle_packet((IOComponent*) (((Packet*) packet)->_ioc), (Packet*) packet);
+	handle_packet(((Packet*)packet)->get_ioc(), (Packet*) packet);
 
 	//todo:当前的实现为无论handle_packet的处理结果如何，都将packet释放，后面的实现中需要增加返回值来判定是否释放packet
 	delete (Packet*)packet;

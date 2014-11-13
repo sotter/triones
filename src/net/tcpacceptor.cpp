@@ -19,7 +19,7 @@ namespace triones
  */
 TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, TransProtocol *streamer,
         IServerAdapter *serverAdapter)
-		: IOComponent(owner, socket)
+		: IOComponent(owner, socket, TRIONES_TCPACCETOR)
 {
 	_streamer = streamer;
 	_server_adapter = serverAdapter;
@@ -27,20 +27,19 @@ TCPAcceptor::TCPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 
 TCPAcceptor::~TCPAcceptor()
 {
-		if (_socket)
-		{
-			_socket->close();
-			delete _socket;
-			_socket = NULL;
-		}
+	if (_socket)
+	{
+		_socket->close();
+		delete _socket;
+		_socket = NULL;
+	}
 }
 
 // 初始化, 开始监听
 bool TCPAcceptor::init(bool isServer)
 {
 	UNUSED(isServer);
-	_socket->set_so_blocking(false);
-	return ((ServerSocket*) _socket)->listen();
+	return true;
 }
 
 // 当有数据可读时被Transport调用
@@ -50,7 +49,8 @@ bool TCPAcceptor::handle_read_event()
 	while ((socket = ((ServerSocket*) _socket)->accept()) != NULL)
 	{
 		// TCPComponent, 在服务器端
-		TCPComponent *component = new TCPComponent(_owner, socket, _streamer, _server_adapter);
+		TCPComponent *component = new TCPComponent(_owner, socket, _streamer, _server_adapter,
+		        TRIONES_TCPACTCONN);
 		if (!component->init(true))
 		{
 			delete component;

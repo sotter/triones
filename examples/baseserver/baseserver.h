@@ -34,7 +34,6 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-
 //		printf("receive from %s len %d : %s \n",
 //				ioc->getSocket()->getAddr().c_str(),
 //				packet->getDataLen(),
@@ -42,13 +41,12 @@ public:
 
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
-		if (!ioc->postPacket(pack))
+		if (!ioc->post_packet(pack))
 		{
 			delete pack;
 			pack = NULL;
 		}
 	}
-
 private:
 
 	TransProtocol *_tp;

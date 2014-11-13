@@ -1,4 +1,3 @@
-
 #include "cnet.h"
 #include <sys/poll.h>
 #include "stats.h"
@@ -7,10 +6,13 @@
 namespace triones
 {
 
-triones::Mutex Socket::_dnsMutex;
+triones::Mutex Socket::_dns_mutex;
 
 Socket::Socket()
 {
+	memset(&_address, 0, sizeof(_address));
+	memset(&_peer_address, 0, sizeof(_peer_address));
+
 	_fd = -1;
 }
 
@@ -19,98 +21,187 @@ Socket::~Socket()
 	close();
 }
 
-bool Socket::set_address(const char *address, const int port)
+// 连接到_address上
+bool Socket::connect(const char *host, const unsigned short port, int type)
 {
-	memset(static_cast<void *>(&_address), 0, sizeof(_address));
+	if (!get_address(host, port, _peer_address))
+	{
+		OUT_INFO(NULL, 0, NULL, "connect set address error, host : %s, port : %d\n", host, port);
+		return false;
+	}
 
-	_address.sin_family = AF_INET;
-	_address.sin_port = htons(static_cast<short>(port));
+	if (!socket_create(type)) return false;
+
+	return (0 == ::connect(_fd, (struct sockaddr *) &_peer_address, sizeof(_peer_address)));
+}
+
+// 建立ACCEPTOR套结字，对于UDP来说仅仅是绑定address，没有listen的过程
+bool Socket::listen(const char *host, const unsigned short port, int type)
+{
+	if (!get_address(host, port, _peer_address))
+	{
+		OUT_INFO(NULL, 0, NULL, "connect set address error, host : %s, port : %d\n", host, port);
+		return false;
+	}
+
+	if (!socket_create(type)) return false;
+
+	set_reuse_addr(true);
+
+	//不论TCP还是UDP读写缓冲区都设置为64K
+	set_int_option(SO_SNDBUF, 64 * 1024);
+	set_int_option(SO_RCVBUF, 64 * 1024);
+	set_so_blocking(false);
+
+	if (type == TRIONES_SOCK_TCP)
+	{
+		// 地址可重用
+		set_solinger(false, 0);
+		set_tcp_nodelay(true);
+		set_int_option(SO_KEEPALIVE, 1);
+
+		if (::bind(_fd, (struct sockaddr *) &_address, sizeof(_address)) < 0)
+		{
+			OUT_INFO(NULL, 0, NULL, "tcp server bind %s error : %d", this->get_addr().c_str(),
+			        errno);
+			return false;
+		}
+
+		if (::listen(_fd, 1024) < 0)
+		{
+			OUT_INFO(NULL, 0, NULL, "tpc server listen %s error : %d", this->get_addr().c_str(),
+			        errno);
+			return false;
+		}
+	}
+	else
+	{
+		if (::bind(_fd, (struct sockaddr *) &_address, sizeof(_address)) < 0)
+		{
+			OUT_INFO(NULL, 0, NULL, "tcp server bind %s error : %d", this->get_addr().c_str(),
+			        errno);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Socket::set_conn_addess(const char *host, unsigned short port, int type)
+{
+	if(_fd < 0)
+	{
+		_fd = socket_create(type);
+		if(_fd < 0) return false;
+	}
+
+	return get_address(host, port, _peer_address);
+}
+
+//由外部调用设置本地地址
+bool Socket::set_address(struct sockaddr_in &addr)
+{
+	memcpy((void*) &_address, (const void*) &addr, sizeof(struct sockaddr_in));
+
+	return true;
+}
+
+//由外部调用设置对端地址
+bool Socket::set_peer_address(struct sockaddr_in &addr)
+{
+	memcpy((void*) &_peer_address, (const void*) &addr, sizeof(struct sockaddr_in));
+
+	return true;
+}
+
+bool Socket::setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr)
+{
+	if (_fd > 0) close();
+
+	_fd = fd;
+
+	if (addr != NULL)
+	{
+		memcpy((void*) &_address, (const void*) addr, sizeof(struct sockaddr_in));
+	}
+
+	if (peer_addr != NULL)
+	{
+		memcpy((void*) &_address, (const void*) peer_addr, sizeof(struct sockaddr_in));
+	}
+
+	return true;
+}
+
+bool Socket::socket_create(int type)
+{
+	if (_fd > 0) close();
+
+	if (type == TRIONES_SOCK_TCP)
+	{
+		_fd = socket(AF_INET, SOCK_STREAM, 0);
+	}
+	else
+	{
+		_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	}
+
+	return _fd > 0;
+}
+
+bool Socket::get_address(const char *host, unsigned short port, struct sockaddr_in &dest)
+{
+	memset(static_cast<void *>(&dest), 0, sizeof(dest));
+
+	dest.sin_family = AF_INET;
+	dest.sin_port = htons(static_cast<short>(port));
 
 	bool rc = true;
-
-	if (address == NULL || address[0] == '\0')
+	if (host == NULL || host[0] == '\0')
 	{
-		_address.sin_addr.s_addr = htonl(INADDR_ANY );
+		dest.sin_addr.s_addr = htonl(INADDR_ANY );
 	}
 	else
 	{
 		char c;
-
-		const char *p = address;
-
-		bool isIPAddr = true;
-
+		const char *p = host;
+		bool is_ipaddr = true;
 		while ((c = (*p++)) != '\0')
 		{
 			if ((c != '.') && (!((c >= '0') && (c <= '9'))))
 			{
-				isIPAddr = false;
+				is_ipaddr = false;
 				break;
 			}
 		}
 
-		if (isIPAddr)
+		if (is_ipaddr)
 		{
-			_address.sin_addr.s_addr = inet_addr(address);
+			dest.sin_addr.s_addr = inet_addr(host);
 		}
 		else
 		{
-			_dnsMutex.lock();
-
-			struct hostent *myHostEnt = gethostbyname(address);
-
-			if (myHostEnt != NULL)
+			_dns_mutex.lock();
+			struct hostent *host_ent = gethostbyname(host);
+			if (host_ent != NULL)
 			{
-				memcpy(&(_address.sin_addr), *(myHostEnt->h_addr_list), sizeof(struct in_addr));
+				memcpy(&(dest.sin_addr), *(host_ent->h_addr_list), sizeof(struct in_addr));
 			}
 			else
 			{
 				rc = false;
 			}
-
-			_dnsMutex.unlock();
+			_dns_mutex.unlock();
 		}
 	}
 
 	return rc;
 }
 
-bool Socket::udp_bind()
-{
-	if (!check_fd())
-	{
-		return false;
-	}
-
-	// 地址可重用
-	set_reuse_addr(true);
-	set_int_option(SO_SNDBUF, 640000);
-	set_int_option(SO_RCVBUF, 640000);
-
-	if (::bind(_fd, (struct sockaddr *) &_address, sizeof(_address)) < 0)
-	{
-		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->get_addr().c_str(), errno);
-		return false;
-	}
-
-	return true;
-}
-
-bool Socket::check_fd()
-{
-	if (_fd == -1 && (_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-	{
-		return false;
-	}
-	return true;
-}
-
 bool Socket::connect()
 {
-	if (!check_fd())
-	{
-		return false;
-	}
+	if (_fd < 0) return false;
+
 	return (0 == ::connect(_fd, (struct sockaddr *) &_address, sizeof(_address)));
 }
 
@@ -129,20 +220,6 @@ void Socket::shutdown()
 	{
 		::shutdown(_fd, SHUT_WR);
 	}
-}
-
-bool Socket::udp_create()
-{
-	close();
-	_fd = socket(AF_INET, SOCK_DGRAM, 0);
-	return (_fd != -1);
-}
-
-void Socket::setup(int socketHandle, struct sockaddr *hostAddress)
-{
-	close();
-	_fd = socketHandle;
-	memcpy(&_address, hostAddress, sizeof(_address));
 }
 
 int Socket::get_fd()
@@ -166,7 +243,6 @@ int Socket::write(const void *data, int len)
 	{
 		return -1;
 	}
-
 	int res;
 	do
 	{
@@ -178,13 +254,9 @@ int Socket::write(const void *data, int len)
 	} while (res < 0 && errno == EINTR);
 	return res;
 }
-
 int Socket::sendto(const void *data, int len, sockaddr_in &dest)
 {
-	if (_fd == -1)
-	{
-		return -1;
-	}
+	if (_fd == -1) return -1;
 
 	int res;
 	int addr_len = sizeof(sockaddr_in);
@@ -220,10 +292,7 @@ int Socket::read(void *data, int len)
 
 int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 {
-	if (_fd == -1)
-	{
-		return -1;
-	}
+	if (_fd == -1) return -1;
 
 	int res;
 	int addr_len = sizeof(sockaddr_in);
@@ -243,27 +312,15 @@ int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 
 bool Socket::set_int_option(int option, int value)
 {
-	bool rc = false;
-	if (check_fd())
-	{
-		rc = (setsockopt(_fd, SOL_SOCKET, option, (const void *) (&value), sizeof(value))
-		        == 0);
-	}
-	return rc;
+	return (setsockopt(_fd, SOL_SOCKET, option, (const void *) (&value), sizeof(value)) == 0);
 }
 
 bool Socket::set_time_option(int option, int milliseconds)
 {
-	bool rc = false;
-	if (check_fd())
-	{
-		struct timeval timeout;
-		timeout.tv_sec = (int) (milliseconds / 1000);
-		timeout.tv_usec = (milliseconds % 1000) * 1000000;
-		rc = (setsockopt(_fd, SOL_SOCKET, option, (const void *) (&timeout),
-		        sizeof(timeout)) == 0);
-	}
-	return rc;
+	struct timeval timeout;
+	timeout.tv_sec = (int) (milliseconds / 1000);
+	timeout.tv_usec = (milliseconds % 1000) * 1000000;
+	return (setsockopt(_fd, SOL_SOCKET, option, (const void *) (&timeout), sizeof(timeout)) == 0);
 }
 
 bool Socket::set_keep_alive(bool on)
@@ -276,67 +333,48 @@ bool Socket::set_reuse_addr(bool on)
 	return set_int_option(SO_REUSEADDR, on ? 1 : 0);
 }
 
-bool Socket::set_solinger(bool doLinger, int seconds)
+bool Socket::set_solinger(bool on, int seconds)
 {
-	bool rc = false;
-	struct linger lingerTime;
-	lingerTime.l_onoff = doLinger ? 1 : 0;
-	lingerTime.l_linger = seconds;
-	if (check_fd())
-	{
-		rc = (setsockopt(_fd, SOL_SOCKET, SO_LINGER, (const void *) (&lingerTime),
-		        sizeof(lingerTime)) == 0);
-	}
-
-	return rc;
+	struct linger linger_time;
+	linger_time.l_onoff = on ? 1 : 0;
+	linger_time.l_linger = seconds;
+	return (setsockopt(_fd, SOL_SOCKET, SO_LINGER, (const void *) (&linger_time),
+	        sizeof(linger_time)) == 0);
 }
 
-bool Socket::set_tcp_nodelay(bool noDelay)
+bool Socket::set_tcp_nodelay(bool nodelay)
 {
-	bool rc = false;
-	int noDelayInt = noDelay ? 1 : 0;
-	if (check_fd())
-	{
-		rc = (setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, (const void *) (&noDelayInt),
-		        sizeof(noDelayInt)) == 0);
-	}
-	return rc;
+	int noDelayInt = nodelay ? 1 : 0;
+	return (setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, (const void *) (&noDelayInt),
+	        sizeof(noDelayInt)) == 0);
 }
 
-bool Socket::set_tcp_quick_ack(bool quickAck)
+bool Socket::set_tcp_quick_ack(bool quick_ack)
 {
-	bool rc = false;
-	int quickAckInt = quickAck ? 1 : 0;
-	if (check_fd())
-	{
-		rc = (setsockopt(_fd, IPPROTO_TCP, TCP_QUICKACK, (const void *) (&quickAckInt),
-		        sizeof(quickAckInt)) == 0);
-	}
-	return rc;
+	int quickAckInt = quick_ack ? 1 : 0;
+	return (setsockopt(_fd, IPPROTO_TCP, TCP_QUICKACK, (const void *) (&quickAckInt),
+	        sizeof(quickAckInt)) == 0);
 }
 
-bool Socket::set_so_blocking(bool blockingEnabled)
+bool Socket::set_so_blocking(bool on)
 {
 	bool rc = false;
 
-	if (check_fd())
+	int flags = fcntl(_fd, F_GETFL, NULL);
+	if (flags >= 0)
 	{
-		int flags = fcntl(_fd, F_GETFL, NULL);
-		if (flags >= 0)
+		if (on)
 		{
-			if (blockingEnabled)
-			{
-				flags &= ~O_NONBLOCK; // clear nonblocking
-			}
-			else
-			{
-				flags |= O_NONBLOCK;  // set nonblocking
-			}
+			flags &= ~O_NONBLOCK; // clear nonblocking
+		}
+		else
+		{
+			flags |= O_NONBLOCK;  // set nonblocking
+		}
 
-			if (fcntl(_fd, F_SETFL, flags) >= 0)
-			{
-				rc = true;
-			}
+		if (fcntl(_fd, F_SETFL, flags) >= 0)
+		{
+			rc = true;
 		}
 	}
 
@@ -363,32 +401,30 @@ uint64_t Socket::get_peer_sockid()
 {
 	if (_fd == -1) return 0;
 
-	struct sockaddr_in peeraddr;
-	socklen_t length = sizeof(peeraddr);
-	if (getpeername(_fd, (struct sockaddr*) &peeraddr, &length) == 0)
+	socklen_t length = sizeof(_peer_address);
+	if (getpeername(_fd, (struct sockaddr*) &_peer_address, &length) == 0)
 	{
-		return sockutil::sock_addr2id(&peeraddr);
+		return sockutil::sock_addr2id(&_peer_address);
 	}
+
 	return 0;
 }
 
 int Socket::get_soerror()
 {
-	if (_fd == -1)
+	if (_fd == -1) return EINVAL;
+
+	int last_error = Socket::get_last_error();
+	int soerror = 0;
+	socklen_t soerror_len = sizeof(soerror);
+	if (getsockopt(_fd, SOL_SOCKET, SO_ERROR, (void *) (&soerror), &soerror_len) != 0)
 	{
-		return EINVAL;
+		return last_error;
 	}
 
-	int lastError = Socket::get_last_error();
-	int soError = 0;
-	socklen_t soErrorLen = sizeof(soError);
-	if (getsockopt(_fd, SOL_SOCKET, SO_ERROR, (void *) (&soError), &soErrorLen) != 0)
-	{
-		return lastError;
-	}
-	if (soErrorLen != sizeof(soError)) return EINVAL;
+	if (soerror_len != sizeof(soerror)) return EINVAL;
 
-	return soError;
+	return soerror;
 }
 
 }

@@ -36,7 +36,7 @@ public:
 		}
 	}
 
-	bool init(bool isServer = false);
+	bool init(bool is_server = false);
 
 	//处理写事件
 	bool handle_read_event();

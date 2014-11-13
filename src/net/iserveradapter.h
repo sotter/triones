@@ -12,7 +12,6 @@
  *   duolong <duolong@taobao.com>
  *
  */
-
 #ifndef TBNET_ISERVERADAPTER_H
 #define TBNET_ISERVERADAPTER_H
 
@@ -52,6 +51,7 @@ public:
 
 	virtual ~IServerAdapter()
 	{
+
 	}
 
 	void set_batch_push_packet(bool value)

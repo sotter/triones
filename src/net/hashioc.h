@@ -65,6 +65,7 @@ private:
 	//获取2的指数倍的数字，mini表示最小值
 	size_t next_power(size_t size, size_t mini);
 
+
 	void ct_read_lock(unsigned int index)
 	{
 		_lock_array[index & _lock_mask].rdlock();

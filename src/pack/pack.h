@@ -14,6 +14,8 @@
 namespace triones
 {
 
+class IOComponent;
+
 class Packet: public triones::DataBuffer
 {
 public:
@@ -34,29 +36,46 @@ public:
 
 	bool write_time(uint64_t n);
 
+	void set_type(int type);
+
 	int  get_type();
+
+	void set_ioc(IOComponent *ioc);
+
+	IOComponent* get_ioc();
 
 public:
 	Packet *_next;
 	int _type;
-	void *_ioc;
+	IOComponent *_ioc;
 };
 
 class PacketQueue
 {
 public:
+
 	PacketQueue();
+
 	virtual ~PacketQueue();
+
 	Packet* head();
+
 	Packet* tail();
+
 	Packet* pop();
+
 	void push(Packet *packet);
+
 	void clear();
+
 	int size();
+
 	bool empty();
+
 	void moveto(PacketQueue *destQueue);
 
 public:
+
 	Mutex *_mutex;
 	Packet *_head;
 	Packet *_tail;

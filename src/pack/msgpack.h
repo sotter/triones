@@ -68,13 +68,17 @@ public:
 	MsgPacket()
 	{
 	}
+
 	virtual ~MsgPacket()
 	{
 	}
+
 	virtual void body(Packet *body) = 0;
+
 	virtual bool unbody(Packet *pack) = 0;
 
 public:
+
 	bool unpack(Packet *pack)
 	{
 		if (!_header.unpack(pack))

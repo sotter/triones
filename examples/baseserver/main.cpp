@@ -15,7 +15,6 @@ int main()
 
 	while(1)
 	{
-		//100s将此服务关闭掉
 		sleep(5);
 	}
 
@@ -24,5 +23,7 @@ int main()
 
 //	IOComponent *ioc = new TCPAcceptor(NULL, NULL, NULL, NULL);
 //	delete ioc;
+
+
 }
 

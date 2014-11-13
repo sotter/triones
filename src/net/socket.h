@@ -10,35 +10,45 @@ class Socket
 {
 
 public:
+	enum{
+		TRIONES_SOCK_TCP, TRIONES_SOCK_UDP
+	};
+
 	Socket();
 
 	virtual ~Socket();
 
-	//检查socket fd, 如果没有建立
-	bool check_fd();
+	// 连接到_address上
+	bool connect(const char *host, const unsigned short port, int type);
 
-	//设置地址，对端的连接地址
-	bool set_address(const char *address, const int port);
-
-	//绑定udp地址
-	bool udp_bind();
-
-	//连接到_address上
+	// 向已经绑定_address， 提供给重连使用
 	bool connect();
 
-	//关闭套接字
+	// 建立ACCEPTOR套结字，对于UDP来说仅仅是绑定address，没有listen的过程
+	bool listen(const char *host, const unsigned short port, int type);
+
+	//设置本地地址
+	bool set_conn_addess(const char *host, unsigned short port, int type);
+
+	//由外部调用设置本地地址
+	bool set_address(struct sockaddr_in &addr);
+
+	//由外部调用设置对端地址
+	bool set_peer_address(struct sockaddr_in &addr);
+
+	//创建套接字
+	bool socket_create(int type);
+
+	//根据已经的外部条件构造socket,提供给TCPServer UDPServer派生出来的客户端使用
+	bool setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr);
+
+	// 关闭套接字
 	void close();
 
 	// 关闭读写
 	void shutdown();
 
-	// 使用UDP的socket
-	bool udp_create();
-
-	// 把socketHandle,及ipaddress设置到此socket中
-	void setup(int socketHandle, struct sockaddr *hostAddress);
-
-	//返回文件句柄
+	// 返回文件句柄
 	int get_fd();
 
 	// 返回IOComponent
@@ -47,36 +57,36 @@ public:
 	// 设置IOComponent
 	void set_ioc(IOComponent *ioc);
 
-	//写数据
+	// 写数据
 	int write(const void *data, int len);
 
-	//UDP数据发送
+	// UDP数据发送
 	int sendto(const void *data, int len, sockaddr_in &dest);
 
-	//读数据
+	// 读数据
 	int read(void *data, int len);
 
-	//UDP数据读取
+	// UDP数据读取
 	int recvfrom(void *data, int len, sockaddr_in &src);
 
-	//获取本地的address生成的ID
+	// 获取本地的address生成的ID
 	uint64_t get_sockid();
 
-	//获取对端address生成的ID
+	// 获取对端address生成的ID
 	uint64_t get_peer_sockid();
 
-	//获取_address对应的字符串形式
+	// 获取_address对应的字符串形式
 	std::string get_addr();
 
 	bool set_keep_alive(bool on);
 
 	bool set_reuse_addr(bool on);
 
-	bool set_solinger(bool doLinger, int seconds);
+	bool set_solinger(bool on, int seconds);
 
-	bool set_tcp_nodelay(bool noDelay);
+	bool set_tcp_nodelay(bool nodelay);
 
-	bool set_tcp_quick_ack(bool quickAck);
+	bool set_tcp_quick_ack(bool quick_ack);
 
 	bool set_int_option(int option, int value);
 
@@ -86,22 +96,32 @@ public:
 
 	int get_soerror();
 
-	//得到最后错误
+	// 得到最后错误
 	static int get_last_error()
 	{
 		return errno;
 	}
 
+private:
+
+	bool get_address(const char *host, unsigned short port,
+			struct sockaddr_in &dest);
+
 protected:
-
-	struct sockaddr_in _address;
-
+	// socket 套接字
 	int _fd;
 
+	// socket本端的地址
+	struct sockaddr_in _address;
+
+	// socket对端的地址，对于UDP来说这个对端地址是可变的
+	struct sockaddr_in _peer_address;
+
+	// 所属于的IOComponent
 	IOComponent *_iocomponent;
 
 	//　多实例用一个dnsMutex
-	static triones::Mutex _dnsMutex;
+	static triones::Mutex _dns_mutex;
 };
 }
 

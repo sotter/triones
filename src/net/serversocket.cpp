@@ -19,11 +19,8 @@ ServerSocket::~ServerSocket()
 {
 
 }
-/*
- * accept一个新的连接
- *
- * @return 一个Socket
- */
+
+// accept一个新的连接
 Socket *ServerSocket::accept()
 {
 	Socket *handleSocket = NULL;
@@ -36,7 +33,7 @@ Socket *ServerSocket::accept()
 	if (fd >= 0)
 	{
 		handleSocket = new Socket();
-		handleSocket->setup(fd, (struct sockaddr *) &addr);
+		handleSocket->setup(fd, &_address, (struct sockaddr_in *) &addr);
 		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", handleSocket->get_addr().c_str(), fd);
 	}
 	else
@@ -49,41 +46,6 @@ Socket *ServerSocket::accept()
 	}
 
 	return handleSocket;
-}
-
-/*
- * 打开监听
- *
- * @return 是否成功
- */
-bool ServerSocket::listen()
-{
-	if (!check_fd())
-	{
-		return false;
-	}
-
-	// 地址可重用
-	set_solinger(false, 0);
-	set_reuse_addr(true);
-	set_int_option(SO_KEEPALIVE, 1);
-	set_int_option(SO_SNDBUF, 640000);
-	set_int_option(SO_RCVBUF, 640000);
-	set_tcp_nodelay(true);
-
-	if (::bind(_fd, (struct sockaddr *) &_address, sizeof(_address)) < 0)
-	{
-		OUT_INFO(NULL, 0, NULL, "bind %s error : %d", this->get_addr().c_str(), errno);
-		return false;
-	}
-
-	if (::listen(_fd, _back_log) < 0)
-	{
-		OUT_INFO(NULL, 0, NULL, "listen %s error : %d", this->get_addr().c_str(), errno);
-		return false;
-	}
-
-	return true;
 }
 
 } /* namespace triones */

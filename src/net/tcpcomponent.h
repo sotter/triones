@@ -23,7 +23,7 @@ class TCPComponent: public IOComponent
 {
 public:
 	TCPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
-	        IServerAdapter *serverAdapter);
+	        IServerAdapter *serverAdapter, int type = 0);
 
 	virtual ~TCPComponent();
 
@@ -58,7 +58,7 @@ public:
 	bool post_packet(Packet *packet);
 
 	//readData后直接调用的handlePakcet
-	bool handle_packet(Packet *packet);
+//	bool handle_packet(Packet *packet);
 
 	//写事件，调用的发送函数
 	virtual bool write_data();

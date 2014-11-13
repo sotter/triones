@@ -17,12 +17,12 @@ UDPAcceptor::UDPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 	_server_adapter = serverAdapter;
 }
 
-bool UDPAcceptor::init(bool isServer)
+bool UDPAcceptor::init(bool is_server)
 {
-	UNUSED(isServer);
+	UNUSED(is_server);
 	_socket->set_so_blocking(false);
 
-	return _socket->udp_bind();
+	return true;
 }
 
 //IOComponent 网络资源清理

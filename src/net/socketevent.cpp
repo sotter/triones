@@ -49,6 +49,7 @@ bool SocketEvent::set_event(Socket *socket, bool enableRead, bool enable_write)
 {
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
+
 	ev.data.ptr = socket->get_ioc();
 	// 设置要处理的事件类型
 	ev.events = 0;
@@ -64,8 +65,10 @@ bool SocketEvent::set_event(Socket *socket, bool enableRead, bool enable_write)
 
 	//_mutex.lock();
 	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_MOD, socket->get_fd(), &ev) == 0);
-	//_mutex.unlock();
-	//TBSYS_LOG(ERROR, "EPOLL_CTL_MOD: %d => %d,%d, %d", socket->getSocketHandle(), enableRead, enable_write, pthread_self());
+
+	//不管epoll_ctl执行结果如何，引用技术都要加1
+	socket->get_ioc()->add_ref();
+
 	return rc;
 }
 
@@ -74,13 +77,16 @@ bool SocketEvent::remove_event(Socket *socket)
 {
 	struct epoll_event ev;
 	memset(&ev, 0, sizeof(ev));
+
 	ev.data.ptr = socket->get_ioc();
 	// 设置要处理的事件类型
 	ev.events = 0;
 	//_mutex.lock();
 	bool rc = (epoll_ctl(_iepfd, EPOLL_CTL_DEL, socket->get_fd(), &ev) == 0);
-	//_mutex.unlock();
-	//TBSYS_LOG(ERROR, "EPOLL_CTL_DEL: %d", socket->getSocketHandle());
+
+	//不管epoll_ctl执行结果如何，引用技术都要加1
+	socket->get_ioc()->sub_ref();
+
 	return rc;
 }
 
