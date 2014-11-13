@@ -84,8 +84,6 @@ bool TCPComponent::init(bool is_server)
 
 	setServer(is_server);
 
-	_is_server = is_server;
-
 	return true;
 }
 
@@ -99,6 +97,7 @@ bool TCPComponent::socket_connect()
 	{
 		return true;
 	}
+
 	_socket->set_so_blocking(false);
 
 	_start_conn_time = triones::CTimeUtil::get_time();
@@ -132,7 +131,7 @@ bool TCPComponent::socket_connect()
 		{
 			_socket->close();
 			_state = TRIONES_CLOSED;
-			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->get_addr().c_str(),
+			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
 			return false;
 		}

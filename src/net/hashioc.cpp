@@ -5,6 +5,8 @@
  *******************************************************/
 
 #include "cnet.h"
+#include <limits.h>
+
 
 HashSock::HashSock()
 {

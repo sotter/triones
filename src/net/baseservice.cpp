@@ -59,8 +59,10 @@ IOComponent *BaseService::connect(const char *spec, int streamer, bool autoRecon
 	{
 		tc->set_server_adapter(this);
 	}
+
 	return tc;
 }
+
 
 IOComponent* BaseService::listen(const char *spec, int streamer)
 {

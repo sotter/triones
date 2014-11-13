@@ -92,8 +92,12 @@ bool Socket::set_conn_addess(const char *host, unsigned short port, int type)
 	if(_fd < 0)
 	{
 		_fd = socket_create(type);
-		if(_fd < 0) return false;
+		printf("_fd = %d \n", _fd);
+		if(_fd < 0)
+			return false;
 	}
+
+	printf("_fd = %d \n", _fd);
 
 	return get_address(host, port, _peer_address);
 }
@@ -139,12 +143,15 @@ bool Socket::socket_create(int type)
 
 	if (type == TRIONES_SOCK_TCP)
 	{
+		printf("_fd = %d \n", _fd);
 		_fd = socket(AF_INET, SOCK_STREAM, 0);
 	}
 	else
 	{
 		_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	}
+
+	printf("_fd = %d \n", _fd);
 
 	return _fd > 0;
 }
