@@ -12,30 +12,37 @@ int main()
 {
 	CHGLOG("test.log");
 
-	BaseClient base_client;
-	BaseServer base_server;
-	base_server.start("tcp:127.0.0.1:7406", 1);
-//	sleep(1);
-	base_client.start("tcp:127.0.0.1:7406", 1);
+	triones::Socket *socket = new Socket;
 
-//	base_client.start("udp:127.0.0.1:7407", 1);
-//	base_server.start("udp:127.0.0.1:7407", 1);
+	socket->connect("127.0.0.1", 7406, Socket::TRIONES_SOCK_TCP);
 
-	while (1)
-	{
-		sleep(3);
-	}
+	socket->show_addr();
 
-	base_client.destroy();
+	socket->connect("127.0.0.1", 7406, Socket::TRIONES_SOCK_TCP);
 
-	base_server.destroy();
+	socket->show_addr();
 
-	OUT_INFO(NULL, 0, NULL, "good luck");
-
+//	BaseClient base_client;
+////	BaseServer base_server;
+////	base_server.start("tcp:127.0.0.1:7406", 1);
+////	sleep(1);
+//	base_client.start("tcp:127.0.0.1:7406", 1);
+//
+////	base_client.start("udp:127.0.0.1:7407", 1);
+////	base_server.start("udp:127.0.0.1:7407", 1);
+//
+//	while (1)
+//	{
+//		sleep(3);
+//	}
+//
+//	base_client.destroy();
+////	base_server.destroy();
+//
+//	OUT_INFO(NULL, 0, NULL, "good luck");
 //	sleep(4);
 
 	LOGSTOP();
-
 
 }
 

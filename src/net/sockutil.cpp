@@ -10,10 +10,16 @@
 namespace triones
 {
 //将网络地址转换为一个64位的无符号整型，方便key值的的操作
-uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr)
+//第一个字节由is_server组成，client和server之间值肯定是不相等
+//第二个字节表示sin_family， 在TCP/IP协议中family大小没有超过127
+//第三个字节由sin_port组成
+//第四个字节由sin_addr组成
+uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr, bool is_server)
 {
-	uint64_t sockid = sockaddr->sin_family;
-	sockid <<= 16;
+	uint64_t sockid = is_server ? 1 : 0;
+	sockid <<= 8;
+	sockid |= sockaddr->sin_family;
+	sockid <<= 8;
 	sockid |= ntohs(sockaddr->sin_port);
 	sockid <<= 32;
 	sockid |= sockaddr->sin_addr.s_addr;
@@ -24,7 +30,7 @@ uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr)
 //将ID回转为网络地址类型
 void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
-	sockaddr->sin_family = (sockid >> 48);
+	sockaddr->sin_family = (sockid >> 48) && 0xff;
 	sockaddr->sin_port = htons(sockid >> 32);
 	sockaddr->sin_addr.s_addr = sockid;
 
@@ -50,5 +56,12 @@ std::string sockutil::sock_id2str(uint64_t id)
 	sock_id2addr(id, &sockaddr);
 	return sock_addr2str(&sockaddr);
 }
+
+
+//static uint8_t sockutil::get_seq()
+//{
+//	static uint8_t seq = 0;
+//	return ++seq;
+//}
 
 } /* namespace triones */

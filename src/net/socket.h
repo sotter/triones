@@ -37,7 +37,7 @@ public:
 	bool set_peer_address(struct sockaddr_in &addr);
 
 	//创建套接字
-	bool socket_create(int type);
+	bool socket_create(int type = TRIONES_SOCK_TCP);
 
 	//根据已经的外部条件构造socket,提供给TCPServer UDPServer派生出来的客户端使用
 	bool setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr);
@@ -105,12 +105,14 @@ public:
 		return errno;
 	}
 
+	void show_addr();
+
 private:
 
-	bool get_address(const char *host, unsigned short port,
-			struct sockaddr_in &dest);
+	bool get_address(const char *host, unsigned short port, struct sockaddr_in &dest);
 
 protected:
+
 	// socket 套接字
 	int _fd;
 

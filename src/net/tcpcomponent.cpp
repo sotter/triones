@@ -152,10 +152,11 @@ void TCPComponent::close()
 	if (_state == TRIONES_CONNECTING)
 	{
 		int error = _socket->get_soerror();
-		OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_addr().c_str(),
+		OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 		        strerror(error), error);
 
-		printf("connect %s fail: %s(%d) \n", _socket->get_addr().c_str(), strerror(error), error);
+		printf("connect %s fail: %s(%d), local addr %s \n", _socket->get_peer_addr().c_str(),
+				 strerror(error), error, _socket->get_addr().c_str());
 	}
 
 	if (_sock_event)

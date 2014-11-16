@@ -91,13 +91,13 @@ bool Socket::set_conn_addess(const char *host, unsigned short port, int type)
 {
 	if(_fd < 0)
 	{
-		_fd = socket_create(type);
-		printf("_fd = %d \n", _fd);
+		socket_create(type);
+		printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
 		if(_fd < 0)
 			return false;
 	}
 
-	printf("_fd = %d \n", _fd);
+	printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
 
 	return get_address(host, port, _peer_address);
 }
@@ -139,11 +139,11 @@ bool Socket::setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_ad
 
 bool Socket::socket_create(int type)
 {
-	if (_fd > 0) close();
+	if(_fd > 0) return true;
 
 	if (type == TRIONES_SOCK_TCP)
 	{
-		printf("_fd = %d \n", _fd);
+		printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
 		_fd = socket(AF_INET, SOCK_STREAM, 0);
 	}
 	else
@@ -151,7 +151,7 @@ bool Socket::socket_create(int type)
 		_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	}
 
-	printf("_fd = %d \n", _fd);
+	printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
 
 	return _fd > 0;
 }
@@ -442,6 +442,31 @@ int Socket::get_soerror()
 	if (soerror_len != sizeof(soerror)) return EINVAL;
 
 	return soerror;
+}
+
+void Socket::show_addr()
+{
+	struct sockaddr_in address, peer_address;
+
+	memset(&address, 0, sizeof(address));
+	memset(&peer_address, 0, sizeof(peer_address));
+
+	socklen_t length = sizeof(address);
+	socklen_t length2 = sizeof(peer_address);
+	if (getsockname(_fd, (struct sockaddr*) &address, &length) == 0)
+	{
+
+	}
+
+	if (getpeername(_fd, (struct sockaddr*) &peer_address, &length2) == 0)
+	{
+//		return sockutil::sock_addr2id(&peer_address);
+	}
+
+	printf("local address : %s peer address : %s \n",
+			sockutil::sock_addr2str(&address).c_str(),
+			sockutil::sock_addr2str(&peer_address).c_str());
+
 }
 
 }

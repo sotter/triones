@@ -118,6 +118,7 @@ void Transport::timeout_loop()
 			ioc = NULL;
 		}
 
+
 		usleep(1 * 1000 * 1000);  // 最小间隔1s
 	}
 	_hash_socks.distroy();
