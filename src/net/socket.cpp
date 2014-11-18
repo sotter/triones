@@ -14,6 +14,7 @@ Socket::Socket()
 	memset(&_peer_address, 0, sizeof(_peer_address));
 
 	_fd = -1;
+	_setup = 0;
 }
 
 Socket::~Socket()
@@ -24,13 +25,13 @@ Socket::~Socket()
 // 连接到_address上
 bool Socket::connect(const char *host, const unsigned short port, int type)
 {
-	if (!get_address(host, port, _peer_address))
+	if (!socket_create(type)) return false;
+
+	if (!set_address(host, port, true))
 	{
 		OUT_INFO(NULL, 0, NULL, "connect set address error, host : %s, port : %d\n", host, port);
 		return false;
 	}
-
-	if (!socket_create(type)) return false;
 
 	return (0 == ::connect(_fd, (struct sockaddr *) &_peer_address, sizeof(_peer_address)));
 }
@@ -38,13 +39,13 @@ bool Socket::connect(const char *host, const unsigned short port, int type)
 // 建立ACCEPTOR套结字，对于UDP来说仅仅是绑定address，没有listen的过程
 bool Socket::listen(const char *host, const unsigned short port, int type)
 {
-	if (!get_address(host, port, _address))
+	if (!socket_create(type)) return false;
+
+	if (!set_address(host, port, false))
 	{
 		OUT_INFO(NULL, 0, NULL, "connect set address error, host : %s, port : %d\n", host, port);
 		return false;
 	}
-
-	if (!socket_create(type)) return false;
 
 	set_reuse_addr(true);
 
@@ -87,52 +88,24 @@ bool Socket::listen(const char *host, const unsigned short port, int type)
 	return true;
 }
 
-bool Socket::set_conn_addess(const char *host, unsigned short port, int type)
+bool Socket::setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr, bool tcp)
 {
-	if(_fd < 0)
+	//在fd没有初始化，和 _iocomponent尚未空的情况下，是不能执行setup操作的。
+	if (fd <= 0) return false;
+
+	if (_fd > 0 && _fd != fd)
 	{
-		socket_create(type);
-		printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
-		if(_fd < 0)
-			return false;
+		close();
 	}
-
-	printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
-
-	return get_address(host, port, _peer_address);
-}
-
-//由外部调用设置本地地址
-bool Socket::set_address(struct sockaddr_in &addr)
-{
-	memcpy((void*) &_address, (const void*) &addr, sizeof(struct sockaddr_in));
-
-	return true;
-}
-
-//由外部调用设置对端地址
-bool Socket::set_peer_address(struct sockaddr_in &addr)
-{
-	memcpy((void*) &_peer_address, (const void*) &addr, sizeof(struct sockaddr_in));
-
-	return true;
-}
-
-bool Socket::setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr)
-{
-	if (_fd > 0) close();
 
 	_fd = fd;
 
-	if (addr != NULL)
+	if (!set_address(addr, false) || !set_address(peer_addr, true))
 	{
-		memcpy((void*) &_address, (const void*) addr, sizeof(struct sockaddr_in));
+		return false;
 	}
 
-	if (peer_addr != NULL)
-	{
-		memcpy((void*) &_address, (const void*) peer_addr, sizeof(struct sockaddr_in));
-	}
+	if(tcp) _setup |= TCP_FLAG;
 
 	return true;
 }
@@ -143,30 +116,39 @@ bool Socket::socket_create(int type)
 
 	if (type == TRIONES_SOCK_TCP)
 	{
-		printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
 		_fd = socket(AF_INET, SOCK_STREAM, 0);
+		_setup |= TCP_FLAG;
 	}
 	else
 	{
 		_fd = socket(AF_INET, SOCK_DGRAM, 0);
+		_setup ^= TCP_FLAG;
 	}
 
-	printf("%s %d _fd = %d \n", __FILE__, __LINE__, _fd);
+	if(_fd < 0)
+	{
+		OUT_ERROR(NULL, 0, NULL, "socket create error : %s(%d)", strerror(errno), errno);
+	}
 
 	return _fd > 0;
 }
 
-bool Socket::get_address(const char *host, unsigned short port, struct sockaddr_in &dest)
+bool Socket::set_address(const char *host, unsigned short port, bool peer)
 {
-	memset(static_cast<void *>(&dest), 0, sizeof(dest));
+	if(!socket_create())
+		return false;
 
-	dest.sin_family = AF_INET;
-	dest.sin_port = htons(static_cast<short>(port));
+	struct sockaddr_in *dest = peer ? (&_peer_address) : (&_address);
+
+	memset(dest, 0, sizeof(struct sockaddr_in));
+
+	dest->sin_family = AF_INET;
+	dest->sin_port = htons(static_cast<short>(port));
 
 	bool rc = true;
 	if (host == NULL || host[0] == '\0')
 	{
-		dest.sin_addr.s_addr = htonl(INADDR_ANY );
+		dest->sin_addr.s_addr = htonl(INADDR_ANY);
 	}
 	else
 	{
@@ -184,7 +166,7 @@ bool Socket::get_address(const char *host, unsigned short port, struct sockaddr_
 
 		if (is_ipaddr)
 		{
-			dest.sin_addr.s_addr = inet_addr(host);
+			dest->sin_addr.s_addr = inet_addr(host);
 		}
 		else
 		{
@@ -192,7 +174,7 @@ bool Socket::get_address(const char *host, unsigned short port, struct sockaddr_
 			struct hostent *host_ent = gethostbyname(host);
 			if (host_ent != NULL)
 			{
-				memcpy(&(dest.sin_addr), *(host_ent->h_addr_list), sizeof(struct in_addr));
+				memcpy(&(dest->sin_addr), *(host_ent->h_addr_list), sizeof(struct in_addr));
 			}
 			else
 			{
@@ -202,7 +184,62 @@ bool Socket::get_address(const char *host, unsigned short port, struct sockaddr_
 		}
 	}
 
+	if(rc)
+	{
+		_setup |= peer ? PEERINIT_FLAG : ADDRINIT_FLAG;
+	}
+
 	return rc;
+}
+
+//优先级：
+//(1) 外部传入的addr不为空，已外部传入的addr准
+//(2) 外部传入为空时，已通过系统调用获取的addr为准
+//(3) 在无法获取_fd的sockname时，已原先的为标准
+bool Socket::set_address(struct sockaddr_in *addr, bool peer)
+{
+	if(!socket_create())
+		return false;
+
+	uint8_t init_flag = peer ? PEERINIT_FLAG : ADDRINIT_FLAG;
+
+	struct sockaddr_in *dest = peer ?  &_peer_address : &_address;
+	memset(dest, 0, sizeof(struct sockaddr_in));
+
+	if(addr != NULL)
+	{
+		memcpy((void*)dest, addr, sizeof(struct sockaddr_in));
+		//设置已经初始化标识
+		_setup |= init_flag;
+		return true;
+	}
+	else
+	{
+		//如果可以获取_fd的peer addr, 那么以取到的为标准，如果取不到（如tcp连接未建立时）
+		//那么以原先有的为标准
+		struct sockaddr_in temp;
+		socklen_t length = sizeof(struct sockaddr_in);
+
+		if(peer)
+		{
+			if(getpeername(_fd, (struct sockaddr*)&temp, &length) == 0)
+			{
+				memcpy((void*) dest, &temp, sizeof(struct sockaddr_in));
+				//设置已经初始化标识
+				_setup |= init_flag;
+			}
+		}else
+		{
+			if(getsockname(_fd, (struct sockaddr*) &temp, &length) == 0)
+			{
+				memcpy((void*) dest, &temp, sizeof(struct sockaddr_in));
+				//设置已经初始化标识
+				_setup |= init_flag;
+			}
+		}
+
+		return true;
+	}
 }
 
 bool Socket::connect()
@@ -259,6 +296,7 @@ int Socket::write(const void *data, int len)
 			TBNET_COUNT_DATA_WRITE(res);
 		}
 	} while (res < 0 && errno == EINTR);
+
 	return res;
 }
 int Socket::sendto(const void *data, int len, sockaddr_in &dest)
@@ -392,7 +430,8 @@ std::string Socket::get_addr()
 {
 	char dest[32];
 	unsigned long ad = ntohl(_address.sin_addr.s_addr);
-	sprintf(dest, "%d.%d.%d.%d:%d", static_cast<int>((ad >> 24) & 255),
+	const char *type = (_setup & TCP_FLAG) ? "tcp" : "udp";
+	sprintf(dest, "%s:%d.%d.%d.%d:%d", type, static_cast<int>((ad >> 24) & 255),
 	        static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
 	        static_cast<int>(ad & 255), ntohs(_address.sin_port));
 	return dest;
@@ -402,7 +441,8 @@ std::string Socket::get_peer_addr()
 {
 	char dest[32];
 	unsigned long ad = ntohl(_peer_address.sin_addr.s_addr);
-	sprintf(dest, "%d.%d.%d.%d:%d", static_cast<int>((ad >> 24) & 255),
+	const char *type = (_setup & TCP_FLAG) ? "tcp" : "udp";
+	sprintf(dest, "%s:%d.%d.%d.%d:%d", type, static_cast<int>((ad >> 24) & 255),
 	        static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
 	        static_cast<int>(ad & 255), ntohs(_peer_address.sin_port));
 	return dest;
@@ -411,18 +451,31 @@ std::string Socket::get_peer_addr()
 uint64_t Socket::get_sockid()
 {
 	if (_fd == -1) return 0;
-	return sockutil::sock_addr2id(&_address);
+
+	if(_iocomponent->get_type() == IOComponent::TRIONES_TCPCONN
+			|| _iocomponent->get_type() == IOComponent::TRIONES_UDPCONN)
+	{
+		return sockutil::sock_addr2id(&_address, false);
+	}
+	else
+	{
+		return sockutil::sock_addr2id(&_address, true);
+	}
 }
 
 uint64_t Socket::get_peer_sockid()
 {
 	if (_fd == -1) return 0;
 
-//	socklen_t length = sizeof(_peer_address);
-//	if (getpeername(_fd, (struct sockaddr*) &_peer_address, &length) == 0)
-//	{
-		return sockutil::sock_addr2id(&_peer_address);
-//	}
+	if(_iocomponent->get_type() == IOComponent::TRIONES_TCPCONN
+			|| _iocomponent->get_type() == IOComponent::TRIONES_UDPCONN)
+	{
+		return sockutil::sock_addr2id(&_peer_address, false);
+	}
+	else
+	{
+		return sockutil::sock_addr2id(&_peer_address, true);
+	}
 
 	return 0;
 }
@@ -453,20 +506,38 @@ void Socket::show_addr()
 
 	socklen_t length = sizeof(address);
 	socklen_t length2 = sizeof(peer_address);
-	if (getsockname(_fd, (struct sockaddr*) &address, &length) == 0)
-	{
 
+	if (_setup & ADDRINIT_FLAG)
+	{
+		memcpy(&address, &_address, sizeof(struct sockaddr_in));
+	}
+	else
+	{
+		if (getsockname(_fd, (struct sockaddr*) &address, &length) != 0)
+		{
+			OUT_ERROR(NULL, 0, NULL, "getsockname error %s \n", strerror(errno));
+		}
 	}
 
-	if (getpeername(_fd, (struct sockaddr*) &peer_address, &length2) == 0)
+	if (_setup & PEERINIT_FLAG)
 	{
-//		return sockutil::sock_addr2id(&peer_address);
+		memcpy(&peer_address, &_peer_address, sizeof(struct sockaddr_in));
+	}
+	else
+	{
+		if (getpeername(_fd, (struct sockaddr*) &peer_address, &length2) != 0)
+		{
+			OUT_ERROR(NULL, 0, NULL, "getpeername error %s \n", strerror(errno));
+		}
 	}
 
-	printf("local address : %s peer address : %s \n",
-			sockutil::sock_addr2str(&address).c_str(),
+	const char *type = _setup & TCP_FLAG ? "tcp" : "udp";
+
+	printf("local address : %s:%s peer address : %s:%s \n", type,
+			sockutil::sock_addr2str(&address).c_str(), type,
 			sockutil::sock_addr2str(&peer_address).c_str());
 
+	return ;
 }
 
 }

@@ -24,7 +24,7 @@ public:
 	~UDPComponent();
 
 	//初始化
-	bool init(bool isServer = false);
+	bool init();
 
 	//关闭
 	void close();

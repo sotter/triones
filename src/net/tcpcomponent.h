@@ -27,7 +27,7 @@ public:
 
 	virtual ~TCPComponent();
 
-	bool init(bool isServer = false);
+	bool init();
 
 	void close();
 
@@ -47,12 +47,6 @@ public:
 	bool socket_connect();
 
 	void disconnect();
-
-	// 设置是否为服务器端
-	void setServer(bool is_server)
-	{
-		_is_server = is_server;
-	}
 
 	//postPacket作为客户端，主动发送数据的接口，client可以不用等到conn success回调成功，就调用这个接口。
 	bool post_packet(Packet *packet);
@@ -89,14 +83,14 @@ private:
 
 	/**   原先connection的部分  ****************/
 	//这里的_isServer指的accpect出来的socket，而不是listen socket
-	bool _is_server;                         // 是服务器端
+//	bool _is_server;                         // 是服务器端
 	Socket *_socket;                        // Socket句柄
 	TransProtocol *_streamer;               // Packet解析
 
 	PacketQueue _output_queue;               // 发送队列
 	PacketQueue _input_queue;                // 接收队列
 	PacketQueue _my_queue;                   // 在write中处理时暂时用
-	triones::Mutex _output_mutex;           // 发送队列锁
+	triones::Mutex _output_mutex;            // 发送队列锁
 
 //	int _queueTimeout;                      // 队列超时时间
 //	int _queueTotalSize;                    // 队列总长度

@@ -10,15 +10,16 @@ class Socket
 {
 
 public:
-	enum{
-		TRIONES_SOCK_TCP, TRIONES_SOCK_UDP
-	};
+	enum{ TRIONES_SOCK_TCP, TRIONES_SOCK_UDP };
 
 	Socket();
 
 	virtual ~Socket();
 
-	// 连接到_address上
+	//创建套接字
+	bool socket_create(int type = TRIONES_SOCK_TCP);
+
+	// 连接到_address上, 同步连接接口使用
 	bool connect(const char *host, const unsigned short port, int type);
 
 	// 向已经绑定_address， 提供给重连使用
@@ -27,20 +28,16 @@ public:
 	// 建立ACCEPTOR套结字，对于UDP来说仅仅是绑定address，没有listen的过程
 	bool listen(const char *host, const unsigned short port, int type);
 
-	//设置本地地址
-	bool set_conn_addess(const char *host, unsigned short port, int type);
+	bool set_address(const char *host, unsigned short port, bool peer = true);
 
-	//由外部调用设置本地地址
-	bool set_address(struct sockaddr_in &addr);
+	//优先级：peer 表示是设置本端地址还是对端地址
+	//(1) 外部传入的addr不为空，已外部传入的addr准
+	//(2) 外部传入为空时，已通过系统调用获取的addr为准
+	//(3) 在无法获取_fd的sockname时，已原先的为标准
+	bool set_address(struct sockaddr_in *addr, bool peer = true);
 
-	//由外部调用设置对端地址
-	bool set_peer_address(struct sockaddr_in &addr);
-
-	//创建套接字
-	bool socket_create(int type = TRIONES_SOCK_TCP);
-
-	//根据已经的外部条件构造socket,提供给TCPServer UDPServer派生出来的客户端使用
-	bool setup(int fd, struct sockaddr_in *addr, struct sockaddr_in *peer_addr);
+	//根据已经的外部条件构造socket,提供给TCPServer UDPServer派生出来的client
+	bool setup(int fd, struct sockaddr_in *addr = NULL, struct sockaddr_in *peer_addr = NULL, bool tcp = true);
 
 	// 关闭套接字
 	void close();
@@ -107,14 +104,17 @@ public:
 
 	void show_addr();
 
-private:
-
-	bool get_address(const char *host, unsigned short port, struct sockaddr_in &dest);
-
 protected:
 
 	// socket 套接字
 	int _fd;
+
+#define ADDRINIT_FLAG (0x01)
+#define PEERINIT_FLAG (0x02)
+#define TCP_FLAG      (0x04)
+
+	//标识_address, _peer_address是否已经出师化过
+	uint8_t           _setup;
 
 	// socket本端的地址
 	struct sockaddr_in _address;

@@ -29,7 +29,7 @@ public:
 	virtual ~TCPAcceptor();
 
 	//初始化
-	bool init(bool is_server = false);
+	bool init();
 
 	// 当有数据可读时被Transport调用
 	virtual bool handle_read_event();

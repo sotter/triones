@@ -5,6 +5,7 @@
  *******************************************************/
 
 #include "cnet.h"
+#include "../comm/comlog.h"
 
 namespace triones
 {
@@ -36,10 +37,17 @@ TCPAcceptor::~TCPAcceptor()
 }
 
 // 初始化, 开始监听
-bool TCPAcceptor::init(bool isServer)
+bool TCPAcceptor::init()
 {
-	UNUSED(isServer);
-	return true;
+	if(_socket->setup(_socket->get_fd()))
+	{
+		this->setid(_socket->get_sockid());
+		return true;
+	}
+
+	OUT_ERROR(NULL, 0, NULL, "tcpacceptor init error");
+
+	return false;
 }
 
 // 当有数据可读时被Transport调用
@@ -53,7 +61,8 @@ bool TCPAcceptor::handle_read_event()
 		// TCPComponent, 在服务器端
 		TCPComponent *component = new TCPComponent(_owner, socket, _streamer, _server_adapter,
 		        TRIONES_TCPACTCONN);
-		if (!component->init(true))
+
+		if (!component->init())
 		{
 			delete component;
 			return true;

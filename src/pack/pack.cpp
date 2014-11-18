@@ -13,10 +13,12 @@ Packet::Packet(int type)
 {
 	_next = NULL;
 	_type = type;
+	_ioc = NULL;
 }
 
 Packet::~Packet()
 {
+	//packet销毁时减少对_ioc的引用计数
 	if(_ioc != NULL)
 	{
 		_ioc->sub_ref();
@@ -111,6 +113,7 @@ void Packet::set_ioc(IOComponent *ioc)
 	if(ioc == _ioc)
 		return;
 
+	//与原先的_ioc解绑
 	if(_ioc != NULL)
 	{
 		_ioc->sub_ref();

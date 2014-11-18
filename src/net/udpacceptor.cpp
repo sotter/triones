@@ -17,12 +17,17 @@ UDPAcceptor::UDPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 	_server_adapter = serverAdapter;
 }
 
-bool UDPAcceptor::init(bool is_server)
+bool UDPAcceptor::init()
 {
-	UNUSED(is_server);
 	_socket->set_so_blocking(false);
 
-	return true;
+	if(_socket->setup(_socket->get_fd()))
+	{
+		this->setid(_socket->get_sockid());
+		return true;
+	}
+
+	return false;
 }
 
 //IOComponent 网络资源清理
@@ -42,7 +47,8 @@ bool UDPAcceptor::read_data()
 	int n = _socket->recvfrom(_read_buff, sizeof(_read_buff), read_addr);
 	if (n < 0) return false;
 
-	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr);
+	//注意sockdi的获取方式
+	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr, true);
 	UDPComponent *ioc = get(sockid);
 	_last_use_time = triones::CTimeUtil::get_time();
 
@@ -82,6 +88,12 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 	{
 		ioc = new UDPComponent(NULL, _socket, _streamer, _server_adapter, TRIONES_UDPACTCONN);
 		ioc->setid(sockid);
+		if(!ioc->init())
+		{
+			delete ioc;
+			return NULL;
+		}
+
 		get_owner()->_hash_socks.put(ioc);
 	}
 

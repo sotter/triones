@@ -83,10 +83,10 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-//		printf("receive from %s len %d : %s \n",
-//				ioc->getSocket()->getAddr().c_str(),
-//				packet->getDataLen(),
-//				packet->getData());
+		printf("receive from %s len %d : %s \n",
+				ioc->get_socket()->get_addr().c_str(),
+				packet->getDataLen(),
+				packet->getData());
 
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));

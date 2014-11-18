@@ -23,8 +23,7 @@ ServerSocket::~ServerSocket()
 // accept一个新的连接
 Socket *ServerSocket::accept()
 {
-	Socket *handleSocket = NULL;
-
+	Socket *sock = NULL;
 	struct sockaddr_in addr;
 	int len = sizeof(addr);
 
@@ -32,9 +31,9 @@ Socket *ServerSocket::accept()
 
 	if (fd >= 0)
 	{
-		handleSocket = new Socket();
-		handleSocket->setup(fd, &_address, (struct sockaddr_in *) &addr);
-		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", handleSocket->get_addr().c_str(), fd);
+		sock = new Socket();
+		sock->setup(fd, &_address, (struct sockaddr_in *) &addr);
+		OUT_INFO(NULL, 0, NULL, "accept %s , fd %d ", sock->get_peer_addr().c_str(), fd);
 	}
 	else
 	{
@@ -45,7 +44,7 @@ Socket *ServerSocket::accept()
 		}
 	}
 
-	return handleSocket;
+	return sock;
 }
 
 } /* namespace triones */

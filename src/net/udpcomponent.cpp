@@ -34,16 +34,25 @@ UDPComponent::~UDPComponent()
 	}
 }
 
-bool UDPComponent::init(bool isServer)
+bool UDPComponent::init()
 {
-	if (!isServer)
+	if (_type == IOComponent::TRIONES_UDPCONN)
 	{
 		if (!_socket->connect())
 		{
 			return false;
 		}
+
+		if(_socket->setup(_socket->get_fd()))
+		{
+			this->setid(_socket->get_sockid());
+			return true;
+		}
+
+		return false;
 	}
-	_isServer = isServer;
+
+	//对于TRIONES_UDPACTCONN类型不做任何操作，它的sockid是在外部获取的
 	return true;
 }
 

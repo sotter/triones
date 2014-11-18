@@ -42,8 +42,8 @@ std::string sockutil::sock_addr2str(struct sockaddr_in *sockaddr)
 {
 	char dest[32];
 	unsigned long ad = ntohl(sockaddr->sin_addr.s_addr);
-	const char *type = ntohs(sockaddr->sin_family) == SOCK_STREAM ? "tcp" : "udp";
-	sprintf(dest, "%s:%d.%d.%d.%d:%d", type, static_cast<int>((ad >> 24) & 255),
+//	const char *type = (sockaddr->sin_family) == SOCK_STREAM ? "tcp" : "udp";
+	sprintf(dest, "%d.%d.%d.%d:%d", static_cast<int>((ad >> 24) & 255),
 	        static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
 	        static_cast<int>(ad & 255), ntohs(sockaddr->sin_port));
 	return dest;

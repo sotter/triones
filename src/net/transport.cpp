@@ -187,39 +187,26 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 
 	if (strcasecmp(args[0], "tcp") == 0)
 	{
-		printf("%s : %d \n", __FILE__, __LINE__);
-
-		// Server Socket
 		ServerSocket *socket = new ServerSocket();
 
 		if (!socket->listen(host, port, Socket::TRIONES_SOCK_TCP))
 		{
-			printf("%s : %d \n", __FILE__, __LINE__);
-
 			delete socket;
 			return NULL;
 		}
-
-		printf("%s : %d \n", __FILE__, __LINE__);
 
 		// TCPAcceptor
 		TCPAcceptor *acceptor = new TCPAcceptor(this, socket, streamer, serverAdapter);
 
 		if (!acceptor->init())
 		{
-			printf("%s : %d \n", __FILE__, __LINE__);
-
 			delete acceptor;
 			return NULL;
 		}
 
-		printf("%s : %d \n", __FILE__, __LINE__);
-
 		acceptor->setid(socket->get_sockid());
 		// 加入到iocomponents中，及注册可读到socketevent中
 		add_component(acceptor, true, false);
-
-		printf("%s : %d \n", __FILE__, __LINE__);
 
 		// 返回
 		return acceptor;
@@ -278,43 +265,35 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 	{
 		// Socket
 		Socket *socket = new Socket();
-
-		if (!socket->set_conn_addess(host, port, Socket::TRIONES_SOCK_TCP))
+		if( ! socket->socket_create(Socket::TRIONES_SOCK_TCP)
+			|| !socket->set_address(host, port, true))
 		{
 			delete socket;
-			OUT_ERROR(NULL, 0, NULL, "set address fail: %s:%d, %s", host, port, spec);
 			return NULL;
 		}
 
-		printf("%s : %d \n", __FILE__, __LINE__);
-		// TCPComponent
 		TCPComponent *component = new TCPComponent(this, socket, streamer,
 				NULL, triones::IOComponent::TRIONES_TCPCONN);
 
 		// 设置是否自动重连
 		component->set_auto_conn(autoReconn);
+
 		if (!component->init())
 		{
-			printf("%s : %d \n", __FILE__, __LINE__);
-
 			delete component;
 			OUT_ERROR(NULL, 0, NULL, "init TCPComponent fail: %s:%d", host, port);
 			return NULL;
 		}
 
-		component->setid(socket->get_sockid());
 		add_component(component, true, true);
-
-		printf("%s : %d \n", __FILE__, __LINE__);
-
-
 		return component;
 	}
 	else if (strcasecmp(args[0], "udp") == 0)
 	{
 		Socket *socket = new Socket();
 
-		if (!socket->set_conn_addess(host, port, Socket::TRIONES_SOCK_UDP))
+		if (!socket->socket_create(Socket::TRIONES_SOCK_UDP)
+				|| !socket->set_address(host, port, true))
 		{
 			delete socket;
 			OUT_ERROR(NULL, 0, NULL, "set udp address error: %s:%d, %s", host, port, spec);
@@ -335,8 +314,6 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
-		//UDP写操作采用同步行为，所有的UDP ioc都不接收写事件。
-		component->setid(socket->get_sockid());
 		add_component(component, true, false);
 
 		return component;

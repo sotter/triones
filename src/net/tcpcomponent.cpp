@@ -21,7 +21,7 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 {
 	UNUSED(type);
 	_start_conn_time = 0;
-	_is_server = false;
+//	_is_server = false;
 	_socket = socket;
 	_streamer = streamer;
 	_server_adapter = adapter;
@@ -32,7 +32,8 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 TCPComponent::~TCPComponent()
 {
 	__INTO_FUN__
-	disconnect();
+
+//	disconnect();
 	if (_socket)
 	{
 		_socket->close();
@@ -58,7 +59,7 @@ void TCPComponent::disconnect()
 }
 
 //连接到指定的机器, isServer: 是否初始化一个服务器的Connection
-bool TCPComponent::init(bool is_server)
+bool TCPComponent::init()
 {
 	__INTO_FUN__
 
@@ -70,9 +71,9 @@ bool TCPComponent::init(bool is_server)
 	_socket->set_int_option(SO_RCVBUF, 64 * 1024);
 	_socket->set_tcp_nodelay(true);
 
-	if (!is_server)
+	if (get_type() == IOComponent::TRIONES_TCPCONN)
 	{
-		if (!socket_connect() && _auto_reconn == false)
+		if (!socket_connect() && !_auto_reconn)
 		{
 			return false;
 		}
@@ -82,9 +83,23 @@ bool TCPComponent::init(bool is_server)
 		_state = TRIONES_CONNECTED;
 	}
 
-	setServer(is_server);
+	if(_socket->setup(_socket->get_fd()))
+	{
+		//对于tcp客户端来说取得是本端的地址
+		if(get_type() == IOComponent::TRIONES_TCPCONN)
+		{
+			this->setid(_socket->get_sockid());
+		}
+		//
+		else if(get_type() == IOComponent::TRIONES_TCPACTCONN)
+		{
+			this->setid(_socket->get_peer_sockid());
+		}
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 //  连接到socket
@@ -173,6 +188,7 @@ void TCPComponent::close()
 
 	//将socket真正的关闭
 	_socket->close();
+
 	clear_input_buffer();
 }
 
@@ -194,16 +210,16 @@ bool TCPComponent::handle_write_event()
 		{
 			enable_write(true);
 			clear_output_buffer();
-			//todo : 增加日志
-			printf("connect %s success \n", _socket->get_addr().c_str());
+			printf("connect %s success \n", _socket->get_peer_addr().c_str());
+			OUT_ERROR(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
 			_state = TRIONES_CONNECTED;
 		}
 		else
 		{
-			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_addr().c_str(),
+			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
 
-			printf("connect %s fail: %s(%d) \n", _socket->get_addr().c_str(),
+			printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
 
 			if (_sock_event)
@@ -246,21 +262,23 @@ bool TCPComponent::check_timeout(uint64_t now)
 			// 连接超时 2 秒
 			_state = TRIONES_CLOSED;
 			OUT_ERROR(NULL, 0, NULL, "connect to %s timeout", _socket->get_addr().c_str());
+			//关闭写端
 			_socket->shutdown();
 			ret = true;
 		}
 	}
+
 	//客户端不主动做超时检测，只要服务端不给断就一直连接着
-	else if (_state == TRIONES_CONNECTED && _is_server == true && _auto_reconn == false)
+	else if (_state == TRIONES_CONNECTED && get_type() == TRIONES_TCPACTCONN && _auto_reconn == false)
 	{
 		// 连接的时候, 只用在服务器端
 		uint64_t idle = now - _last_use_time;
 		if (idle > static_cast<uint64_t>(900000000))
 		{
-			// 空闲15min断开
+			// 空闲10s 断开
 			_state = TRIONES_CLOSED;
 			OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
-			        _socket->get_addr().c_str(), (idle / static_cast<uint64_t>(1000000)));
+			        _socket->get_addr().c_str(), (idle / static_cast<uint64_t>(10000000)));
 
 			//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
 			_socket->shutdown();
@@ -303,6 +321,7 @@ bool TCPComponent::write_data()
 {
 	__INTO_FUN__
 	// 把 _outputQueue copy到 _myQueue中, 从_myQueue中向外发送
+
 	_output_mutex.lock();
 	_output_queue.moveto(&_my_queue);
 
@@ -374,7 +393,8 @@ bool TCPComponent::write_data()
 
 	if (_write_finish_close)
 	{
-		OUT_ERROR(NULL, 0, NULL, "主动断开.");
+		//主动将队列断开
+		OUT_ERROR(NULL, 0, NULL, "initiate to terminate the connection");
 		return false;
 	}
 
@@ -483,7 +503,7 @@ bool TCPComponent::post_packet(Packet *packet)
 		else
 		{
 			//init内部有驱动连接的过程；
-			bool ret = init(false);
+			bool ret = init();
 			if (!ret) return false;
 		}
 	}
@@ -507,10 +527,10 @@ bool TCPComponent::post_packet(Packet *packet)
 	}
 	_output_mutex.unlock();
 
-	if (_is_server)
-	{
-		sub_ref();
-	}
+//	if (_is_server)
+//	{
+//		sub_ref();
+//	}
 
 	return true;
 }
