@@ -107,8 +107,6 @@ int SocketEvent::get_events(int timeout, IOEvent *ioevents, int cnt)
 
 	int res = epoll_wait(_iepfd, events, cnt, timeout);
 
-	printf("get events = %d \n", res);
-
 	// 初始化
 	if (res > 0)
 	{

@@ -19,17 +19,18 @@ class IOComponent
 public:
 	enum
 	{
-		TRIONES_CONNECTING = 1, TRIONES_CONNECTED, TRIONES_CLOSED, TRIONES_UNCONNECTED
+		TRIONES_CLOSED = 0, TRIONES_CONNECTING, TRIONES_CONNECTED, TRIONES_IOC_STATE_NUM
 	};
 
 	enum
 	{
-		TRIONES_TCPACCETOR = 1,  // TCP listen socket
+		TRIONES_TCPACCETOR = 0,  // TCP listen socket
 		TRIONES_TCPCONN,         // TCP 主动发起连接的socket
 		TRIONES_TCPACTCONN,      // TCP 被动连接的socket，由Acceptor派生出来的
 		TRIONES_UDPACCETOR,      // UDP 服务端socket
 		TRIONES_UDPCONN,         // UDP 主动起连接的socket
-		TRIONES_UDPACTCONN       // UDP server派生出来的component
+		TRIONES_UDPACTCONN,      // UDP server派生出来的component
+		TRIONES_IOC_TYPE_NUM
 	};
 
 	friend class Transport;
@@ -48,6 +49,8 @@ public:
 
 	//超时检测, return false:未超时正常，true超时需要清理
 	virtual bool check_timeout(uint64_t now) = 0;
+
+	virtual std::string info();
 
 	//由子类实现，非必须实现的接口
 	virtual bool post_packet(Packet *packet);
@@ -118,23 +121,6 @@ public:
 		return _id;
 	}
 
-	// 是否连接状态, 包括正在连接
-	bool is_conn_state()
-	{
-		return (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING);
-	}
-
-	void set_state(int state)
-	{
-		_state = state;
-	}
-
-	// 得到连接状态
-	int get_state()
-	{
-		return _state;
-	}
-
 	// 设置是否重连
 	void set_auto_conn(bool on)
 	{
@@ -146,7 +132,6 @@ public:
 	{
 		return (_auto_reconn);
 	}
-
 
 	// 是否在hash_sock中
 	bool is_used()
@@ -160,22 +145,42 @@ public:
 		_inused = b;
 	}
 
+	void set_type(int type)
+	{
+		atomic_set(&_type, type);
+	}
+
 	int get_type()
 	{
-		return _type;
+		return atomic_read(&_type);
+	}
+
+	// 是否连接状态, 包括正在连接
+	bool is_conn_state()
+	{
+		return (get_state() == TRIONES_CONNECTED || get_state() == TRIONES_CONNECTING);
+	}
+
+	void set_state(int state)
+	{
+		atomic_set(&_state, state);
+	}
+
+	// 得到连接状态
+	int get_state()
+	{
+		return atomic_read(&_state);
 	}
 
 public:
-
 	IServerAdapter *_server_adapter;
-
 	IOComponent *_pre;
 	IOComponent *_next;
 
 protected:
 	//对于服务端产生的socket，_id为socket的本端ADDRESS ID
 	//对于服务端产生的socket，_id为socket的对端ADDRESS ID
-	uint64_t  _id;
+	uint64_t _id;
 
 	//绑定的socket句柄，系统所产生的所有socket都有IOC绑定，一个socket可以同时被多个IOC绑定例如UDPACTCONN多个共享一个socket
 	Socket *_socket;
@@ -187,10 +192,10 @@ protected:
 	SocketEvent *_sock_event;
 
 	// IOC类型
-	int _type;
+	atomic_t _type;
 
 	//当前的连接状态
-	int _state;
+	atomic_t _state;
 
 	// 引用计数
 	atomic_t _refcount;

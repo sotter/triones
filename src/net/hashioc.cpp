@@ -7,25 +7,12 @@
 #include "cnet.h"
 #include <limits.h>
 
-
-HashSock::HashSock()
+HashSock::HashSock(Transport *t, size_t capacity, size_t locks)
 {
 	_transport = NULL;
 	_stop = false;
-}
 
-HashSock::~HashSock()
-{
-	if(! _stop)
-	{
-		distroy();
-	}
-}
-
-bool HashSock::init(Transport *t, size_t capacity, size_t locks)
-{
 	_transport = t;
-
 	size_t factor = 4;
 	_ht_size = next_power(capacity / (factor < 1 ? 1 : factor), HT_INITIAL_SIZE);
 	_ht_mask = _ht_size - 1;
@@ -35,8 +22,14 @@ bool HashSock::init(Transport *t, size_t capacity, size_t locks)
 
 	_hash_table = new IOCQueue[_ht_size];
 	_lock_array = new triones::RWMutex[_lock_size];
+}
 
-	return true;
+HashSock::~HashSock()
+{
+	if(! _stop)
+	{
+		distroy();
+	}
 }
 
 //如果返回失败的话，需要外部将自己的ioc删除, 锁由外面进行显式调用
@@ -117,7 +110,6 @@ bool HashSock::erase(uint64_t sockid)
 	return true;
 }
 
-//暂未实现
 IOComponent *HashSock::remove(IOComponent *ioc)
 {
 	if(_stop || ioc == NULL) return NULL;
@@ -129,6 +121,10 @@ IOComponent *HashSock::remove(IOComponent *ioc)
 	queue.erase(ioc);
 	_size--;
 	ct_write_unlock(index);
+
+	_recycle_lock.lock();
+	_recycle.push(ioc);
+	_recycle_lock.unlock();
 
 	return ioc;
 }
@@ -146,6 +142,7 @@ void HashSock::get_del_list(IOCQueue &del)
 	//检查_recycle队列的引用计数
 	_recycle_lock.lock();
 	IOComponent *e = _recycle.begin();
+
 //	for (; e != NULL; e = _recycle.next(e))
 	while(e != NULL)
 	{
@@ -173,13 +170,12 @@ string HashSock::run_info()
 	return runinfo;
 }
 
-int HashSock::check_timeout()
+int HashSock::get_timeout_list(IOCQueue &timeoutlist)
 {
 	if(_stop) return 0;
 
 	uint64_t now = triones::CTimeUtil::get_time();
 
-	IOCQueue timeoutlist;
 	for(size_t i = 0; i < _ht_size; i++)
 	{
 		ct_write_lock(i);
@@ -192,6 +188,7 @@ int HashSock::check_timeout()
 			{
 				IOComponent *cur = e->_next;
 				queue.erase(e);
+				e->set_used(false);
 				timeoutlist.push(e);
 				e = cur;
 			}
@@ -203,13 +200,13 @@ int HashSock::check_timeout()
 		ct_write_unlock(i);
 	}
 
-	IOComponent *e = NULL;
-	while((e = timeoutlist.pop()) != NULL)
-	{
-		//回调这个关闭掉
-		e->close();
-		moveto_recycle(e);
-	}
+//	IOComponent *e = NULL;
+//	while((e = timeoutlist.pop()) != NULL)
+//	{
+//		//回调这个关闭掉
+//		//e->close();
+//		moveto_recycle(e);
+//	}
 
 	return 0;
 }
@@ -227,6 +224,7 @@ void HashSock::distroy()
 
 		while ((e = queue.pop()) != NULL)
 		{
+			printf("delete %lu \n", e->getid());
 			delete e;
 		}
 
@@ -246,6 +244,18 @@ void HashSock::distroy()
 		delete e;
 	}
 	_del_lock.unlock();
+
+	if(_hash_table != NULL)
+	{
+		delete []_hash_table;
+		_hash_table = NULL;
+	}
+
+	if(_lock_array != NULL)
+	{
+		delete []_lock_array;
+		_lock_array = NULL;
+	}
 
 	return;
 }

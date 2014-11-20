@@ -244,7 +244,8 @@ bool Socket::set_address(struct sockaddr_in *addr, bool peer)
 
 bool Socket::connect()
 {
-	if (_fd < 0) return false;
+	if(!socket_create())
+		return false;
 
 	return (0 == ::connect(_fd, (struct sockaddr *) &_peer_address, sizeof(_peer_address)));
 }

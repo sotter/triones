@@ -12,7 +12,6 @@
 
 namespace triones
 {
-
 UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *streamer,
         IServerAdapter *serverAdapter, int type)
 		: IOComponent(owner, socket, type)
@@ -23,7 +22,7 @@ UDPComponent::UDPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 
 UDPComponent::~UDPComponent()
 {
-	if (_type == TRIONES_UDPCONN)
+	if (get_type() == TRIONES_UDPCONN)
 	{
 		if (_socket)
 		{
@@ -36,7 +35,7 @@ UDPComponent::~UDPComponent()
 
 bool UDPComponent::init()
 {
-	if (_type == IOComponent::TRIONES_UDPCONN)
+	if (get_type() == IOComponent::TRIONES_UDPCONN)
 	{
 		if (!_socket->connect())
 		{
@@ -58,16 +57,22 @@ bool UDPComponent::init()
 
 void UDPComponent::close()
 {
+	if(get_state() == TRIONES_CLOSED)
+		return;
+
 	//对于TRIONES_UDPCONN要将socket从epoll中删掉，同时将socket关闭
-	if (_type == TRIONES_UDPCONN && _sock_event)
+	if (get_type() == TRIONES_UDPCONN && _sock_event)
 	{
-		_sock_event->remove_event(_socket);
+		if (_sock_event->remove_event(_socket))
+		{
+			sub_ref();
+		}
 	}
 
 	//只有 TRIONES_CONNECTED 和 TRIONES_CONNECTING会有回调
 	if (is_conn_state())
 	{
-		_state = TRIONES_CLOSED;
+		set_state(TRIONES_CLOSED);
 		//业务层的回调这个回调时需要排队的
 		if(_server_adapter != NULL)
 		{
@@ -75,7 +80,7 @@ void UDPComponent::close()
 		}
 	}
 
-	if (_type == TRIONES_UDPCONN)
+	if (get_type() == TRIONES_UDPCONN)
 	{
 		//将socket真正的关闭
 		_socket->close();
@@ -94,7 +99,7 @@ bool UDPComponent::handle_read_event()
 	__INTO_FUN__
 	_last_use_time = triones::CTimeUtil::get_time();
 	bool rc = false;
-	if (_type == TRIONES_UDPCONN)
+	if (get_type() == TRIONES_UDPCONN)
 	{
 		rc = read_data();
 	}
@@ -107,7 +112,7 @@ bool UDPComponent::read_data()
 	__INTO_FUN__
 
 	//只有TRIONES_UDPCONN类型的才可以调用到这个地方
-	if (_type != TRIONES_UDPCONN)
+	if (get_type() != TRIONES_UDPCONN)
 	{
 		OUT_INFO(NULL, 0, NULL, "read type error, type %d", _type);
 		return false;
@@ -141,9 +146,9 @@ bool UDPComponent::write_data()
 bool UDPComponent::post_packet(Packet *packet)
 {
 	//TRIONES_UDPCONN和TRIONES_UDPACTCONN可以调用到这个地方
-	if (_type != TRIONES_UDPCONN && _type != TRIONES_UDPACTCONN)
+	if (get_type() != TRIONES_UDPCONN && get_type() != TRIONES_UDPACTCONN)
 	{
-		OUT_INFO(NULL, 0, NULL, "write type error, type %d", _type);
+		OUT_INFO(NULL, 0, NULL, "write type error, type %d", get_type());
 		return false;
 	}
 
@@ -159,11 +164,11 @@ bool UDPComponent::post_packet(Packet *packet)
 		send_len = min(len, TRIONES_UDP_MAX_PACK);
 
 		//如果是已经调用connect的情况
-		if (_type == TRIONES_UDPCONN)
+		if (get_type() == TRIONES_UDPCONN)
 		{
 			sendbytes = _socket->write(packet->getData() + offset, send_len);
 		}
-		else if (_type == TRIONES_UDPACTCONN)
+		else if (get_type() == TRIONES_UDPACTCONN)
 		{
 			sendbytes = _socket->sendto(packet->getData() + offset, send_len, _sock_addr);
 		}
@@ -195,6 +200,11 @@ bool UDPComponent::check_timeout(uint64_t now)
 
 	return ret;
 }
+
+//std::string UDPComponent::info()
+//{
+//
+//}
 
 
 } /* namespace triones */

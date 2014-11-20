@@ -64,6 +64,7 @@ bool TCPComponent::init()
 	__INTO_FUN__
 
 	_socket->set_so_blocking(false);
+	/* 在发送完缓冲区中的数据后，跟正常的TCP连接终止序列，套接字接收缓冲区中的数据被丢弃 */
 	_socket->set_solinger(false, 0);
 	_socket->set_reuse_addr(true);
 	_socket->set_int_option(SO_KEEPALIVE, 1);
@@ -80,7 +81,7 @@ bool TCPComponent::init()
 	}
 	else
 	{
-		_state = TRIONES_CONNECTED;
+		set_state(TRIONES_CONNECTED);
 	}
 
 	if(_socket->setup(_socket->get_fd()))
@@ -108,7 +109,7 @@ bool TCPComponent::socket_connect()
 	__INTO_FUN__
 
 	//注意，这个函数必须是可重入的，可能有不同用户的线程调用这个接口，完全依靠state判断也不是很严密的；2014-10-11
-	if (_state == TRIONES_CONNECTED || _state == TRIONES_CONNECTING)
+	if (get_state() == TRIONES_CONNECTED || get_state() == TRIONES_CONNECTING)
 	{
 		return true;
 	}
@@ -121,13 +122,13 @@ bool TCPComponent::socket_connect()
 	{
 		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_peer_addr().c_str());
 
+		printf("connect %s success \n", _socket->get_peer_addr().c_str());
+
 		if (_sock_event)
 		{
 			_sock_event->add_event(_socket, true, true);
 		}
-
-		_state = TRIONES_CONNECTED;
-
+		set_state(TRIONES_CONNECTED);
 	}
 	else
 	{
@@ -135,8 +136,7 @@ bool TCPComponent::socket_connect()
 		if (error == EINPROGRESS || error == EWOULDBLOCK)
 		{
 			printf("connect %s, EINPROGRESS waiting result \n", _socket->get_peer_addr().c_str());
-			_state = TRIONES_CONNECTING;
-
+			set_state(TRIONES_CONNECTING);
 			if (_sock_event)
 			{
 				_sock_event->add_event(_socket, true, true);
@@ -145,9 +145,10 @@ bool TCPComponent::socket_connect()
 		else
 		{
 			_socket->close();
-			_state = TRIONES_CLOSED;
+			set_state(TRIONES_CLOSED);
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
+
 			return false;
 		}
 	}
@@ -163,8 +164,11 @@ void TCPComponent::close()
 {
 	__INTO_FUN__
 
+	if(get_state() == TRIONES_CLOSED)
+		return;
+
 	//如果是异步连接的socket，需要检测关闭的原因， 如果TRIONES_CONNECTING同时还会回调onPacket
-	if (_state == TRIONES_CONNECTING)
+	if (get_state() == TRIONES_CONNECTING)
 	{
 		int error = _socket->get_soerror();
 		OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
@@ -174,15 +178,15 @@ void TCPComponent::close()
 				 strerror(error), error, _socket->get_addr().c_str());
 	}
 
-	if (_sock_event)
+	if (_sock_event && _sock_event->remove_event(_socket))
 	{
-		_sock_event->remove_event(_socket);
+		sub_ref();
 	}
 
 	//只有 TRIONES_CONNECTED 和 TRIONES_CONNECTING会有回调
 	if (is_conn_state())
 	{
-		_state = TRIONES_CLOSED;
+		set_state(TRIONES_CLOSED);
 		disconnect();
 	}
 
@@ -199,26 +203,27 @@ bool TCPComponent::handle_write_event()
 
 	_last_use_time = triones::CTimeUtil::get_time();
 	bool rc = true;
-	if (_state == TRIONES_CONNECTED)
+
+	if (get_state() == TRIONES_CONNECTED)
 	{
 		rc = write_data();
 	}
-	else if (_state == TRIONES_CONNECTING)
+	else if (get_state() == TRIONES_CONNECTING)
 	{
 		int error = _socket->get_soerror();
+
 		if (error == 0)
 		{
 			enable_write(true);
 			clear_output_buffer();
 			printf("connect %s success \n", _socket->get_peer_addr().c_str());
 			OUT_ERROR(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
-			_state = TRIONES_CONNECTED;
+			set_state(TRIONES_CONNECTED);
 		}
 		else
 		{
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
-
 			printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
 
@@ -227,7 +232,7 @@ bool TCPComponent::handle_write_event()
 				_sock_event->remove_event(_socket);
 			}
 			_socket->close();
-			_state = TRIONES_CLOSED;
+			set_state(TRIONES_CLOSED);
 		}
 	}
 
@@ -240,7 +245,7 @@ bool TCPComponent::handle_read_event()
 	__INTO_FUN__
 	_last_use_time = triones::CTimeUtil::get_time();
 	bool rc = false;
-	if (_state == TRIONES_CONNECTED)
+	if (get_state() == TRIONES_CONNECTED)
 	{
 		rc = read_data();
 	}
@@ -250,17 +255,23 @@ bool TCPComponent::handle_read_event()
 //超时检查
 bool TCPComponent::check_timeout(uint64_t now)
 {
-	//	__INTO_FUN__
-	printf("into TCPComponent::checkTimeout \n");
+	printf("into TCPComponent::check_timeout %s\n", info().c_str());
+
+	//client connect的超时时间
+	const uint64_t conn_timeout = (2 * 1000 * 1000);
+	//重连时间间隔
+	const uint64_t reconn_time = (10 * 1000 * 1000);
+	//普通socket没有数据时的超时时间
+	const uint64_t timeout = (18 * 1000 * 1000);
 
 	bool ret = false;
 	// 检查是否连接超时
-	if (_state == TRIONES_CONNECTING)
+	if (get_state() == TRIONES_CONNECTING)
 	{
-		if (_start_conn_time > 0 && _start_conn_time < (now - static_cast<uint64_t>(2000000)))
+		if (_start_conn_time > 0 && _start_conn_time < (now - conn_timeout))
 		{
 			// 连接超时 2 秒
-			_state = TRIONES_CLOSED;
+			set_state(TRIONES_CLOSED);
 			OUT_ERROR(NULL, 0, NULL, "connect to %s timeout", _socket->get_addr().c_str());
 			//关闭写端
 			_socket->shutdown();
@@ -268,46 +279,49 @@ bool TCPComponent::check_timeout(uint64_t now)
 		}
 	}
 
-	//客户端不主动做超时检测，只要服务端不给断就一直连接着
-	else if (_state == TRIONES_CONNECTED && get_type() == TRIONES_TCPACTCONN && _auto_reconn == false)
+	else if (get_state() == TRIONES_CONNECTED)
 	{
-		// 连接的时候, 只用在服务器端
-		uint64_t idle = now - _last_use_time;
-		if (idle > static_cast<uint64_t>(900000000))
+		//客户端不主动做超时检测，只要服务端不给断就一直连接着
+		if (get_type() == TRIONES_TCPACTCONN)
 		{
-			// 空闲10s 断开
-			_state = TRIONES_CLOSED;
-			OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
-			        _socket->get_addr().c_str(), (idle / static_cast<uint64_t>(10000000)));
+			// 连接的时候, 只用在服务器端
+			uint64_t idle = now - _last_use_time;
+			if (idle > timeout)
+			{
+//				// 空闲10s 断开
+//				set_state(TRIONES_CLOSED);
+				OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
+				        _socket->get_peer_addr().c_str(), (idle / static_cast<uint64_t>(1000000)));
 
-			//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
-			_socket->shutdown();
-			ret = true;
+				//流程：本端shutdown后，对端收到收到可读事件后，判定关闭。然后本端收到EPOLLERR|EPOLLHUP事件，触发关闭。
+				//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
+				printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout ==============\n");
+				_socket->shutdown();
+				ret = true;
+			}
 		}
 	}
+
 	//需要重连的socket
-	else if (_state == TRIONES_CLOSED && _is_server == false && _auto_reconn == true)
+	else if (get_state() == TRIONES_CLOSED)
 	{
-		//每隔五秒钟重连一次
-		if (_start_conn_time > 0 && _start_conn_time < (now - static_cast<uint64_t>(5000000)))
+		printf("_state == TRIONES_CLOSED\n");
+
+		if (get_type() == TRIONES_TCPCONN && _auto_reconn)
 		{
-			//不管是否连接成功，都更新连接时间，时间间隔都是5000000
-			_start_conn_time = time(NULL);
-			socket_connect();
+			//每隔五秒钟重连一次
+			if (_start_conn_time > 0 && _start_conn_time < (now - reconn_time))
+			{
+				//不管是否连接成功，都更新连接时间，时间间隔都是5000000
+				_start_conn_time = triones::CTimeUtil::get_time();
+				socket_connect();
+			}
 		}
 	}
-
 	return ret;
 }
 
 ///**** 原先connectiong的部分 *********************/
-//bool TCPComponent::handle_packet(Packet *packet)
-//{
-//	__INTO_FUN__
-//	//客户端的发送没有确认方式，所有client和server都是采用handlerpacket的方式
-//	this->add_ref();
-//	return _server_adapter->syn_handle_packet(this, packet);
-//}
 
 /*** 说明 2014-09-21
  * （1）这个地方应该限定写入次数，如果在单线程的条件下，写入的数据量过大，导致其它的socket的任务一直处于等待状态 ，
@@ -533,6 +547,17 @@ bool TCPComponent::post_packet(Packet *packet)
 //	}
 
 	return true;
+}
+
+string TCPComponent::info()
+{
+	char buffer[512] = { 0 };
+	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d fd:%d addr:%s peer:%s "
+			"start_conn_time %lu last_use_time %lu", getid(), get_type(), get_state(),
+	        _socket->get_fd(), _socket->get_addr().c_str(), _socket->get_peer_addr().c_str(),
+	        _start_conn_time, get_last_use_time());
+
+	return buffer;
 }
 
 } /* namespace triones */

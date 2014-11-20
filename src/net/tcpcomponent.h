@@ -40,6 +40,8 @@ public:
 	// socket读事件处理函数 EOPLLIN
 	virtual bool handle_read_event();
 
+	virtual string info();
+
 	// TransPort定时器定时回调处理的函数
 	bool check_timeout(uint64_t now);
 
@@ -50,9 +52,6 @@ public:
 
 	//postPacket作为客户端，主动发送数据的接口，client可以不用等到conn success回调成功，就调用这个接口。
 	bool post_packet(Packet *packet);
-
-	//readData后直接调用的handlePakcet
-//	bool handle_packet(Packet *packet);
 
 	//写事件，调用的发送函数
 	virtual bool write_data();

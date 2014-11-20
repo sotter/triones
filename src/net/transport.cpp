@@ -9,6 +9,8 @@ namespace triones
 Transport::Transport()
 {
 	_stop = false;
+
+	_hash_socks = new HashSock(this);
 }
 
 Transport::~Transport()
@@ -17,13 +19,17 @@ Transport::~Transport()
 	{
 		stop();
 	}
+
+	if(_hash_socks != NULL)
+	{
+		delete _hash_socks;
+		_hash_socks = NULL;
+	}
 }
 
 // 起动运输层，创建两个线程，一个用于读，一个用写。
 bool Transport::start()
 {
-	_hash_socks.init(this);
-
 	signal(SIGPIPE, SIG_IGN );
 
 	_io_thread.start(this, &_sock_event);
@@ -73,6 +79,7 @@ void Transport::event_loop(SocketEvent *socketEvent)
 
 			if (events[i]._errorOccurred)
 			{
+				printf("handle error event %s \n", ioc->info().c_str());
 				// 错误发生了
 				remove_component(ioc);
 				continue;
@@ -82,11 +89,13 @@ void Transport::event_loop(SocketEvent *socketEvent)
 			bool rc = true;
 			if (events[i]._readOccurred)
 			{
+				printf("handle read event %s \n", ioc->info().c_str());
 				rc = ioc->handle_read_event();
 			}
 
 			if (rc && events[i]._writeOccurred)
 			{
+				printf("handle write event %s \n", ioc->info().c_str());
 				rc = ioc->handle_write_event();
 			}
 			ioc->sub_ref();
@@ -103,25 +112,33 @@ void Transport::event_loop(SocketEvent *socketEvent)
 void Transport::timeout_loop()
 {
 	HashSock::IOCQueue del;
+	HashSock::IOCQueue timeout;
+
 	IOComponent *ioc = NULL;
 	while (!_stop)
 	{
 		//检测超时，并超时的队列放入到超时队列中
-		_hash_socks.check_timeout();
+		_hash_socks->get_timeout_list(timeout);
+		while((ioc = timeout.pop()) != NULL)
+		{
+			printf("timeout_loolp remove ioc %s", ioc->info().c_str());
+			remove_component(ioc);
+			_hash_socks->moveto_recycle(ioc);
+		}
 
 		//获取被回收且引用计数为0的socket
-		_hash_socks.get_del_list(del);
+		_hash_socks->get_del_list(del);
 		while((ioc = del.pop()) != NULL)
 		{
+			printf("delete ioc %s", ioc->info().c_str());
 			printf("==========refcnt = 0, delete IOC ========================\n");
 			delete ioc;
 			ioc = NULL;
 		}
-
-
 		usleep(1 * 1000 * 1000);  // 最小间隔1s
 	}
-	_hash_socks.distroy();
+
+	_hash_socks->distroy();
 }
 
 /* ***********************************
@@ -356,15 +373,21 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 		return;
 	}
 
-	_hash_socks.put(ioc);
-
+	if( _hash_socks->put(ioc))
+	{
+		ioc->set_used(true);
+		ioc->add_ref();
+	}
 
 	// 设置socketevent
 	Socket *socket = ioc->get_socket();
 
 	ioc->set_sockevent(&_sock_event);
 
-	_sock_event.add_event(socket, readOn, writeOn);
+	if(_sock_event.add_event(socket, readOn, writeOn))
+	{
+		ioc->add_ref();
+	}
 
 	return;
 }
@@ -375,6 +398,8 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 // (2) 从sock_hash清除，然后将其放入到待回收的删除队列， 定时器检测待删除队列，当引入计数为0时，将其删除。
 void Transport::remove_component(IOComponent *ioc)
 {
+	printf("remove ioc %lx %lu\n", (unsigned long)ioc, ioc->getid());
+
 	assert(ioc != NULL);
 
 	triones::Guard guard(_iocs_mutex);
@@ -389,12 +414,12 @@ void Transport::remove_component(IOComponent *ioc)
 		return;
 	}
 
-	// 不在iocList中
-//	if (ioc->is_used())
-//	{
-		_hash_socks.remove(ioc);
+//  不在iocList中
+	if (ioc->is_used())
+	{
+		_hash_socks->remove(ioc);
 		ioc->set_used(false);
-//	}
+	}
 
 	return;
 }

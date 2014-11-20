@@ -61,7 +61,7 @@ public:
 
 	IOComponent *get_component(uint64_t id)
 	{
-		return _hash_socks.get(id);
+		return _hash_socks->get(id);
 	}
 
 	// 是否为stop
@@ -80,6 +80,7 @@ private:
 
 	//释放变量
 	void destroy();
+
 private:
 	// 是否被停止
 	bool _stop;
@@ -90,7 +91,7 @@ private:
 	// 超时检查线程
 	triones::TBThread _timeout_thread;
 	// transport采用hash列表
-	HashSock    _hash_socks;
+	HashSock    *_hash_socks;
 
 	triones::Mutex _iocs_mutex;
 };

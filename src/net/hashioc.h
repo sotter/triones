@@ -22,12 +22,10 @@ public:
 	typedef TQueue<IOComponent> IOCQueue;
 
 public:
-	HashSock();
+	// 初始化认100w/4 = 25w个hash bucket, 128的队列锁
+	HashSock(Transport *t, size_t capacity = (1024 * 1024), size_t locks = 128);
 
 	virtual ~HashSock();
-
-	// 初始化认100w/4 = 25w个hash bucket, 128的队列锁
-	bool init(Transport *t, size_t capacity = (1024 * 1024), size_t locks = 128);
 
 	// 如果返回失败的话，需要外部将自己的ioc删除, 锁由外面进行显式调用
 	bool put(IOComponent *ioc);
@@ -48,16 +46,16 @@ public:
 	// 获取HashSock的管理
 	string run_info();
 
-	// 超时检测，清理等；待实现 2014-11-06
-	int check_timeout();
+	// 超时检测，清理等
+	int get_timeout_list(IOCQueue &timeoutlist);
 
 	//清空
 	void distroy();
 
-private:
-
 	//将ioc放入到recycle或是delete队列
 	bool moveto_recycle(IOComponent *ioc);
+
+private:
 
 	//采用IPVS的hash算法，均衡性未经测试, todo: 待测试
 	unsigned int sock_hash(uint64_t sockid);

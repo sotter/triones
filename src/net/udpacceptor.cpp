@@ -82,7 +82,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 {
 	UDPComponent *ioc = NULL;
 
-	ioc = (UDPComponent*)(get_owner()->_hash_socks.get(sockid));
+	ioc = (UDPComponent*)(get_owner()->_hash_socks->get(sockid));
 
 	if(ioc == NULL)
 	{
@@ -93,8 +93,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 			delete ioc;
 			return NULL;
 		}
-
-		get_owner()->_hash_socks.put(ioc);
+		get_owner()->_hash_socks->put(ioc);
 	}
 
 	return ioc;

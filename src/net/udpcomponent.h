@@ -30,10 +30,12 @@ public:
 	void close();
 
 	//TransPort可写的回调函数
-	bool handle_write_event();
+	virtual bool handle_write_event();
 
 	//TransPort可读的回调函数
-	bool handle_read_event();
+	virtual bool handle_read_event();
+
+//	virtual std::string info();
 
 	bool read_data();
 
@@ -45,8 +47,6 @@ public:
 	bool check_timeout(uint64_t now);
 
 private:
-	int _udp_type;
-
 	struct sockaddr_in _sock_addr;
 
 	//这里的_isServer指的accpect出来的socket，而不是listen socket

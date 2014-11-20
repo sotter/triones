@@ -18,8 +18,8 @@ IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type, ui
 	_id = id;
 	_sock_event = NULL;
 	atomic_set(&_refcount, 0);
-	_state = TRIONES_UNCONNECTED;
-	_type = type;
+	set_state(TRIONES_CLOSED);
+	set_type(type);
 	_auto_reconn = false;
 	_pre = _next = NULL;
 	_last_use_time = triones::CTimeUtil::get_time();
@@ -48,6 +48,17 @@ void IOComponent::enable_write(bool on)
 	{
 		_sock_event->set_event(_socket, true, on);
 	}
+}
+
+std::string IOComponent::info()
+{
+	char buffer[512] = { 0 };
+	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d fd:%d addr:%s peer:%s "
+			"last_use_time %lu", getid(), get_type(), get_state(),
+	        _socket->get_fd(), _socket->get_addr().c_str(), _socket->get_peer_addr().c_str(),
+	        get_last_use_time());
+
+	return buffer;
 }
 
 } /* namespace triones */
