@@ -53,8 +53,8 @@ void IOComponent::enable_write(bool on)
 std::string IOComponent::info()
 {
 	char buffer[512] = { 0 };
-	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d fd:%d addr:%s peer:%s "
-			"last_use_time %lu", getid(), get_type(), get_state(),
+	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d used:%d fd:%d addr:%s peer:%s "
+			"last_use_time %lu", getid(), get_type(), get_state(), is_used(),
 	        _socket->get_fd(), _socket->get_addr().c_str(), _socket->get_peer_addr().c_str(),
 	        get_last_use_time());
 

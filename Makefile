@@ -1,32 +1,23 @@
-MAKE	= make
-
+MAKEFLAGS += --no-print-directory
 
 SUB_DIRS = src
 
-all: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} all"; \
-		(cd $$dir && ${MAKE} --no-print-directory all) || exit 1; \
-	done
+.PHONY: all clean install examples clean-examples ${SUB_DIRS}
 
-clean: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} clean"; \
-		(cd $$dir && ${MAKE} --no-print-directory clean) || exit 1; \
-	done
+
+all: ${SUB_DIRS}
+
+clean: ${SUB_DIRS}
 	rm -rf lib/*
 	rm -rf include/*
- 
-install: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} install"; \
-		(cd $$dir && ${MAKE} --no-print-directory install) || exit 1; \
-	done
+
+install: ${SUB_DIRS}
+
+${SUB_DIRS}:
+	$(MAKE) -C $@ $(MAKECMDGOALS) 
 
 examples: 
-	echo "cd examples; ${MAKE} all"
-	(cd examples && ${MAKE} --no-print-directory all)
+	${MAKE} -C examples all
 
 clean-examples:
-	echo "cd examples; ${MAKE} all"
-	(cd examples && ${MAKE} --no-print-directory clean)
+	${MAKE} -C examples clean

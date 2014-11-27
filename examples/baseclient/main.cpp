@@ -48,10 +48,10 @@ int main()
 //  base_client.start("udp:127.0.0.1:7407", 1);
 //  base_server.start("udp:127.0.0.1:7407", 1);
 
-	while (1)
-	{
-		sleep(3);
-	}
+//	while (1)
+//	{
+		sleep(30);
+//	}
 	base_client.destroy();
 	base_server.destroy();
 

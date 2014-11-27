@@ -9,6 +9,8 @@
 #include "tbtimeutil.h"
 #include "../comm/comlog.h"
 #include "stats.h"
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #define TBNET_MAX_TIME (1ll<<62)
 
@@ -285,9 +287,9 @@ bool TCPComponent::check_timeout(uint64_t now)
 		if (get_type() == TRIONES_TCPACTCONN)
 		{
 			// 连接的时候, 只用在服务器端
-			uint64_t idle = now - _last_use_time;
-			if (idle > timeout)
+			if (_last_use_time < now - timeout)
 			{
+				uint64_t idle = now - _last_use_time;
 //				// 空闲10s 断开
 //				set_state(TRIONES_CLOSED);
 				OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
@@ -295,7 +297,7 @@ bool TCPComponent::check_timeout(uint64_t now)
 
 				//流程：本端shutdown后，对端收到收到可读事件后，判定关闭。然后本端收到EPOLLERR|EPOLLHUP事件，触发关闭。
 				//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
-				printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout ==============\n");
+				printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout now(%"PRIu64") last_use_time(%"PRIu64") tiemout(%"PRIu64")==============\n", now, _last_use_time, timeout);
 				_socket->shutdown();
 				ret = true;
 			}
@@ -552,8 +554,8 @@ bool TCPComponent::post_packet(Packet *packet)
 string TCPComponent::info()
 {
 	char buffer[512] = { 0 };
-	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d fd:%d addr:%s peer:%s "
-			"start_conn_time %lu last_use_time %lu", getid(), get_type(), get_state(),
+	snprintf(buffer, sizeof(buffer) - 1, "id:%lu type:%d state:%d used:%d fd:%d addr:%s peer:%s "
+			"start_conn_time %lu last_use_time %lu", getid(), get_type(), get_state(), is_used(),
 	        _socket->get_fd(), _socket->get_addr().c_str(), _socket->get_peer_addr().c_str(),
 	        _start_conn_time, get_last_use_time());
 

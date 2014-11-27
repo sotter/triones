@@ -19,7 +19,7 @@ public:
 	{
 	}
 	virtual bool push(void *packet) = 0;
-	virtual void * pop(void) = 0;
+	virtual void *pop(void) = 0;
 	virtual void free(void *packet) = 0;
 	virtual int size(void) = 0;
 };

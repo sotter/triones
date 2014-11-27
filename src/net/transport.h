@@ -51,9 +51,6 @@ public:
 	IOComponent *connect(const char *spec, triones::TransProtocol *streamer,
 	        bool autoReconn = false);
 
-	//主动断开
-	bool disconnect(TCPComponent *conn);
-
 	void add_component(IOComponent *ioc, bool readOn, bool writeOn);
 
 	// 从iocomponents中删除掉

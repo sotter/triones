@@ -11,7 +11,6 @@
 
 namespace triones
 {
-
 const size_t HT_INITIAL_SIZE = 4;
 const size_t LOCK_INITIAL_SIZE = 1;
 

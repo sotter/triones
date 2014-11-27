@@ -20,6 +20,10 @@ public:
 	BaseServer();
 	virtual ~BaseServer();
 
+	/*
+	 * @param host: 格式"tcp:127.0.0.1:7406"或"tcp:127.0.0.1:7406"
+	 * @param thread: 业务处理线程个数
+	 */
 	void start(const char *host, int thread = 1)
 	{
 		init(thread);
@@ -39,6 +43,7 @@ public:
 //				packet->getDataLen(),
 //				packet->getData());
 
+		// 将收到的数据发送出去，类似于回显服务
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!ioc->post_packet(pack))

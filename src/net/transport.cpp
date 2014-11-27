@@ -105,13 +105,25 @@ void Transport::event_loop(SocketEvent *socketEvent)
 				remove_component(ioc);
 			}
 		}
+
+		//获取被回收且引用计数为0的socket
+		HashSock::IOCQueue del;
+		IOComponent *ioc = NULL;
+		_hash_socks->get_del_list(del);
+		while((ioc = del.pop()) != NULL)
+		{
+			printf("delete ioc %s", ioc->info().c_str());
+			printf("==========refcnt = 0, delete IOC ========================\n");
+			delete ioc;
+			ioc = NULL;
+		}
 	}
 }
 
 //  超时检查, 被run函数调用
 void Transport::timeout_loop()
 {
-	HashSock::IOCQueue del;
+//	HashSock::IOCQueue del;
 	HashSock::IOCQueue timeout;
 
 	IOComponent *ioc = NULL;
@@ -126,15 +138,15 @@ void Transport::timeout_loop()
 			_hash_socks->moveto_recycle(ioc);
 		}
 
-		//获取被回收且引用计数为0的socket
-		_hash_socks->get_del_list(del);
-		while((ioc = del.pop()) != NULL)
-		{
-			printf("delete ioc %s", ioc->info().c_str());
-			printf("==========refcnt = 0, delete IOC ========================\n");
-			delete ioc;
-			ioc = NULL;
-		}
+//		//获取被回收且引用计数为0的socket
+//		_hash_socks->get_del_list(del);
+//		while((ioc = del.pop()) != NULL)
+//		{
+//			printf("delete ioc %s", ioc->info().c_str());
+//			printf("==========refcnt = 0, delete IOC ========================\n");
+//			delete ioc;
+//			ioc = NULL;
+//		}
 		usleep(1 * 1000 * 1000);  // 最小间隔1s
 	}
 
@@ -339,25 +351,6 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 	return NULL;
 }
 
-bool Transport::disconnect(TCPComponent *conn)
-{
-	IOComponent *ioc = NULL;
-	if (conn == NULL)
-	{
-		return false;
-	}
-
-	ioc->set_auto_conn(false);
-	ioc->sub_ref();
-
-	if (ioc->_socket)
-	{
-		ioc->_socket->shutdown();
-	}
-
-	return true;
-}
-
 /*
  * 加入到iocomponents中
  * @param  ioc: IO组件
@@ -376,7 +369,6 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 	if( _hash_socks->put(ioc))
 	{
 		ioc->set_used(true);
-		ioc->add_ref();
 	}
 
 	// 设置socketevent
@@ -398,7 +390,7 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 // (2) 从sock_hash清除，然后将其放入到待回收的删除队列， 定时器检测待删除队列，当引入计数为0时，将其删除。
 void Transport::remove_component(IOComponent *ioc)
 {
-	printf("remove ioc %lx %lu\n", (unsigned long)ioc, ioc->getid());
+	printf("remove ioc %s \n", ioc->info().c_str());
 
 	assert(ioc != NULL);
 
