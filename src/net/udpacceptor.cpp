@@ -5,6 +5,9 @@
  *******************************************************/
 
 #include "cnet.h"
+#include "../comm/comlog.h"
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 namespace triones
 {
@@ -19,7 +22,8 @@ UDPAcceptor::UDPAcceptor(Transport *owner, Socket *socket, TransProtocol *stream
 
 bool UDPAcceptor::init()
 {
-	_socket->set_so_blocking(false);
+	// 注意udp采用阻塞套接字，但只是写阻塞，读非阻塞
+	// _socket->set_so_blocking(false);
 
 	if(_socket->setup(_socket->get_fd()))
 	{
@@ -44,13 +48,23 @@ bool UDPAcceptor::handle_read_event()
 bool UDPAcceptor::read_data()
 {
 	struct sockaddr_in read_addr;
-	int n = _socket->recvfrom(_read_buff, sizeof(_read_buff), read_addr);
+	int n = _socket->nonblock_recvfrom(_read_buff, sizeof(_read_buff), read_addr);
 	if (n < 0) return false;
 
 	//注意sockdi的获取方式
 	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr, true);
-	UDPComponent *ioc = get(sockid);
-	_last_use_time = triones::CTimeUtil::get_time();
+	UDPComponent *ioc = get(sockid, &read_addr);
+	if (NULL == ioc)
+	{
+		// 返回true,否则Transport::event_loop会对UDPAcceptor执行remove_component操作
+		return true;
+	}
+
+	// 设置IOC最后时间
+	uint64_t last_use_time = triones::CTimeUtil::get_time();
+	ioc->set_last_use_time(last_use_time);
+	_last_use_time = last_use_time;
+
 
 	int decode = _streamer->decode(_read_buff, n, &_inputQueue);
 
@@ -78,7 +92,7 @@ bool UDPAcceptor::check_timeout(uint64_t now)
 }
 
 //根据sockid获取对应的UDPComponent, 如果没有找到新建一个
-UDPComponent *UDPAcceptor::get(uint64_t sockid)
+UDPComponent *UDPAcceptor::get(uint64_t sockid, struct sockaddr_in *addr)
 {
 	UDPComponent *ioc = NULL;
 
@@ -86,14 +100,21 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid)
 
 	if(ioc == NULL)
 	{
+		OUT_INFO(NULL, 0, "UDPAcceptor", "new an UDPComponent %"PRIu64"", sockid);
 		ioc = new UDPComponent(NULL, _socket, _streamer, _server_adapter, TRIONES_UDPACTCONN);
 		ioc->setid(sockid);
+		ioc->set_addr(addr);
 		if(!ioc->init())
 		{
 			delete ioc;
 			return NULL;
 		}
-		get_owner()->_hash_socks->put(ioc);
+
+		if (get_owner()->_hash_socks->put(ioc))
+		{
+			ioc->set_used(true);
+			ioc->add_ref();
+		}
 	}
 
 	return ioc;

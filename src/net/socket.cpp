@@ -15,6 +15,7 @@ Socket::Socket()
 
 	_fd = -1;
 	_setup = 0;
+	_type = 0;
 }
 
 Socket::~Socket()
@@ -122,7 +123,7 @@ bool Socket::socket_create(int type)
 	else
 	{
 		_fd = socket(AF_INET, SOCK_DGRAM, 0);
-		_setup ^= TCP_FLAG;
+		_setup &= ~TCP_FLAG;
 	}
 
 	if(_fd < 0)
@@ -135,7 +136,8 @@ bool Socket::socket_create(int type)
 
 bool Socket::set_address(const char *host, unsigned short port, bool peer)
 {
-	if(!socket_create())
+	int type = (_setup & TCP_FLAG) ? TRIONES_SOCK_TCP : TRIONES_SOCK_UDP;
+	if(!socket_create(type))
 		return false;
 
 	struct sockaddr_in *dest = peer ? (&_peer_address) : (&_address);
@@ -198,7 +200,8 @@ bool Socket::set_address(const char *host, unsigned short port, bool peer)
 //(3) 在无法获取_fd的sockname时，已原先的为标准
 bool Socket::set_address(struct sockaddr_in *addr, bool peer)
 {
-	if(!socket_create())
+	int type = (_setup & TCP_FLAG) ? TRIONES_SOCK_TCP : TRIONES_SOCK_UDP;
+	if(!socket_create(type))
 		return false;
 
 	uint8_t init_flag = peer ? PEERINIT_FLAG : ADDRINIT_FLAG;
@@ -244,7 +247,8 @@ bool Socket::set_address(struct sockaddr_in *addr, bool peer)
 
 bool Socket::connect()
 {
-	if(!socket_create())
+	int type = (_setup & TCP_FLAG) ? TRIONES_SOCK_TCP : TRIONES_SOCK_UDP;
+	if(!socket_create(type))
 		return false;
 
 	return (0 == ::connect(_fd, (struct sockaddr *) &_peer_address, sizeof(_peer_address)));
@@ -336,6 +340,23 @@ int Socket::read(void *data, int len)
 	return res;
 }
 
+int Socket::nonblock_read(void *data, int len)
+{
+	if (_fd == -1) return -1;
+
+	int res;
+	do
+	{
+		res = ::recv(_fd, data, len, MSG_DONTWAIT);
+		if (res > 0)
+		{
+			TBNET_COUNT_DATA_READ(res);
+		}
+	} while (res < 0 && errno == EINTR);
+
+	return res;
+}
+
 int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 {
 	if (_fd == -1) return -1;
@@ -346,6 +367,26 @@ int Socket::recvfrom(void *data, int len, sockaddr_in &src)
 	do
 	{
 		res = ::recvfrom(_fd, (void*) data, len, 0, (struct sockaddr *) &src,
+		        (socklen_t*) &addr_len);
+		if (res > 0)
+		{
+			TBNET_COUNT_DATA_READ(res);
+		}
+	} while (res < 0 && errno == EINTR);
+
+	return res;
+}
+
+int Socket::nonblock_recvfrom(void *data, int len, sockaddr_in &src)
+{
+	if (_fd == -1) return -1;
+
+	int res;
+	int addr_len = sizeof(sockaddr_in);
+
+	do
+	{
+		res = ::recvfrom(_fd, (void*) data, len, MSG_DONTWAIT, (struct sockaddr *) &src,
 		        (socklen_t*) &addr_len);
 		if (res > 0)
 		{

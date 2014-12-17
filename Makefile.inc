@@ -18,7 +18,7 @@ ARFLAGS  = -ruv
 RANLIB	 = ranlib
 CXX      = g++
 CC       = gcc
-CFLAGS   = -g -Wall -Wextra -fPIC -Werror -Wno-deprecated
+CFLAGS   = -g -Wall -Wextra -Werror -Wno-deprecated -fPIC 
 CXXFLAGS = ${CFLAGS} ${EXTRA_CFLAGS}
 DLFLAGS  = -shared -Wl,-soname,${DLIB}
 

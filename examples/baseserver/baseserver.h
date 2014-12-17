@@ -21,8 +21,8 @@ public:
 	virtual ~BaseServer();
 
 	/*
-	 * @param host: ¸ñÊ½"tcp:127.0.0.1:7406"»ò"tcp:127.0.0.1:7406"
-	 * @param thread: ÒµÎñ´¦ÀíÏß³Ì¸öÊý
+	 * @param host: æ ¼å¼"tcp:127.0.0.1:7406"æˆ–"tcp:127.0.0.1:7406"
+	 * @param thread: ä¸šåŠ¡å¤„ç†çº¿ç¨‹ä¸ªæ•°
 	 */
 	void start(const char *host, int thread = 1)
 	{
@@ -38,12 +38,12 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-//		printf("receive from %s len %d : %s \n",
-//				ioc->getSocket()->getAddr().c_str(),
-//				packet->getDataLen(),
-//				packet->getData());
+		printf("receive from %s len %d : %.14s \n",
+				ioc->get_socket()->get_addr().c_str(),
+				packet->getDataLen(),
+				packet->getData());
 
-		// ½«ÊÕµ½µÄÊý¾Ý·¢ËÍ³öÈ¥£¬ÀàËÆÓÚ»ØÏÔ·þÎñ
+		// å°†æ”¶åˆ°çš„æ•°æ®å‘é€å‡ºåŽ»ï¼Œç±»ä¼¼äºŽå›žæ˜¾æœåŠ¡
 		Packet *pack = new Packet;
 		pack->writeBytes(_send_buffer, sizeof(_send_buffer));
 		if (!ioc->post_packet(pack))
@@ -51,6 +51,8 @@ public:
 			delete pack;
 			pack = NULL;
 		}
+
+		_transport->remove_component(ioc);
 	}
 private:
 

@@ -20,7 +20,7 @@ HashSock::HashSock(Transport *t, size_t capacity, size_t locks)
 	_lock_size = next_power(locks, LOCK_INITIAL_SIZE);
 	_lock_mask = _lock_size - 1;
 
-	_hash_table = new IOCQueue[_ht_size];
+	_hash_table = new SetQueue[_ht_size];
 	_lock_array = new triones::RWMutex[_lock_size];
 }
 
@@ -37,17 +37,29 @@ bool HashSock::put(IOComponent *ioc)
 {
 	if (_stop || ioc == NULL || ioc->getid() == 0) return false;
 
-	unsigned index = sock_hash(ioc->getid());
-	IOCQueue &queue = _hash_table[index & _ht_mask];
+	unsigned sock_index = sock_hash(ioc->getid());
+	unsigned hash_index = sock_index & _ht_mask;
+	IOCQueue &queue = _hash_table[hash_index]._queue;
+	IocSet &set = _hash_table[hash_index]._set;
 
-	//是否已经有这个sockid的数据，暂时不做检查，由业务层保证sockid的唯一性
-	ct_write_lock(index);
-	printf("==================hashsock put %lu type %d ==============\n", ioc->getid(), ioc->get_type());
-	queue.push(ioc);
-	_size++;
-	ct_write_unlock(index);
 
-	return true;
+	bool result = false;
+
+	{
+		ct_write_lock(hash_index);
+		SetResult ret = set.insert(ioc);
+		if (ret.second)
+		{
+			printf("==================hashsock put %lu type %d ==============\n", ioc->getid(), ioc->get_type());
+			queue.push(ioc);
+			//_size++;
+			add_size();
+			result = true;
+		}
+		ct_write_unlock(hash_index);
+	}
+
+	return result;
 }
 
 //不提供get出去的接口。
@@ -58,19 +70,19 @@ IOComponent* HashSock::get(uint64_t sockid)
 	IOComponent* v = NULL;
 
 	unsigned index = sock_hash(sockid);
-	IOCQueue &queue = _hash_table[index & _ht_mask];
+	IOCQueue &queue = _hash_table[index & _ht_mask]._queue;
 
-	ct_read_lock(index);
-	IOComponent *e = queue.begin();
-	for (; e != NULL; e = queue.next(e))
 	{
-		if (e->getid() == sockid)
+		ct_read_lock(index);
+		for (v = queue.end(); v != NULL; v = queue.pre(v))
 		{
-			v = e;
-			break;
+			if (v->getid() == sockid)
+			{
+				break;
+			}
 		}
+		ct_read_unlock(index);
 	}
-	ct_read_unlock(index);
 
 	return v;
 }
@@ -81,50 +93,94 @@ bool HashSock::erase(uint64_t sockid)
 	if(_stop) return false;
 
 //	IOComponent* v = NULL;
-	unsigned index = sock_hash(sockid);
+	unsigned sock_index = sock_hash(sockid);
+	unsigned hash_index = sock_index & _ht_mask;
 
-	ct_read_lock(index);
-	IOCQueue &queue = _hash_table[index & _ht_mask];
-	IOComponent *e = queue.begin();
-	for (; e != NULL; e = queue.next(e))
+	// 是否查找成功
+	bool found = false;
+	IOComponent* e = NULL;
 	{
-		if (e->getid() == sockid)
+		ct_read_lock(hash_index);
+		IOCQueue &queue = _hash_table[hash_index]._queue;
+		for (e = queue.begin(); e != NULL; e = queue.next(e))
 		{
-			break;
+			if (e->getid() == sockid)
+			{
+				found = true;
+				break;
+			}
 		}
+		ct_read_unlock(hash_index);
 	}
-	ct_read_unlock(index);
 
-	if(e == NULL)
+	// 未找到，删除失败
+	if (!found)
+	{
 		return false;
+	}
 
-	//从队列总将其删除
-	ct_write_lock(index);
-	queue.erase(e);
-	_size--;
-	ct_write_unlock(index);
+	// 删除是否成功
+	bool del_result = false;
+	{
+		ct_write_lock(hash_index);
+		IocSet &set = _hash_table[hash_index]._set;
+		IOCQueue &queue = _hash_table[hash_index]._queue;
+		SetIter iter = set.find(e);
+		if (iter != set.end())
+		{
+			set.erase(e);
 
-	//放入到回收队列
-	moveto_recycle(e);
+			//从队列中将其删除
+			queue.erase(e);
+			//_size--;
+			sub_size();
 
-	return true;
+			//放入到回收队列
+			moveto_recycle(e);
+
+			del_result = true;
+		}
+		ct_write_unlock(hash_index);
+	}
+
+	// 返回删除结果
+	return del_result;
 }
 
 IOComponent *HashSock::remove(IOComponent *ioc)
 {
 	if(_stop || ioc == NULL) return NULL;
 
-	unsigned index = sock_hash(ioc->getid());
+	unsigned sock_index = sock_hash(ioc->getid());
+	unsigned hash_index = sock_index & _ht_mask;
 
-	ct_write_lock(index);
-	IOCQueue &queue = _hash_table[index & _ht_mask];
-	queue.erase(ioc);
-	_size--;
-	ct_write_unlock(index);
+	// 是否删除成功
+	bool del_ret = false;
+	{
+		ct_write_lock(hash_index);
+		IocSet &set = _hash_table[hash_index]._set;
+		IOCQueue &queue = _hash_table[hash_index]._queue;
 
-	_recycle_lock.lock();
-	_recycle.push(ioc);
-	_recycle_lock.unlock();
+		SetIter iter = set.find(ioc);
+		if (iter != set.end())
+		{
+			set.erase(iter);
+
+			queue.erase(ioc);
+			//_size--;
+			sub_size();
+
+			del_ret = true;
+		}
+		ct_write_unlock(hash_index);
+	}
+
+	if (del_ret)
+	{
+		_recycle_lock.lock();
+		_recycle.push(ioc);
+		_recycle_lock.unlock();
+	}
 
 	return ioc;
 }
@@ -179,7 +235,8 @@ int HashSock::get_timeout_list(IOCQueue &timeoutlist)
 	for(size_t i = 0; i < _ht_size; i++)
 	{
 		ct_write_lock(i);
-		IOCQueue &queue = _hash_table[i];
+		IOCQueue &queue = _hash_table[i]._queue;
+		IocSet &set = _hash_table[i]._set;
 		IOComponent *e = queue.begin();
 		while (e != NULL)
 		{
@@ -187,9 +244,19 @@ int HashSock::get_timeout_list(IOCQueue &timeoutlist)
 			if (e->check_timeout(now))
 			{
 				IOComponent *cur = e->_next;
-				queue.erase(e);
-				e->set_used(false);
-				timeoutlist.push(e);
+				{
+					SetIter iter = set.find(e);
+					if (iter != set.end())
+					{
+						set.erase(iter);
+
+						queue.erase(e);
+						//_size--;
+						sub_size();
+
+						timeoutlist.push(e);
+					}
+				}
 				e = cur;
 			}
 			else
@@ -220,8 +287,10 @@ void HashSock::distroy()
 	for (size_t i = 0; i < _ht_size; i++)
 	{
 		ct_write_lock(i);
-		IOCQueue &queue = _hash_table[i];
+		IOCQueue &queue = _hash_table[i]._queue;
+		IocSet &set = _hash_table[i]._set;
 
+		set.clear();
 		while ((e = queue.pop()) != NULL)
 		{
 			printf("delete %lu \n", e->getid());

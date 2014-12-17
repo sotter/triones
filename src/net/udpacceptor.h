@@ -61,7 +61,7 @@ public:
 	bool write_data();
 
 	//根据sockid获取对应的UDPComponent, 如果没有找到新建一个
-	UDPComponent *get(uint64_t sockid);
+	UDPComponent *get(uint64_t sockid, struct sockaddr_in *addr);
 
 private:
 

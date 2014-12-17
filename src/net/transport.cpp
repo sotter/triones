@@ -85,7 +85,7 @@ void Transport::event_loop(SocketEvent *socketEvent)
 				continue;
 			}
 
-			ioc->add_ref();
+			// 反正都是由本线程delete掉ioc，不用加减引用计数了
 			bool rc = true;
 			if (events[i]._readOccurred)
 			{
@@ -98,7 +98,7 @@ void Transport::event_loop(SocketEvent *socketEvent)
 				printf("handle write event %s \n", ioc->info().c_str());
 				rc = ioc->handle_write_event();
 			}
-			ioc->sub_ref();
+			// 反正都是由本线程delete掉ioc，不用加减引用计数了
 
 			if (!rc)
 			{
@@ -273,9 +273,10 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
  * 创建一个Connection，连接到指定的地址，并加入到Socket的监听事件中。
  * @param spec: 格式 [upd|tcp]:ip:port
  * @param streamer: 数据包的双向流，用packet创建，解包，组包。
+ * @param serverAdapter: 略
  * @return  返回一个Connectoion对象指针
  */
-IOComponent *Transport::connect(const char *spec, triones::TransProtocol *streamer, bool autoReconn)
+IOComponent *Transport::connect(const char *spec, triones::TransProtocol *streamer, IServerAdapter *serverAdapter, bool autoReconn)
 {
 	char tmp[1024];
 	char *args[32];
@@ -302,7 +303,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		}
 
 		TCPComponent *component = new TCPComponent(this, socket, streamer,
-				NULL, triones::IOComponent::TRIONES_TCPCONN);
+				serverAdapter, triones::IOComponent::TRIONES_TCPCONN);
 
 		// 设置是否自动重连
 		component->set_auto_conn(autoReconn);
@@ -329,11 +330,14 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
-		UDPComponent *component = new UDPComponent(this, socket, streamer, NULL,
+		UDPComponent *component = new UDPComponent(this, socket, streamer, serverAdapter,
 		        IOComponent::TRIONES_UDPCONN);
 
+		// 设置是否自动重连
+		component->set_auto_conn(autoReconn);
+
 		//对UDP来说， setAddress成功即连接成功
-		component->set_state(triones::IOComponent::TRIONES_CONNECTED);
+		//component->set_state(triones::IOComponent::TRIONES_CONNECTED);
 
 		if (!component->init())
 		{
@@ -343,7 +347,8 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 			return NULL;
 		}
 
-		add_component(component, true, false);
+		//　注册读/写事件，触发写事件后将ioc状态改为connected,然后注销写事件
+		add_component(component, true, true);
 
 		return component;
 	}
@@ -369,6 +374,12 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 	if( _hash_socks->put(ioc))
 	{
 		ioc->set_used(true);
+		ioc->add_ref();
+	}
+	else
+	{
+		delete ioc;
+		return;
 	}
 
 	// 设置socketevent
@@ -376,11 +387,7 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 
 	ioc->set_sockevent(&_sock_event);
 
-	if(_sock_event.add_event(socket, readOn, writeOn))
-	{
-		ioc->add_ref();
-	}
-
+	_sock_event.add_event(socket, readOn, writeOn);
 	return;
 }
 
@@ -411,6 +418,7 @@ void Transport::remove_component(IOComponent *ioc)
 	{
 		_hash_socks->remove(ioc);
 		ioc->set_used(false);
+		ioc->sub_ref();
 	}
 
 	return;

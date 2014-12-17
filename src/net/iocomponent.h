@@ -73,6 +73,11 @@ public:
 		return _last_use_time;
 	}
 
+	void set_last_use_time(uint64_t last_use_time)
+	{
+		_last_use_time = last_use_time;
+	}
+
 	triones::Transport *get_owner()
 	{
 		return _owner;

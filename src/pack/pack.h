@@ -74,7 +74,7 @@ public:
 
 	void moveto(PacketQueue *destQueue);
 
-public:
+private:
 
 	Mutex *_mutex;
 	Packet *_head;

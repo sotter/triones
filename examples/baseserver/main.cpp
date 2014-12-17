@@ -9,13 +9,17 @@
 
 int main()
 {
-	BaseServer base_server;
-	base_server.start("tcp:127.0.0.1:7406", 1);
-	base_server.start("udp:127.0.0.1:7407", 1);
+	CHGLOG("test.log");
+	SETLOGLEVEL(3);
 
-	while(1)
+	BaseServer base_server;
+	//base_server.start("tcp:127.0.0.1:7406", 1);
+	//base_server.start("udp:127.0.0.1:7407", 1);
+	base_server.start("udp:127.0.0.1:5438", 1);
+
+	for (int i = 0; i < 60; ++i)
 	{
-		sleep(5);
+		sleep(1);
 	}
 
 	base_server.destroy();

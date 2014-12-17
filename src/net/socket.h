@@ -63,8 +63,14 @@ public:
 	// 读数据
 	int read(void *data, int len);
 
+	// 非阻塞读数据
+	int nonblock_read(void *data, int len);
+
 	// UDP数据读取
 	int recvfrom(void *data, int len, sockaddr_in &src);
+
+	// 非阻塞UDP数据读取
+	int nonblock_recvfrom(void *data, int len, sockaddr_in &src);
 
 	// 获取本地的address生成的ID
 	uint64_t get_sockid();
@@ -127,6 +133,9 @@ protected:
 
 	//　多实例用一个dnsMutex
 	static triones::Mutex _dns_mutex;
+
+	// 套接字类型：TRIONES_SOCK_TCP还是TRIONES_SOCK_UDP
+	int _type;
 };
 }
 

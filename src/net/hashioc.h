@@ -7,10 +7,12 @@
 #ifndef HASHIOC_H_
 #define HASHIOC_H_
 
+#include <set>
 #include "../comm/tqueue.h"
 
 namespace triones
 {
+
 const size_t HT_INITIAL_SIZE = 4;
 const size_t LOCK_INITIAL_SIZE = 1;
 
@@ -19,6 +21,14 @@ class HashSock
 public:
 
 	typedef TQueue<IOComponent> IOCQueue;
+	typedef std::set<IOComponent*> IocSet;
+
+	typedef struct {
+		IOCQueue _queue;
+		IocSet _set;
+	}SetQueue;
+	typedef std::set<IOComponent*>::iterator SetIter;
+	typedef std::pair<SetIter, bool> SetResult;
 
 public:
 	// 初始化认100w/4 = 25w个hash bucket, 128的队列锁
@@ -83,17 +93,28 @@ private:
 		_lock_array[index & _lock_mask].unlock();
 	}
 
+	int add_size()
+	{
+		return atomic_add_return(1, &_size);
+	}
+
+	void sub_size()
+	{
+		atomic_dec(&_size);
+	}
+
 private:
 	//是否初始化标志位
 	bool _stop;
 	//hash桶
-	IOCQueue *_hash_table;
+	SetQueue *_hash_table;
 	//hash桶个数
 	size_t _ht_size;
 	//hash桶掩码
 	size_t _ht_mask;
 	//当前桶中的数目
-	int _size;
+	//int _size;
+	atomic_t _size;
 	//hash桶锁队列
 	triones::RWMutex *_lock_array;
 	//锁队列的大小

@@ -40,20 +40,27 @@ int main()
 //	delete hash_sock;
 
 	BaseClient base_client;
-	BaseServer base_server;
-	base_server.start("tcp:127.0.0.1:7806", 1);
-	sleep(1);
-	base_client.start("tcp:127.0.0.1:7806", 1);
+	//BaseServer base_server;
+//	base_server.start("tcp:127.0.0.1:7806", 1);
+//	base_client.start("tcp:127.0.0.1:7806", 1);
 
-//  base_client.start("udp:127.0.0.1:7407", 1);
-//  base_server.start("udp:127.0.0.1:7407", 1);
+	//base_client.add_conn("udp:127.0.0.1:5438");
+	base_client.start(1);
+	for (int i = 0; i < 100; ++i)
+	{
+		base_client.add_conn("udp:127.0.0.1:5438");
+	}
 
-//	while (1)
-//	{
-		sleep(30);
-//	}
+	uint64_t count = 0;
+	for (int i = 0; i < 10; i++)
+	{
+		base_client.some_send();
+		printf("some_send count: %lu\n", ++count);
+		sleep(1);
+	}
+
 	base_client.destroy();
-	base_server.destroy();
+	//base_server.destroy();
 
 	OUT_INFO(NULL, 0, NULL, "good luck");
 //	sleep(4);

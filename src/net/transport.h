@@ -46,10 +46,11 @@ public:
 	 *
 	 * @param spec: 格式 [upd|tcp]:ip:port
 	 * @param streamer: 数据包的双向流，用packet创建，解包，组包。
+	 * @param serverAdapter: 略
 	 * @param autoReconn: 是否重连
 	 */
 	IOComponent *connect(const char *spec, triones::TransProtocol *streamer,
-	        bool autoReconn = false);
+	        IServerAdapter *serverAdapter, bool autoReconn = false);
 
 	void add_component(IOComponent *ioc, bool readOn, bool writeOn);
 

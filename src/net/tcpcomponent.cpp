@@ -28,6 +28,7 @@ TCPComponent::TCPComponent(Transport *owner, Socket *socket, TransProtocol *stre
 	_streamer = streamer;
 	_server_adapter = adapter;
 	_write_finish_close = false;
+	OUT_INFO(NULL, 0, NULL, "+++++TCPComponent");
 }
 
 //析构函数
@@ -42,6 +43,8 @@ TCPComponent::~TCPComponent()
 		delete _socket;
 		_socket = NULL;
 	}
+	OUT_INFO(NULL, 0, NULL, ">>>>>TCPComponent");
+	printf("-----TCPComponent\n");
 }
 
 //连接断开，降所有发送队列中的packet全部超时
@@ -59,6 +62,7 @@ void TCPComponent::disconnect()
 		_server_adapter->syn_handle_packet(this, new Packet(IServerAdapter::CMD_DISCONN_PACKET));
 	}
 }
+
 
 //连接到指定的机器, isServer: 是否初始化一个服务器的Connection
 bool TCPComponent::init()
@@ -120,41 +124,63 @@ bool TCPComponent::socket_connect()
 
 	_start_conn_time = triones::CTimeUtil::get_time();
 
-	if (_socket->connect())
-	{
-		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_peer_addr().c_str());
-
-		printf("connect %s success \n", _socket->get_peer_addr().c_str());
-
-		if (_sock_event)
-		{
-			_sock_event->add_event(_socket, true, true);
-		}
-		set_state(TRIONES_CONNECTED);
-	}
-	else
-	{
+	// 链接错误(即非EINPROGRESS也非EWOULDBLOCK)
+	if (!_socket->connect()) {
 		int error = Socket::get_last_error();
-		if (error == EINPROGRESS || error == EWOULDBLOCK)
-		{
-			printf("connect %s, EINPROGRESS waiting result \n", _socket->get_peer_addr().c_str());
-			set_state(TRIONES_CONNECTING);
-			if (_sock_event)
-			{
-				_sock_event->add_event(_socket, true, true);
-			}
-		}
-		else
-		{
+		if (error != EINPROGRESS && error != EWOULDBLOCK) {
 			_socket->close();
 			set_state(TRIONES_CLOSED);
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->get_peer_addr().c_str(),
-			        strerror(error), error);
+					strerror(error), error);
 
 			return false;
 		}
 	}
+
+	// 为了统一起见,这里不关心连接是成功还是EINPROGRESS或EWOULDBLOCK，都注册事件，让事件处理线程来统一地处理连接成功或失败操作
+	set_state(TRIONES_CONNECTING);
+	if (_sock_event)
+	{
+		_sock_event->add_event(_socket, true, true);
+	}
 	return true;
+
+
+//	if (_socket->connect())
+//	{
+//		OUT_INFO(NULL, 0, NULL, "connect %s success \n", _socket->get_peer_addr().c_str());
+//
+//		printf("connect %s success \n", _socket->get_peer_addr().c_str());
+//
+//		if (_sock_event)
+//		{
+//			_sock_event->add_event(_socket, true, true);
+//		}
+//		set_state(TRIONES_CONNECTED);
+//	}
+//	else
+//	{
+//		int error = Socket::get_last_error();
+//		if (error == EINPROGRESS || error == EWOULDBLOCK)
+//		{
+//			printf("connect %s, EINPROGRESS waiting result \n", _socket->get_peer_addr().c_str());
+//			set_state(TRIONES_CONNECTING);
+//			if (_sock_event)
+//			{
+//				_sock_event->add_event(_socket, true, true);
+//			}
+//		}
+//		else
+//		{
+//			_socket->close();
+//			set_state(TRIONES_CLOSED);
+//			OUT_ERROR(NULL, 0, NULL, "connect %s fail, %s(%d)", _socket->get_peer_addr().c_str(),
+//			        strerror(error), error);
+//
+//			return false;
+//		}
+//	}
+//	return true;
 }
 
 /* **********************************************
@@ -180,9 +206,10 @@ void TCPComponent::close()
 				 strerror(error), error, _socket->get_addr().c_str());
 	}
 
-	if (_sock_event && _sock_event->remove_event(_socket))
+	// 移除事件
+	if (_sock_event)
 	{
-		sub_ref();
+		_sock_event->remove_event(_socket);
 	}
 
 	//只有 TRIONES_CONNECTED 和 TRIONES_CONNECTING会有回调
@@ -219,7 +246,7 @@ bool TCPComponent::handle_write_event()
 			enable_write(true);
 			clear_output_buffer();
 			printf("connect %s success \n", _socket->get_peer_addr().c_str());
-			OUT_ERROR(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
+			OUT_INFO(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
 			set_state(TRIONES_CONNECTED);
 		}
 		else
@@ -235,6 +262,12 @@ bool TCPComponent::handle_write_event()
 			}
 			_socket->close();
 			set_state(TRIONES_CLOSED);
+		}
+
+		// 调用回调函数
+		if (_server_adapter) {
+			bool succ = error == 0 ? true : false;
+			_server_adapter->handle_connected(this, succ);
 		}
 	}
 
@@ -277,7 +310,12 @@ bool TCPComponent::check_timeout(uint64_t now)
 			OUT_ERROR(NULL, 0, NULL, "connect to %s timeout", _socket->get_addr().c_str());
 			//关闭写端
 			_socket->shutdown();
-			ret = true;
+
+			if (get_type() != TRIONES_TCPCONN || !_auto_reconn)
+			{
+				// 非自动重连，则delete掉ioc
+				ret = true;
+			}
 		}
 	}
 
@@ -287,9 +325,10 @@ bool TCPComponent::check_timeout(uint64_t now)
 		if (get_type() == TRIONES_TCPACTCONN)
 		{
 			// 连接的时候, 只用在服务器端
-			if (_last_use_time < now - timeout)
+			uint64_t last_use_time = _last_use_time;	// 因为_last_use_time随时在变，所以将其值拷贝出来
+			if (last_use_time < now - timeout)
 			{
-				uint64_t idle = now - _last_use_time;
+				uint64_t idle = now - last_use_time;
 //				// 空闲10s 断开
 //				set_state(TRIONES_CLOSED);
 				OUT_INFO(NULL, 0, NULL, "%s %d(s) with no data, disconnect it",
@@ -299,6 +338,8 @@ bool TCPComponent::check_timeout(uint64_t now)
 				//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
 				printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout now(%"PRIu64") last_use_time(%"PRIu64") tiemout(%"PRIu64")==============\n", now, _last_use_time, timeout);
 				_socket->shutdown();
+
+				// 服务端检测连接空闲时间过长，则delete掉ioc
 				ret = true;
 			}
 		}
@@ -319,6 +360,11 @@ bool TCPComponent::check_timeout(uint64_t now)
 				socket_connect();
 			}
 		}
+		else
+		{
+			// 非自动重连，则delete掉ioc
+			ret = true;
+		}
 	}
 	return ret;
 }
@@ -338,22 +384,28 @@ bool TCPComponent::write_data()
 	__INTO_FUN__
 	// 把 _outputQueue copy到 _myQueue中, 从_myQueue中向外发送
 
-	_output_mutex.lock();
-	_output_queue.moveto(&_my_queue);
-
-	//如果socket中的数据已经全部发送完毕了，置可写事件为false，然后退出来
-	if (_my_queue.size() == 0 && _output.getDataLen() == 0)
-	{
-		this->enable_write(false);
-		_output_mutex.unlock();
-		return true;
-	}
-	_output_mutex.unlock();
-
 	Packet *packet;
 	int ret;
 	int writeCnt = 0;
-	int myQueueSize = _my_queue.size();
+	int myQueueSize = 0;
+
+	{
+		_output_mutex.lock();
+		_output_queue.moveto(&_my_queue);
+
+		//如果socket中的数据已经全部发送完毕了，置可写事件为false，然后退出来
+		if (_my_queue.size() == 0 && _output.getDataLen() == 0)
+		{
+			this->enable_write(false);
+			_output_mutex.unlock();
+			return true;
+		}
+
+		// myQueueSize = _my_queue.size();
+		_output_mutex.unlock();
+	}
+
+
 
 	//todo:这块代码需要重写，packet本身就是从_output继承过来的
 	//如果write出现ERRORAGAIN的情况，下一个包继续发送；
@@ -362,8 +414,11 @@ bool TCPComponent::write_data()
 		while (_output.getDataLen() < READ_WRITE_SIZE)
 		{
 			// 队列空了就退出
-			if (myQueueSize == 0) break;
+			//if (myQueueSize == 0) break;
 			packet = _my_queue.pop();
+			if (packet == NULL) {
+				break;
+			}
 
 			//为什么将packet放入到_output中发送，如果发送有失败的情况，可以将未发送的数据放入到out_put中；
 			//而且是易扩展，如果packet不是继承DataBuffer,可以将packet序列成数据流。
@@ -394,7 +449,7 @@ bool TCPComponent::write_data()
 		 * 	 那么这块数据去了哪里？
 		 * (3)最终myqueue和output中未发送完的数据都到哪里去了
 		 **********/
-	} while (ret > 0 && _output.getDataLen() == 0 && myQueueSize > 0 && writeCnt < 10);
+	} while (ret > 0 && _output.getDataLen() == 0 && packet != NULL && writeCnt < 10);
 
 	// 紧缩
 	_output.shrink();
@@ -460,7 +515,7 @@ bool TCPComponent::read_data()
 	}
 
 	//对读到的数据业务回调处理，注意这个地方并不负责packet的释放，而是由外部来释放的
-	if (_input_queue._size > 0)
+	if (_input_queue.size() > 0)
 	{
 		if (_server_adapter->_batch_push_packet)
 		{

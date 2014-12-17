@@ -54,11 +54,7 @@ IOComponent *BaseService::connect(const char *spec, int streamer, bool autoRecon
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
 	if (tp == NULL) return NULL;
 
-	IOComponent *tc = _transport->connect(spec, tp, autoReconn);
-	if (tc != NULL)
-	{
-		tc->set_server_adapter(this);
-	}
+	IOComponent *tc = _transport->connect(spec, tp, this, autoReconn);
 
 	return tc;
 }

@@ -43,6 +43,19 @@ public:
 		return false;
 	}
 
+	// 处理连接结果
+	virtual bool handle_connected(IOComponent *connection, bool succ)
+	{
+		printf("---call handle_connected -----\n");
+		UNUSED(connection);
+		if (succ) {
+			printf("(^_^) (^_^) (^_^) (^_^) (^_^)　connect succ!\n");
+		} else {
+			printf("(>_<) (>_<) (>_<)　(>_<)　(>_<)　connect failed!\n");
+		}
+		return false;
+	}
+
 	// 构造函数
 	IServerAdapter()
 	{

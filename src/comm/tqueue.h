@@ -84,7 +84,12 @@ public:
 		}
 		else
 		{
-			(dest._tail)->_next = dest._head;
+//			(dest._tail)->_next = dest._head;
+//			dest._tail = _tail;
+//			dest._size += _size;
+//			move(size);
+			(dest._tail)->_next = _head;
+			_head->_pre = dest._tail;
 			dest._tail = _tail;
 			dest._size += _size;
 			move(size);
@@ -148,7 +153,7 @@ public:
 		return _size;
 	}
 
-//protected:
+protected:
 	// 清除队列的所有数据
 	void clear(void)
 	{

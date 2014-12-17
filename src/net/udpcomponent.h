@@ -46,7 +46,18 @@ public:
 	//检查超时，检查_online并回调超时处理函数
 	bool check_timeout(uint64_t now);
 
+	// udp连接
+	bool socket_connect();
+
+	void set_addr(struct sockaddr_in *addr)
+	{
+		if (addr) {
+			_sock_addr = *addr;
+		}
+	}
+
 private:
+	uint64_t _start_conn_time;				// 开始连接时间
 	struct sockaddr_in _sock_addr;
 
 	//这里的_isServer指的accpect出来的socket，而不是listen socket

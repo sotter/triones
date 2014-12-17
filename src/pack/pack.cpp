@@ -170,6 +170,7 @@ Packet *PacketQueue::pop()
 	{
 		return NULL;
 	}
+
 	Packet *packet = _head;
 	_head = _head->_next;
 	if (_head == NULL)
@@ -188,6 +189,7 @@ void PacketQueue::push(Packet *packet)
 	{
 		return;
 	}
+
 	packet->_next = NULL;
 	if (_tail == NULL)
 	{
@@ -238,6 +240,7 @@ void PacketQueue::moveto(PacketQueue *destQueue)
 	{
 		return;
 	}
+
 	if (destQueue->_tail == NULL)
 	{
 		destQueue->_head = _head;
@@ -246,8 +249,10 @@ void PacketQueue::moveto(PacketQueue *destQueue)
 	{
 		destQueue->_tail->_next = _head;
 	}
+
 	destQueue->_tail = _tail;
 	destQueue->_size += _size;
+
 	_head = _tail = NULL;
 	_size = 0;
 }
