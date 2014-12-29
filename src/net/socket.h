@@ -73,10 +73,10 @@ public:
 	int nonblock_recvfrom(void *data, int len, sockaddr_in &src);
 
 	// 获取本地的address生成的ID
-	uint64_t get_sockid();
+	uint64_t get_sockid(bool is_tcp);
 
 	// 获取对端address生成的ID
-	uint64_t get_peer_sockid();
+	uint64_t get_peer_sockid(bool is_tcp);
 
 	// 获取_address对应的字符串形式
 	std::string get_addr();

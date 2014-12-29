@@ -79,7 +79,7 @@ void Transport::event_loop(SocketEvent *socketEvent)
 
 			if (events[i]._errorOccurred)
 			{
-				printf("handle error event %s \n", ioc->info().c_str());
+				//printf("handle error event %s \n", ioc->info().c_str());
 				// 错误发生了
 				remove_component(ioc);
 				continue;
@@ -89,13 +89,13 @@ void Transport::event_loop(SocketEvent *socketEvent)
 			bool rc = true;
 			if (events[i]._readOccurred)
 			{
-				printf("handle read event %s \n", ioc->info().c_str());
+				//printf("handle read event %s \n", ioc->info().c_str());
 				rc = ioc->handle_read_event();
 			}
 
 			if (rc && events[i]._writeOccurred)
 			{
-				printf("handle write event %s \n", ioc->info().c_str());
+				//printf("handle write event %s \n", ioc->info().c_str());
 				rc = ioc->handle_write_event();
 			}
 			// 反正都是由本线程delete掉ioc，不用加减引用计数了
@@ -112,8 +112,8 @@ void Transport::event_loop(SocketEvent *socketEvent)
 		_hash_socks->get_del_list(del);
 		while((ioc = del.pop()) != NULL)
 		{
-			printf("delete ioc %s", ioc->info().c_str());
-			printf("==========refcnt = 0, delete IOC ========================\n");
+			//printf("delete ioc %s", ioc->info().c_str());
+			//printf("==========refcnt = 0, delete IOC ========================\n");
 			delete ioc;
 			ioc = NULL;
 		}
@@ -133,7 +133,7 @@ void Transport::timeout_loop()
 		_hash_socks->get_timeout_list(timeout);
 		while((ioc = timeout.pop()) != NULL)
 		{
-			printf("timeout_loolp remove ioc %s", ioc->info().c_str());
+			//printf("timeout_loolp remove ioc %s", ioc->info().c_str());
 			remove_component(ioc);
 			_hash_socks->moveto_recycle(ioc);
 		}
@@ -233,7 +233,7 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 			return NULL;
 		}
 
-		acceptor->setid(socket->get_sockid());
+		acceptor->setid(socket->get_sockid(true));
 		// 加入到iocomponents中，及注册可读到socketevent中
 		add_component(acceptor, true, false);
 
@@ -259,7 +259,7 @@ IOComponent *Transport::listen(const char *spec, triones::TransProtocol *streame
 			return NULL;
 		}
 
-		acceptor->setid(socket->get_sockid());
+		acceptor->setid(socket->get_sockid(false));
 		// 加入到iocomponents中，及注册可读到socketevent中
 		add_component(acceptor, true, false);
 		// 返回
@@ -342,7 +342,7 @@ IOComponent *Transport::connect(const char *spec, triones::TransProtocol *stream
 		if (!component->init())
 		{
 			delete component;
-			printf("init updcomponent fail: %s:%d \n", host, port);
+			//printf("init updcomponent fail: %s:%d \n", host, port);
 			OUT_ERROR(NULL, 0, NULL, "init updcomponent fail: %s:%d", host, port);
 			return NULL;
 		}
@@ -397,7 +397,7 @@ void Transport::add_component(IOComponent *ioc, bool readOn, bool writeOn)
 // (2) 从sock_hash清除，然后将其放入到待回收的删除队列， 定时器检测待删除队列，当引入计数为0时，将其删除。
 void Transport::remove_component(IOComponent *ioc)
 {
-	printf("remove ioc %s \n", ioc->info().c_str());
+	//printf("remove ioc %s \n", ioc->info().c_str());
 
 	assert(ioc != NULL);
 

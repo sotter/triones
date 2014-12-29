@@ -27,7 +27,7 @@ bool UDPAcceptor::init()
 
 	if(_socket->setup(_socket->get_fd()))
 	{
-		this->setid(_socket->get_sockid());
+		this->setid(_socket->get_sockid(false));
 		return true;
 	}
 
@@ -52,7 +52,7 @@ bool UDPAcceptor::read_data()
 	if (n < 0) return false;
 
 	//注意sockdi的获取方式
-	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr, true);
+	uint64_t sockid = triones::sockutil::sock_addr2id(&read_addr, false, true);
 	UDPComponent *ioc = get(sockid, &read_addr);
 	if (NULL == ioc)
 	{
@@ -100,7 +100,7 @@ UDPComponent *UDPAcceptor::get(uint64_t sockid, struct sockaddr_in *addr)
 
 	if(ioc == NULL)
 	{
-		OUT_INFO(NULL, 0, "UDPAcceptor", "new an UDPComponent %"PRIu64"", sockid);
+		OUT_INFO(NULL, 0, "UDPAcceptor", "new an UDPComponent %" PRIu64"", sockid);
 		ioc = new UDPComponent(NULL, _socket, _streamer, _server_adapter, TRIONES_UDPACTCONN);
 		ioc->setid(sockid);
 		ioc->set_addr(addr);

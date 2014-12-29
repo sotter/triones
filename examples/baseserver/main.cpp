@@ -15,9 +15,9 @@ int main()
 	BaseServer base_server;
 	//base_server.start("tcp:127.0.0.1:7406", 1);
 	//base_server.start("udp:127.0.0.1:7407", 1);
-	base_server.start("udp:127.0.0.1:5438", 1);
+	base_server.start("tcp:127.0.0.1:9494", 1);
 
-	for (int i = 0; i < 60; ++i)
+	for (;;)
 	{
 		sleep(1);
 	}

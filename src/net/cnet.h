@@ -58,6 +58,7 @@ class UDPAcceptor;
 class UDPComponent;
 class PacketQueueThread;
 class ConnectionManager;
+class TransProtocol;
 
 }
 
@@ -83,7 +84,7 @@ class ConnectionManager;
 #include "transport.h"
 #include "baseservice.h"
 
-#define __DEBUG_INFO__
+//#define __DEBUG_INFO__
 
 #ifdef __DEBUG_INFO__
 #define __INTO_FUN__  printf("into %s\n", __PRETTY_FUNCTION__);

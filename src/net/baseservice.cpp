@@ -10,7 +10,7 @@ namespace triones
 {
 
 BaseService::BaseService()
-		: _inited(false)
+: _inited(false)
 {
 	_packqueue = new triones::CDataQueue<triones::Packet>(MAXQUEUE_LENGTH);
 	_queue_thread = new QueueThread(_packqueue, this);
@@ -49,7 +49,7 @@ bool BaseService::init(int thread_num /* = 1 */)
 
 IOComponent *BaseService::connect(const char *spec, int streamer, bool autoReconn)
 {
-	if (!init()) return false;
+	if (!init()) return NULL;
 
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
 	if (tp == NULL) return NULL;
@@ -62,7 +62,7 @@ IOComponent *BaseService::connect(const char *spec, int streamer, bool autoRecon
 
 IOComponent* BaseService::listen(const char *spec, int streamer)
 {
-	if (!init()) return false;
+	if (!init()) return NULL;
 
 	triones::TransProtocol *tp = __trans_protocol.get(streamer);
 	if (tp == NULL) return NULL;
@@ -105,7 +105,9 @@ void BaseService::handle_queue(void *packet)
 void BaseService::handle_packet(IOComponent *ioc, Packet *packet)
 {
 	__INTO_FUN__
-	printf("BaseService handle pack %s, %s", ioc->get_socket()->get_addr().c_str(), packet->_pdata);
+	UNUSED(ioc);
+	UNUSED(packet);
+	//printf("BaseService handle pack %s, %s", ioc->get_socket()->get_addr().c_str(), packet->_pdata);
 	return;
 }
 

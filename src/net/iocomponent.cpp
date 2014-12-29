@@ -10,6 +10,8 @@ namespace triones
 {
 
 IOComponent::IOComponent(triones::Transport *owner, Socket *socket, int type, uint64_t id)
+: _user_id("")
+, _streamer(NULL)
 {
 	assert(socket);
 	_owner = owner;

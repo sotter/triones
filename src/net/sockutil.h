@@ -17,7 +17,8 @@ class sockutil
 
 public:
 	//将网络地址转换为一个64位的无符号整型的标识ID，方便key值的的操作,如果作为string性能很低
-	static uint64_t sock_addr2id(struct sockaddr_in *sockaddr, bool is_server = false);
+	//static uint64_t sock_addr2id(struct sockaddr_in *sockaddr, bool is_server = false);
+	static uint64_t sock_addr2id(struct sockaddr_in *sockaddr, bool is_tcp, bool is_server);
 
 	//将ID回转为网络地址类型
 	static void sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr);

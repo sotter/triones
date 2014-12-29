@@ -41,7 +41,7 @@ bool TCPAcceptor::init()
 {
 	if(_socket->setup(_socket->get_fd()))
 	{
-		this->setid(_socket->get_sockid());
+		this->setid(_socket->get_sockid(true));
 		return true;
 	}
 
@@ -53,7 +53,7 @@ bool TCPAcceptor::init()
 // 当有数据可读时被Transport调用
 bool TCPAcceptor::handle_read_event()
 {
-	printf("bool TCPAcceptor::handle_read_event() \n");
+	//printf("bool TCPAcceptor::handle_read_event() \n");
 
 	Socket *socket;
 	while ((socket = ((ServerSocket*) _socket)->accept()) != NULL)
@@ -68,7 +68,7 @@ bool TCPAcceptor::handle_read_event()
 			return true;
 		}
 		// 对于服务端来说，component的ID，由对端地址生成；
-		component->setid(socket->get_peer_sockid());
+		component->setid(socket->get_peer_sockid(true));
 		// 加入到iocomponents中，及注册可读到socketevent中
 		_owner->add_component(component, true, false);
 	}

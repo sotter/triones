@@ -44,7 +44,7 @@ TCPComponent::~TCPComponent()
 		_socket = NULL;
 	}
 	OUT_INFO(NULL, 0, NULL, ">>>>>TCPComponent");
-	printf("-----TCPComponent\n");
+	//printf("-----TCPComponent\n");
 }
 
 //连接断开，降所有发送队列中的packet全部超时
@@ -95,12 +95,12 @@ bool TCPComponent::init()
 		//对于tcp客户端来说取得是本端的地址
 		if(get_type() == IOComponent::TRIONES_TCPCONN)
 		{
-			this->setid(_socket->get_sockid());
+			this->setid(_socket->get_sockid(true));
 		}
 		//
 		else if(get_type() == IOComponent::TRIONES_TCPACTCONN)
 		{
-			this->setid(_socket->get_peer_sockid());
+			this->setid(_socket->get_peer_sockid(true));
 		}
 
 		return true;
@@ -202,8 +202,8 @@ void TCPComponent::close()
 		OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 		        strerror(error), error);
 
-		printf("connect %s fail: %s(%d), local addr %s \n", _socket->get_peer_addr().c_str(),
-				 strerror(error), error, _socket->get_addr().c_str());
+		//printf("connect %s fail: %s(%d), local addr %s \n", _socket->get_peer_addr().c_str(),
+				 //strerror(error), error, _socket->get_addr().c_str());
 	}
 
 	// 移除事件
@@ -245,7 +245,7 @@ bool TCPComponent::handle_write_event()
 		{
 			enable_write(true);
 			clear_output_buffer();
-			printf("connect %s success \n", _socket->get_peer_addr().c_str());
+			//printf("connect %s success \n", _socket->get_peer_addr().c_str());
 			OUT_INFO(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
 			set_state(TRIONES_CONNECTED);
 		}
@@ -253,8 +253,8 @@ bool TCPComponent::handle_write_event()
 		{
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 			        strerror(error), error);
-			printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
-			        strerror(error), error);
+			//printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
+			        //strerror(error), error);
 
 			if (_sock_event)
 			{
@@ -290,7 +290,7 @@ bool TCPComponent::handle_read_event()
 //超时检查
 bool TCPComponent::check_timeout(uint64_t now)
 {
-	printf("into TCPComponent::check_timeout %s\n", info().c_str());
+	//printf("into TCPComponent::check_timeout %s\n", info().c_str());
 
 	//client connect的超时时间
 	const uint64_t conn_timeout = (2 * 1000 * 1000);
@@ -336,7 +336,7 @@ bool TCPComponent::check_timeout(uint64_t now)
 
 				//流程：本端shutdown后，对端收到收到可读事件后，判定关闭。然后本端收到EPOLLERR|EPOLLHUP事件，触发关闭。
 				//todo: 调用shutdown会触发一个可读事件吗，触发可读事件然后将其销毁， 但是UDP这个问题该怎么处理呢？ 2014-11-04
-				printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout now(%"PRIu64") last_use_time(%"PRIu64") tiemout(%"PRIu64")==============\n", now, _last_use_time, timeout);
+				//printf("TRIONES_TCPACTCONN TRIONES_CONNECTED timeout now(%"PRIu64") last_use_time(%"PRIu64") tiemout(%"PRIu64")==============\n", now, _last_use_time, timeout);
 				_socket->shutdown();
 
 				// 服务端检测连接空闲时间过长，则delete掉ioc
@@ -348,7 +348,7 @@ bool TCPComponent::check_timeout(uint64_t now)
 	//需要重连的socket
 	else if (get_state() == TRIONES_CLOSED)
 	{
-		printf("_state == TRIONES_CLOSED\n");
+		//printf("_state == TRIONES_CLOSED\n");
 
 		if (get_type() == TRIONES_TCPCONN && _auto_reconn)
 		{
@@ -589,19 +589,14 @@ bool TCPComponent::post_packet(Packet *packet)
 //	}
 //	_output_mutex.unlock();
 
-	_output_mutex.lock();
 	// 写入到outputqueue中
+	_output_mutex.lock();
 	_output_queue.push(packet);
 	if (_output_queue.size() == 1U)
 	{
 		enable_write(true);
 	}
 	_output_mutex.unlock();
-
-//	if (_is_server)
-//	{
-//		sub_ref();
-//	}
 
 	return true;
 }

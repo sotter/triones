@@ -1,6 +1,6 @@
 MAKE     = make
 
-SUB_DIRS = baseclient baseserver
+SUB_DIRS = baseclient baseserver chatxml chatserver chatclient 
 
 all: 
 	@for dir in ${SUB_DIRS}; do \

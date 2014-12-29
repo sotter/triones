@@ -50,7 +50,7 @@ bool HashSock::put(IOComponent *ioc)
 		SetResult ret = set.insert(ioc);
 		if (ret.second)
 		{
-			printf("==================hashsock put %lu type %d ==============\n", ioc->getid(), ioc->get_type());
+			//printf("==================hashsock put %lu type %d ==============\n", ioc->getid(), ioc->get_type());
 			queue.push(ioc);
 			//_size++;
 			add_size();
@@ -293,7 +293,7 @@ void HashSock::distroy()
 		set.clear();
 		while ((e = queue.pop()) != NULL)
 		{
-			printf("delete %lu \n", e->getid());
+			//printf("delete %lu \n", e->getid());
 			delete e;
 		}
 

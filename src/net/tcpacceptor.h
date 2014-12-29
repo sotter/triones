@@ -46,9 +46,6 @@ public:
 	//超时检查
 	virtual bool check_timeout(uint64_t now);
 
-private:
-	TransProtocol *_streamer;      // 数据包解析器
-
 };
 
 } /* namespace triones */

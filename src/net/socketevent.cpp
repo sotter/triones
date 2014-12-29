@@ -119,23 +119,23 @@ int SocketEvent::get_events(int timeout, IOEvent *ioevents, int cnt)
 		ioevents[i]._ioc = (IOComponent*) events[i].data.ptr;
 		if (events[i].events & (EPOLLERR | EPOLLHUP))
 		{
-//#ifdef __DEBUG_INFO__
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLERR|EPOLLHUP \n", __FILE__, __LINE__, res);
-//#endif
+#endif
 			ioevents[i]._errorOccurred = true;
 		}
 		if ((events[i].events & EPOLLIN) != 0)
 		{
-//#ifdef __DEBUG_INFO__
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLIN \n", __FILE__, __LINE__, res);
-//#endif
+#endif
 			ioevents[i]._readOccurred = true;
 		}
 		if ((events[i].events & EPOLLOUT) != 0)
 		{
-//#ifdef __DEBUG_INFO__
+#ifdef __DEBUG_INFO__
 			printf("%s %d res = %d EPOLLOUT \n", __FILE__, __LINE__, res);
-//#endif
+#endif
 			ioevents[i]._writeOccurred = true;
 		}
 	}

@@ -62,7 +62,6 @@ private:
 
 	//这里的_isServer指的accpect出来的socket，而不是listen socket
 	bool _isServer;                         // 是服务器端
-	TransProtocol *_streamer;               // Packet解析
 
 	PacketQueue _outputQueue;               // 发送队列
 	PacketQueue _inputQueue;                // 接收队列

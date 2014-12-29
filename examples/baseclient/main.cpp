@@ -46,17 +46,17 @@ int main()
 
 	//base_client.add_conn("udp:127.0.0.1:5438");
 	base_client.start(1);
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
-		base_client.add_conn("udp:127.0.0.1:5438");
+		base_client.add_conn("tcp:127.0.0.1:9494");
 	}
 
 	uint64_t count = 0;
-	for (int i = 0; i < 10; i++)
+	for (;;)
 	{
 		base_client.some_send();
 		printf("some_send count: %lu\n", ++count);
-		sleep(1);
+		sleep(5);
 	}
 
 	base_client.destroy();

@@ -11,9 +11,19 @@
 #ifndef IOCOMPONENT_H_
 #define IOCOMPONENT_H_
 
+#include <string>
+
+#include "atomic.h"
+
+namespace triones {
+class IServerAdapter;
+class Packet;
+class Socket;
+class SocketEvent;
+} /* namespace triones */
+
 namespace triones
 {
-
 class IOComponent
 {
 public:
@@ -177,6 +187,23 @@ public:
 		return atomic_read(&_state);
 	}
 
+	// 设置user_id
+	void set_userid(const std::string& user_id)
+	{
+		_user_id = user_id;
+	}
+
+	// 获取user_id
+	std::string get_userid()
+	{
+		return _user_id;
+	}
+
+	triones::TransProtocol *get_trans_proto()
+	{
+		return _streamer;
+	}
+
 public:
 	IServerAdapter *_server_adapter;
 	IOComponent *_pre;
@@ -213,6 +240,12 @@ protected:
 
 	// 最近使用的系统时间
 	uint64_t _last_use_time;
+
+	// user_id
+	std::string _user_id;
+
+	// 封包、拆包器
+	triones::TransProtocol *_streamer;
 };
 } /* namespace triones */
 #endif /* IOCOMPONENT_H_ */

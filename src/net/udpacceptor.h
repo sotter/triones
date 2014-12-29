@@ -70,9 +70,6 @@ private:
 	//这里的_isServer指的accpect出来的socket，而不是listen socket
 	bool _isServer;
 
-	// Packet解析
-	TransProtocol *_streamer;
-
 	// 发送队列锁
 	triones::Mutex _output_mutex;
 

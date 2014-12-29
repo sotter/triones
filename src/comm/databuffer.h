@@ -572,7 +572,7 @@ public:
 				unsigned char *newbuf = (unsigned char *) malloc(bufsize);
 				if (newbuf == NULL)
 				{
-					printf("expand data buffer failed, length: %d", bufsize);
+					//printf("expand data buffer failed, length: %d", bufsize);
 				}
 				assert(newbuf != NULL);
 				if (dlen > 0)

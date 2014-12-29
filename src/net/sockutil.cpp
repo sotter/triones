@@ -14,13 +14,32 @@ namespace triones
 //第二个字节表示sin_family， 在TCP/IP协议中family大小没有超过127
 //第三个字节由sin_port组成
 //第四个字节由sin_addr组成
-uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr, bool is_server)
+//uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr, bool is_server)
+//{
+//	uint64_t sockid = is_server ? 1 : 0;
+//	sockid <<= 8;
+//	sockid |= sockaddr->sin_family;
+//	sockid <<= 8;
+//	sockid |= ntohs(sockaddr->sin_port);
+//	sockid <<= 32;
+//	sockid |= sockaddr->sin_addr.s_addr;
+//
+//	return sockid;
+//}
+
+uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr, bool is_tcp, bool is_server)
 {
-	uint64_t sockid = is_server ? 1 : 0;
-	sockid <<= 8;
-	sockid |= sockaddr->sin_family;
-	sockid <<= 8;
-	sockid |= ntohs(sockaddr->sin_port);
+	uint64_t sockid = 0;
+
+	sockid <<= 1;
+	sockid |= (is_tcp ? 1 : 0);
+
+	sockid <<= 1;
+	sockid |= (is_server ? 1: 0);
+
+	sockid <<= 16;
+	sockid |= sockaddr->sin_port;
+
 	sockid <<= 32;
 	sockid |= sockaddr->sin_addr.s_addr;
 
@@ -28,11 +47,20 @@ uint64_t sockutil::sock_addr2id(struct sockaddr_in *sockaddr, bool is_server)
 }
 
 //将ID回转为网络地址类型
+//void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
+//{
+//	sockaddr->sin_family = (sockid >> 48) && 0xff;
+//	sockaddr->sin_port = htons(sockid >> 32);
+//	sockaddr->sin_addr.s_addr = sockid;
+//
+//	return;
+//}
+
 void sockutil::sock_id2addr(uint64_t sockid, struct sockaddr_in *sockaddr)
 {
-	sockaddr->sin_family = (sockid >> 48) && 0xff;
-	sockaddr->sin_port = htons(sockid >> 32);
-	sockaddr->sin_addr.s_addr = sockid;
+	sockaddr->sin_family = AF_INET;
+	sockaddr->sin_port = (sockid >> 32) & 0X0000FFFF;			// 取高32位的低16位
+	sockaddr->sin_addr.s_addr = sockid & 0X00000000FFFFFFFF;	// 取低32位
 
 	return;
 }

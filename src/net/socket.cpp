@@ -490,33 +490,33 @@ std::string Socket::get_peer_addr()
 	return dest;
 }
 
-uint64_t Socket::get_sockid()
+uint64_t Socket::get_sockid(bool is_tcp)
 {
 	if (_fd == -1) return 0;
 
 	if(_iocomponent->get_type() == IOComponent::TRIONES_TCPCONN
 			|| _iocomponent->get_type() == IOComponent::TRIONES_UDPCONN)
 	{
-		return sockutil::sock_addr2id(&_address, false);
+		return sockutil::sock_addr2id(&_address, is_tcp, false);
 	}
 	else
 	{
-		return sockutil::sock_addr2id(&_address, true);
+		return sockutil::sock_addr2id(&_address, is_tcp, true);
 	}
 }
 
-uint64_t Socket::get_peer_sockid()
+uint64_t Socket::get_peer_sockid(bool is_tcp)
 {
 	if (_fd == -1) return 0;
 
 	if(_iocomponent->get_type() == IOComponent::TRIONES_TCPCONN
 			|| _iocomponent->get_type() == IOComponent::TRIONES_UDPCONN)
 	{
-		return sockutil::sock_addr2id(&_peer_address, false);
+		return sockutil::sock_addr2id(&_peer_address, is_tcp, false);
 	}
 	else
 	{
-		return sockutil::sock_addr2id(&_peer_address, true);
+		return sockutil::sock_addr2id(&_peer_address, is_tcp, true);
 	}
 
 	return 0;
@@ -573,11 +573,11 @@ void Socket::show_addr()
 		}
 	}
 
-	const char *type = _setup & TCP_FLAG ? "tcp" : "udp";
+	//const char *type = _setup & TCP_FLAG ? "tcp" : "udp";
 
-	printf("local address : %s:%s peer address : %s:%s \n", type,
-			sockutil::sock_addr2str(&address).c_str(), type,
-			sockutil::sock_addr2str(&peer_address).c_str());
+//	printf("local address : %s:%s peer address : %s:%s \n", type,
+//			sockutil::sock_addr2str(&address).c_str(), type,
+//			sockutil::sock_addr2str(&peer_address).c_str());
 
 	return ;
 }

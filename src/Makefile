@@ -5,8 +5,8 @@ RANLIB	 = ranlib
 
 TRIONES_HOME ?= ${shell readlink -n -e .. }
 
-SUB_DIRS =  comm net pack utils 
-OBJ_DIRS =  comm net pack utils 
+SUB_DIRS =  comm net pack utils user tinyxml
+OBJ_DIRS =  comm net pack utils user tinyxml
 
 all: 
 	@for dir in ${SUB_DIRS}; do \

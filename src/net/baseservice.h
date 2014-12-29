@@ -41,8 +41,6 @@ public:
 	//上层业务销毁的回调函数，非必须实现；
 	virtual bool destroy_service();
 
-	virtual bool handle_connected(IOComponent *connection, bool succ);
-
 	//停止线程，释放相关资源；
 	bool destroy();
 

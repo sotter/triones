@@ -52,7 +52,7 @@ bool UDPComponent::init()
 			return false;
 		}
 
-		this->setid(_socket->get_sockid());
+		this->setid(_socket->get_sockid(false));
 	} else if (type == IOComponent::TRIONES_UDPACTCONN) {
 		set_state(TRIONES_CONNECTED);
 	}
@@ -141,7 +141,7 @@ bool UDPComponent::handle_write_event()
 		{
 			set_state(TRIONES_CONNECTED);
 			is_connected = true;
-			printf("connect %s success \n", _socket->get_peer_addr().c_str());
+			//printf("connect %s success \n", _socket->get_peer_addr().c_str());
 			OUT_INFO(NULL, 0, NULL, "connect %s success", _socket->get_peer_addr().c_str());
 		}
 		else
@@ -155,8 +155,8 @@ bool UDPComponent::handle_write_event()
 
 			OUT_ERROR(NULL, 0, NULL, "connect %s fail: %s(%d)", _socket->get_peer_addr().c_str(),
 				strerror(error), error);
-			printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
-				strerror(error), error);
+			//printf("connect %s fail: %s(%d) \n", _socket->get_peer_addr().c_str(),
+				//strerror(error), error);
 		}
 
 		// 调用回调函数
@@ -274,7 +274,7 @@ bool UDPComponent::post_packet(Packet *packet)
 //todo : 2014-10-29
 bool UDPComponent::check_timeout(uint64_t now)
 {
-	printf("into UDPComponent::checkTimeout \n");
+	//printf("into UDPComponent::checkTimeout \n");
 
 	//client connect的超时时间
 	const uint64_t conn_timeout = (2 * 1000 * 1000);
