@@ -1,8 +1,8 @@
 /******************************************************
-*   FileName: main.cpp
-*     Author: triones  2014-10-9
-*Description:
-*******************************************************/
+ *   FileName: main.cpp
+ *     Author: triones  2014-10-9
+ *Description:
+ *******************************************************/
 
 #include "baseserver.h"
 #include  "comm/comlog.h"
@@ -27,7 +27,6 @@ int main()
 
 //	IOComponent *ioc = new TCPAcceptor(NULL, NULL, NULL, NULL);
 //	delete ioc;
-
 
 }
 

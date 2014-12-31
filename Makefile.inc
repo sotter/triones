@@ -12,55 +12,69 @@
 # SLIB
 # DLIB
 
-MAKE     = make --no-print-directory 
 AR       = ar
 ARFLAGS  = -ruv
-RANLIB	 = ranlib
+RANLIB   = ranlib
 CXX      = g++
 CC       = gcc
-CFLAGS   = -g -Wall -Wextra -Werror -Wno-deprecated -fPIC 
-CXXFLAGS = ${CFLAGS} ${EXTRA_CFLAGS}
+
+CPPFLAGS = -D_USE_MACRO -D_CSERVER_DEBUG_ -D_USE_SECOND -D_USE_SINGLE -D_GPS_STAT ${PRJ_VER_DEF}
+CPPFLAGS+= ${EXTRA_CPPFLAGS}
+CFLAGS   = -Wall -Wextra -Werror -fPIC 
+CFLAGS  += ${EXTRA_CFLAGS}
+CXXFLAGS = ${CFLAGS} 
 DLFLAGS  = -shared -Wl,-soname,${DLIB}
 
-INC_DIR  = ${TRIONES_HOME}/include/triones/${MODULE}
-LIB_DIR  = ${TRIONES_HOME}/lib
-BIN_DIR  = ${TRIONES_HOME}/bin
+PREFIX  ?= ${TRIONES_HOME}
 
-INC_PATH = -I. ${EXTRA_INC_PATH}
-LIB_PATH = -L. ${EXTRA_LIB_PATH}
+INC_PATH = ${EXTRA_INC_PATH}
+LIB_PATH = ${EXTRA_LIB_PATH}
 LIBS     = ${EXTRA_LIBS}
 
-OBJS     = $(addprefix ./var/, $(addsuffix .o, $(basename $(SRCS))))
+INCS ?= $(wildcard *.h)
+SRCS ?= $(wildcard *.cpp) $(wildcard *.c)
+
+OBJS  = $(addsuffix .o, $(basename ${SRCS}))
+OBJS += $(addprefix var/, $(addsuffix .o, $(basename $(notdir ${EXTRA_SRCS}))))
 
 all: ${BIN} ${SLIB} ${DLIB}
 
 clean: 
-	rm -rf ./var ${BIN} ${SLIB} ${DLIB}
+	rm -rf ./var ${OBJS} ${BIN} ${SLIB} ${DLIB}
 
 install:
-	@if [ ! -d "${INC_DIR}" ]; then mkdir -p ${INC_DIR}; fi
-	@if [ ! -d "${LIB_DIR}" ]; then mkdir -p ${LIB_DIR}; fi
-	@if [ ! -d "${BIN_DIR}" ]; then mkdir -p ${BIN_DIR}; fi
-	@if [ "x${INCS}" != "x" ]; then cp -r ${INCS} ${INC_DIR}; fi
-	@if [ "x${BIN}" != "x" ];  then cp ${BIN} ${BIN_DIR}; fi
-	@if [ "x${SLIB}" != "x" ]; then cp ${SLIB} ${LIB_DIR}; fi
-	@if [ "x${DLIB}" != "x" ]; then cp ${DLIB} ${LIB_DIR}; fi
+	@if [ ! -d "${PREFIX}/include/triones/${MODULE}" ]; then mkdir -p ${PREFIX}/include/triones/${MODULE}; fi
+	@if [ ! -d "${PREFIX}/lib" ];     then mkdir -p ${PREFIX}/lib; fi
+	@if [ ! -d "${PREFIX}/bin" ];     then mkdir -p ${PREFIX}/bin; fi
+	@if [ "x${INCS}" != "x" ]; then cp -r ${INCS} ${PREFIX}/include/triones/${MODULE}; fi
+	@if [ "x${BIN}"  != "x" ]; then cp -f ${BIN}  ${PREFIX}/bin; fi
+	@if [ "x${SLIB}" != "x" ]; then cp -f ${SLIB} ${PREFIX}/lib; fi
+	@if [ "x${DLIB}" != "x" ]; then cp -f ${DLIB} ${PREFIX}/lib; fi
 
-./var/%.o: %.cpp
-	mkdir -p ./var
-	${CXX} -o $@ -c ${CXXFLAGS} ${INC_PATH} $< 
+%.o: %.cpp
+	${CXX} -o $@ $< -c ${CXXFLAGS} ${CPPFLAGS} ${INC_PATH}
 
-./var/%.o: %.c
+%.o: %.c
+	${CC} -o $@ $< -c ${CFLAGS} ${CPPFLAGS} ${INC_PATH}
+
+var/%.o: ${EXTRA_SRCS}
 	mkdir -p ./var
-	${CC} -o $@ -c ${CXXFLAGS} ${INC_PATH} $< 
+	$(eval SRC_$* := $(filter %$*.c %$*.cpp, $^))
+	@if test "$(findstring .cpp,${SRC_$*})"; then \
+		echo "${CXX} -o $@ ${SRC_$*} -c ${CXXFLAGS} ${CPPFLAGS} ${INC_PATH}" ; \
+		${CXX} -o $@ ${SRC_$*} -c ${CXXFLAGS} ${CPPFLAGS} ${INC_PATH} ; \
+	else \
+		echo "${CC}  -o $@ ${SRC_$*} -c ${CFLAGS} ${CPPFLAGS} ${INC_PATH}" ; \
+		${CC}  -o $@ ${SRC_$*} -c ${CFLAGS} ${CPPFLAGS} ${INC_PATH} ; \
+	fi;
 
 ${BIN}: ${OBJS}
-	${CXX} -o $@ ${CXXFLAGS} ${INC_PATH} ${LIB_PATH} ${LIBS} $^ 
+	${CXX} -o $@ $^ ${LDFLAGS} ${LDLIBS}
 
 ${SLIB}: ${OBJS}
 	${AR} ${ARFLAGS} $@ $^
 	${RANLIB} $@
 
 ${DLIB}: ${OBJS}
-	${CXX} -o $@ ${DLFLAGS} ${CXXFLAGS} ${INC_PATH} ${LIB_PATH} ${LIBS} $^ 
+	${CXX} -o $@ $^ ${DLFLAGS} ${LDFLAGS} ${LDLIBS}
 

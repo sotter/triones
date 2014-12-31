@@ -9,7 +9,7 @@
 #ifndef __DATAQUEUE_H__
 #define __DATAQUEUE_H__
 
-#include "./queuethread.h"
+#include "queuethread.h"
 
 namespace triones
 {

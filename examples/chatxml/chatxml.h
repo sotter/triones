@@ -10,10 +10,12 @@
 #include <list>
 #include <string>
 
-namespace triones {
+namespace triones
+{
 
 class Command;
-class ChatXml {
+class ChatXml
+{
 public:
 	ChatXml();
 	virtual ~ChatXml();
@@ -25,7 +27,8 @@ public:
 	static std::string build_logout_xml(const std::string& name);
 
 	// 生成发送消息xml
-	static std::string build_send_xml(const std::string& msg, const std::string& from_name, const std::list<std::string>& tousers);
+	static std::string build_send_xml(const std::string& msg, const std::string& from_name,
+	        const std::list<std::string>& tousers);
 
 	// 生成群发消息xml
 	static std::string build_groupsend_xml(const std::string& msg, const std::string& from_name);
@@ -43,49 +46,59 @@ public:
 	static Command* parse_command(const std::string& xml);
 };
 
-class Command {
+class Command
+{
 public:
-	virtual ~Command() {}
+	virtual ~Command()
+	{
+	}
 	std::string _cmd;
 };
 
-class Login : public Command {
+class Login: public Command
+{
 public:
 	std::string _name;
 	std::string _pwd;
 };
 
-class Logout : public Command {
+class Logout: public Command
+{
 public:
 	std::string _name;
 };
 
-class SendMsg : public Command {
+class SendMsg: public Command
+{
 public:
 	std::string _msg;
 	std::string _from_name;
 	std::list<std::string> _to_list;
 };
 
-class GroupSendMsg : public Command {
+class GroupSendMsg: public Command
+{
 public:
 	std::string _msg;
 	std::string _from_name;
 };
 
-class Receive : public Command {
+class Receive: public Command
+{
 public:
 	std::string _from_name;
 	std::string _msg;
 };
 
-class Response : public Command {
+class Response: public Command
+{
 public:
 	std::string _request;
 	std::string _result;
 };
 
-class HeartBeat : public Command {
+class HeartBeat: public Command
+{
 public:
 };
 

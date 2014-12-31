@@ -13,7 +13,7 @@
 namespace triones
 {
 
-class BaseServer : public BaseService
+class BaseServer: public BaseService
 {
 public:
 
@@ -28,7 +28,7 @@ public:
 	{
 		init(thread);
 		IOComponent* ioc = this->listen(host, triones::TPROTOCOL_TEXT);
-		if(ioc == NULL)
+		if (ioc == NULL)
 		{
 			printf("listen error \n");
 		}
@@ -38,10 +38,8 @@ public:
 
 	virtual void handle_packet(IOComponent *ioc, Packet *packet)
 	{
-		printf("receive from %s len %d : %.14s \n",
-				ioc->get_socket()->get_addr().c_str(),
-				packet->getDataLen(),
-				packet->getData());
+		printf("receive from %s len %d : %.14s \n", ioc->get_socket()->get_addr().c_str(),
+		        packet->getDataLen(), packet->getData());
 
 		// 将收到的数据发送出去，类似于回显服务
 		Packet *pack = new Packet;

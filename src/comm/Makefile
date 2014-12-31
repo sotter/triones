@@ -15,17 +15,6 @@ TRIONES_HOME ?= ${shell readlink -n -e ../.. }
 
 MODULE = comm
 
-INCS = atomic.h comlog.h clog.h cond.h databuffer.h 
-INCS += dataqueue.h netorder.h tqueue.h exception.h monitor.h 
-INCS += mutex.h queuethread.h ref.h sem.h singleton.h thread.h util.h
-INCS += commhash.h
-
-SRCS = clog.cpp  monitor.cpp mutex.cpp queuethread.cpp ref.cpp 
-SRCS += sem.cpp thread.cpp util.cpp 
-SRCS += commhash.cpp
-
-SLIB = libcomm.a
-
-EXTRA_LIB_PATH =
+SLIB = libtrionescomm.a
 
 include ${TRIONES_HOME}/Makefile.inc

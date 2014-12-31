@@ -23,7 +23,7 @@ CXX = g++
 LDFLAGS = -L../../lib -L../chatxml
 
 # Define the -l library name(s)
-LIBS = -lpthread -ltriones -lrt -ltrionesnet -ltrionesuser -lcomm -lchatxml -ltinyxml
+LIBS = -lpthread -ltriones -lrt -ltrionesnet -ltrionesuser -ltrionescomm -lchatxml -ltinyxml
 
 LIB_FLAGS = $(CXXFLAGS) $(LDFLAGS) $(LIBS) -shared -Wl,-soname,$(DYNAMIC_LIB)
 

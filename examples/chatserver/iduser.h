@@ -9,11 +9,13 @@
 #define IDUSER_H_
 #include "user/idbaseuser.h"
 
-namespace triones {
+namespace triones
+{
 
 class TransProtocol;
 
-class IdUser : public IdBaseUser {
+class IdUser: public IdBaseUser
+{
 public:
 	IdUser();
 	virtual ~IdUser();

@@ -1,19 +1,33 @@
-MAKEFLAGS += --no-print-directory
+.DEFAULT_GOAL = auto
+CPU_NUM   ?= ${shell getconf _NPROCESSORS_ONLN }
+MAKEFLAGS += -j${CPU_NUM} --no-print-directory
+PREFIX    ?= $(shell pwd)
 
-SUB_DIRS = src
+MODS = src
 
-.PHONY: all clean install examples clean-examples ${SUB_DIRS}
+.PHONY: auto tar all clean install tar examples clean-examples ${MODS}
 
+auto:
+	make clean
+	make all
+	make install
 
-all: ${SUB_DIRS}
+all: ${MODS}
 
-clean: ${SUB_DIRS}
+clean: ${MODS}
 	rm -rf lib/*
 	rm -rf include/*
 
-install: ${SUB_DIRS}
+install: ${MODS}
 
-${SUB_DIRS}:
+tar:
+	@if [ ! -d "${PREFIX}/triones" ]; then mkdir -p ${PREFIX}/triones; fi
+	rsync -a --exclude=".*" ./bin ${PREFIX}/triones
+	rsync -a --exclude=".*" ./lib ${PREFIX}/triones
+	rsync -a --exclude=".*" ./include ${PREFIX}/triones
+	tar -cvf ${PREFIX}/triones.tar.gz ${PREFIX}/triones
+
+${MODS}:
 	$(MAKE) -C $@ $(MAKECMDGOALS) 
 
 examples: 

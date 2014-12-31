@@ -14,9 +14,11 @@
 #include "user/idbaseuser.h"
 #include "iduser.h"
 
-namespace triones {
+namespace triones
+{
 
-class ChatServer : public BaseService {
+class ChatServer: public BaseService
+{
 public:
 	ChatServer();
 	virtual ~ChatServer();

@@ -6,6 +6,7 @@
  */
 
 #include "idbaseuser.h"
+#include "../net/tbtimeutil.h"
 
 namespace triones
 {
@@ -16,20 +17,46 @@ IdBaseUser::IdBaseUser()
 	// TODO Auto-generated constructor stub
 	_lock_array = new triones::RWMutex[HASH_SIZE];
 	_id_user = new IdMap[HASH_SIZE];
+	_last_del_time = 0;
 }
 
 IdBaseUser::~IdBaseUser() {
-	// TODO Auto-generated destructor stub
-	if (_lock_array)
+	// 从_id_user中删除用户
+	for (size_t hash_index = 0; hash_index < _hash_size; ++hash_index)
 	{
-		delete[] _lock_array;
-		_lock_array = NULL;
+		ct_write_lock(hash_index);
+		for (IdIter it = _id_user->begin(); it != _id_user->end(); )
+		{
+			BaseUser* tmp = it->second;
+			delete tmp;
+			_id_user->erase(it++);
+		}
+		ct_write_unlock(hash_index);
 	}
 
+	// 从_del_list中删除用户
+	_del_lock.lock();
+	for (DelIter it = _del_list.begin(); it != _del_list.end(); )
+	{
+		BaseUser* tmp = *it;
+		delete tmp;
+
+		_del_list.erase(it++);
+	}
+	_del_lock.unlock();
+
+	// 删除_id_user
 	if (_id_user)
 	{
 		delete[] _id_user;
 		_id_user = NULL;
+	}
+
+	// 删除锁
+	if (_lock_array)
+	{
+		delete[] _lock_array;
+		_lock_array = NULL;
 	}
 }
 
@@ -88,11 +115,42 @@ bool IdBaseUser::remove_user(size_t hash_index, const std::string& id)
 	std::map<std::string, BaseUser*>::iterator it = _id_user[hash_index].find(id);
 	if (it != _id_user[hash_index].end())
 	{
+		// 加入待删除列表
+		BaseUser* tmp = it->second;
+		_del_lock.lock();
+		_del_list.push_back(tmp);
+		_del_lock.unlock();
+
+		// 从map中移除用户
 		_id_user[hash_index].erase(it);
 		ret = true;
 	}
 
 	return ret;
+}
+
+// 释放user
+void IdBaseUser::timer_work(uint64_t now)
+{
+	if (now - _last_del_time > 5)
+	{
+		_del_lock.lock();
+		for (DelIter it = _del_list.begin(); it != _del_list.end(); )
+		{
+			// 释放内存
+			BaseUser* tmp = *it;
+			if (tmp->get_ref() <= 0)
+			{
+				delete tmp;
+			}
+
+			// 从列表中删除指针
+			_del_list.erase(it++);
+		}
+		_del_lock.unlock();
+
+		_last_del_time = triones::CTimeUtil::get_time();
+	}
 }
 
 // 加读锁

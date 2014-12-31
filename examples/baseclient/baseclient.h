@@ -14,7 +14,7 @@
 namespace triones
 {
 
-class BaseClient : public BaseService
+class BaseClient: public BaseService
 {
 public:
 	BaseClient()
@@ -45,7 +45,8 @@ public:
 		for (it = _conn_list.begin(); it != _conn_list.end(); ++it)
 		{
 			Packet *pack = new Packet;
-			if (!pack) {
+			if (!pack)
+			{
 				usleep(10);
 				continue;
 			}
@@ -65,7 +66,7 @@ public:
 				printf("post_packet succ!\n");
 			}
 
-			// ¼õÉÙÍøÂç¶ª°üÂÊ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç¶ªï¿½ï¿½ï¿½ï¿½
 			usleep(10);
 		}
 	}

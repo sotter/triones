@@ -3,7 +3,7 @@
  * date  : 2014-08-28
  */
 
-#include <cstdint>
+#include <stdint.h>
 #include <string>
 #include <cstring>
 #include <net/if.h>
@@ -145,7 +145,7 @@ bool ipv4_is_local(const struct in_addr &addr /* out */, bool skip_loopback/* = 
 		}
 
 		sa = (struct sockaddr_in *) (&ifs[i].ifr_addr);
-		if (sa->sin_addr.s_addr != addr)
+		if (sa->sin_addr.s_addr != addr.s_addr)
 		{
 			continue;
 		}

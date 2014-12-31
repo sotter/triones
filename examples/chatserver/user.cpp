@@ -7,14 +7,16 @@
 
 #include "user.h"
 
-namespace triones {
+namespace triones
+{
 
-User::User() {
+User::User()
+{
 	// TODO Auto-generated constructor stub
-
 }
 
-User::~User() {
+User::~User()
+{
 	// TODO Auto-generated destructor stub
 }
 } /* namespace triones */

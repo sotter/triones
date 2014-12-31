@@ -9,9 +9,11 @@
 #define USER_H_
 #include "user/baseuser.h"
 
-namespace triones {
+namespace triones
+{
 
-class User : public BaseUser {
+class User: public BaseUser
+{
 public:
 	User();
 	virtual ~User();

@@ -18,7 +18,8 @@ void test()
 	std::string xml = ChatXml::build_login_xml("vpn", "xb8s#FKD");
 	printf("login:\n%s", xml.c_str());
 	Command* cmd = ChatXml::parse_command(xml);
-	if (cmd != NULL) {
+	if (cmd != NULL)
+	{
 		printf("cmd: %s\n", cmd->_cmd.c_str());
 		Login *login = dynamic_cast<Login*>(cmd);
 		delete login;
@@ -27,7 +28,8 @@ void test()
 	xml = ChatXml::build_logout_xml("vpn");
 	printf("logout:\n%s", xml.c_str());
 	cmd = ChatXml::parse_command(xml);
-	if (cmd != NULL) {
+	if (cmd != NULL)
+	{
 		printf("cmd: %s\n", cmd->_cmd.c_str());
 		Logout *logout = dynamic_cast<Logout*>(cmd);
 		delete logout;
@@ -41,7 +43,8 @@ void test()
 	xml = ChatXml::build_send_xml("How are you?", "me", tousers);
 	printf("send:\n%s", xml.c_str());
 	cmd = ChatXml::parse_command(xml);
-	if (cmd != NULL) {
+	if (cmd != NULL)
+	{
 		printf("cmd: %s\n", cmd->_cmd.c_str());
 		SendMsg *sendmsg = dynamic_cast<SendMsg*>(cmd);
 		delete sendmsg;
@@ -50,7 +53,8 @@ void test()
 	xml = ChatXml::build_groupsend_xml("How are you?", "me");
 	printf("groupsend:\n%s", xml.c_str());
 	cmd = ChatXml::parse_command(xml);
-	if (cmd != NULL) {
+	if (cmd != NULL)
+	{
 		printf("cmd: %s\n", cmd->_cmd.c_str());
 		GroupSendMsg *groupsendmsg = dynamic_cast<GroupSendMsg*>(cmd);
 		delete groupsendmsg;
@@ -59,17 +63,18 @@ void test()
 	xml = ChatXml::build_receive_xml("How are you?", "zhangsan");
 	printf("receive:\n%s", xml.c_str());
 	cmd = ChatXml::parse_command(xml);
-	if (cmd != NULL) {
+	if (cmd != NULL)
+	{
 		printf("cmd: %s\n", cmd->_cmd.c_str());
 		Receive *receive = dynamic_cast<Receive*>(cmd);
 		delete receive;
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
-	if (argc < 3) {
+	if (argc < 3)
+	{
 		printf("usage: %s <name> <pwd>\n", argv[0]);
 		return -1;
 	}
@@ -83,7 +88,8 @@ int main(int argc, char *argv[])
 
 	ChatClient chat_client;
 	bool ret = chat_client.start("tcp:127.0.0.1:9494", 1);
-	if (!ret) {
+	if (!ret)
+	{
 		printf("chat_client start failed\n");
 		return -1;
 	}
@@ -96,26 +102,36 @@ int main(int argc, char *argv[])
 
 	std::string cmd;
 	std::string param;
-	for (;;) {
+	for (;;)
+	{
 		printf("input cmd param\n");
 		std::cin >> cmd;
 		std::cin >> param;
-		if (cmd.empty() || param.empty()) {
+		if (cmd.empty() || param.empty())
+		{
 			continue;
 		}
 
-		if (cmd == "send") {
+		if (cmd == "send")
+		{
 			std::list<std::string> tousers = chat_client.split(param, ",");
-			if (tousers.size() == 0) {
+			if (tousers.size() == 0)
+			{
 				continue;
 			}
 
 			chat_client.to_send_msg(name, tousers);
-		} else if (cmd == "groupsend") {
+		}
+		else if (cmd == "groupsend")
+		{
 			chat_client.to_groupsend(name);
-		} else if (cmd == "logout") {
+		}
+		else if (cmd == "logout")
+		{
 			chat_client.to_logout(name);
-		} else if (cmd == "quit") {
+		}
+		else if (cmd == "quit")
+		{
 			break;
 		}
 	}
@@ -130,5 +146,4 @@ int main(int argc, char *argv[])
 	LOGSTOP();
 	return 0;
 }
-
 

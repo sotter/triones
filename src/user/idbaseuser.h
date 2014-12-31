@@ -8,18 +8,21 @@
 #ifndef IDBASEUSER_H_
 #define IDBASEUSER_H_
 #include <map>
+#include <list>
 
 #include "../comm/mutex.h"
 #include "../comm/commhash.h"
 #include "baseuser.h"
+#include "../net/itimerwork.h"
 
 namespace triones
 {
-class IdBaseUser {
+class IdBaseUser : public ITimerWork {
 protected:
 	typedef std::map<std::string, BaseUser*> IdMap;
 	typedef std::map<std::string, BaseUser*>::iterator IdIter;
 	typedef std::pair<IdIter, bool> IsrtRslt;
+	typedef std::list<BaseUser*>::iterator DelIter;
 public:
 	IdBaseUser();
 	virtual ~IdBaseUser();
@@ -36,7 +39,7 @@ public:
 	// 添加用户
 	bool add_user(size_t hash_index, BaseUser* user);
 
-	// 删除用户
+	// 移除用户
 	bool remove_user(size_t hash_index, const std::string& id);
 
 	// 加读锁
@@ -50,6 +53,9 @@ public:
 
 	// 解写锁
 	void ct_write_unlock(size_t hash_index);
+
+	// 释放user
+	virtual void timer_work(uint64_t now);
 protected:
 	enum {HASH_SIZE = 128};
 
@@ -64,6 +70,15 @@ protected:
 
 	// map: user_id=>user
 	IdMap *_id_user;
+
+	// 删除列表锁
+	triones::Mutex _del_lock;
+
+	// 上次删除时间
+	uint64_t _last_del_time;
+
+	// 待删除列表
+	std::list<BaseUser*> _del_list;
 };
 
 

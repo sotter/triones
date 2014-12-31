@@ -9,41 +9,49 @@
 #include "../chatxml/chatxml.h"
 #include "user.h"
 
-namespace triones {
+namespace triones
+{
 
-ChatServer::ChatServer() {
+ChatServer::ChatServer()
+{
 	// TODO Auto-generated constructor stub
 	_tp = NULL;
 }
 
-ChatServer::~ChatServer() {
+ChatServer::~ChatServer()
+{
 	// TODO Auto-generated destructor stub
 }
 
 bool ChatServer::start(const char *host, int thread)
 {
-	init(thread);
 	IOComponent *ioc = this->listen(host, triones::TPROTOCOL_TEXT);
-	if (ioc == NULL) {
+	if (ioc == NULL)
+	{
 		printf("listen error \n");
 		return false;
 	}
 	_tp = ioc->get_trans_proto();
 	_id_user.set_trans_proto(_tp);
+	_transport->add_timer_work(&_id_user);
+
+	init(thread);
 	return true;
 }
 
 // 处理包
 void ChatServer::handle_packet(IOComponent *ioc, Packet *packet)
 {
-	if (ioc == NULL || packet == NULL) {
+	if (ioc == NULL || packet == NULL)
+	{
 		return;
 	}
 
 	if (packet->get_type() == IServerAdapter::CMD_DISCONN_PACKET)
 	{
 		std::string name = ioc->get_userid();
-		if (name.empty()) {
+		if (name.empty())
+		{
 			return;
 		}
 
@@ -57,7 +65,8 @@ void ChatServer::handle_packet(IOComponent *ioc, Packet *packet)
 	std::string xml(packet->getData(), packet->getDataLen());
 
 	Command *cmd = ChatXml::parse_command(xml);
-	if (cmd == NULL) {
+	if (cmd == NULL)
+	{
 		return;
 	}
 
@@ -70,17 +79,28 @@ void ChatServer::handle_packet(IOComponent *ioc, Packet *packet)
 		printf("-------------------------------------------------------request_xml>\n");
 	}
 
-	if (command == "login") {
+	if (command == "login")
+	{
 		handle_user_login(ioc, dynamic_cast<Login*>(cmd), &resp);
-	} else if (command == "logout") {
+	}
+	else if (command == "logout")
+	{
 		handle_user_logout(ioc, dynamic_cast<Logout*>(cmd), &resp);
-	} else if (command == "send") {
+	}
+	else if (command == "send")
+	{
 		handle_user_send_msg(ioc, dynamic_cast<SendMsg*>(cmd), &resp);
-	} else if (command == "groupsend") {
+	}
+	else if (command == "groupsend")
+	{
 		handle_user_group_send_msg(ioc, dynamic_cast<GroupSendMsg*>(cmd), &resp);
-	} else if (command == "heartbeat") {
+	}
+	else if (command == "heartbeat")
+	{
 		resp._result = "succ";
-	} else {
+	}
+	else
+	{
 		delete cmd;
 		return;
 	}
@@ -95,8 +115,10 @@ void ChatServer::handle_packet(IOComponent *ioc, Packet *packet)
 	}
 
 	Packet *pack = _tp->encode_pack(resp_xml.c_str(), resp_xml.length());
-	if (pack) {
-		if (!ioc->post_packet(pack)) {
+	if (pack)
+	{
+		if (!ioc->post_packet(pack))
+		{
 			delete pack;
 		}
 	}
@@ -115,11 +137,11 @@ void ChatServer::handle_user_login(IOComponent *ioc, Login* login, Response *res
 	user = _id_user.get_user(index, login->_name);
 	_id_user.ct_read_unlock(index);
 
-	if (user != NULL) {
+	if (user != NULL)
+	{
 		resp->_result = login->_name + " has logined in";
 		return;
 	}
-
 
 	user = new User();
 	user->set_user_id(login->_name);
@@ -128,14 +150,18 @@ void ChatServer::handle_user_login(IOComponent *ioc, Login* login, Response *res
 	bool ret = false;
 	_id_user.ct_write_lock(index);
 	ret = _id_user.add_user(index, user);
-	if (ret) {
+	if (ret)
+	{
 		ioc->set_userid(login->_name);
 	}
 	_id_user.ct_write_unlock(index);
 
-	if (ret) {
+	if (ret)
+	{
 		resp->_result = "succ";
-	} else {
+	}
+	else
+	{
 		resp->_result = "fail";
 	}
 }
@@ -144,7 +170,8 @@ void ChatServer::handle_user_login(IOComponent *ioc, Login* login, Response *res
 void ChatServer::handle_user_logout(IOComponent* ioc, Logout *logout, Response* resp)
 {
 	std::string name = ioc->get_userid();
-	if (name.empty()) {
+	if (name.empty())
+	{
 		resp->_result = logout->_name + " has not logined in";
 		return;
 	}
@@ -157,7 +184,8 @@ void ChatServer::handle_user_logout(IOComponent* ioc, Logout *logout, Response* 
 	user = _id_user.get_user(index, name);
 	_id_user.ct_read_unlock(index);
 
-	if (NULL == user) {
+	if (NULL == user)
+	{
 		resp->_result = name + " has not logined in";
 		return;
 	}
@@ -166,14 +194,18 @@ void ChatServer::handle_user_logout(IOComponent* ioc, Logout *logout, Response* 
 	_id_user.ct_write_lock(index);
 	ret = _id_user.remove_user(index, name);
 	IOComponent* bind_ioc = user->get_ioc();
-	if (bind_ioc) {
+	if (bind_ioc)
+	{
 		bind_ioc->set_userid("");
 	}
 	_id_user.ct_write_unlock(index);
 
-	if (ret) {
+	if (ret)
+	{
 		resp->_result = "succ";
-	} else {
+	}
+	else
+	{
 		resp->_result = "fail";
 	}
 }
@@ -182,7 +214,8 @@ void ChatServer::handle_user_logout(IOComponent* ioc, Logout *logout, Response* 
 void ChatServer::handle_user_send_msg(IOComponent* ioc, SendMsg *sendmsg, Response* resp)
 {
 	std::string name = ioc->get_userid();
-	if (name.empty()) {
+	if (name.empty())
+	{
 		resp->_result = sendmsg->_from_name + " has not logined in";
 		return;
 	}
@@ -191,35 +224,51 @@ void ChatServer::handle_user_send_msg(IOComponent* ioc, SendMsg *sendmsg, Respon
 
 	std::list<std::string>& tousers = sendmsg->_to_list;
 	std::list<std::string>::iterator it;
-	for (it = tousers.begin(); it != tousers.end(); ++it) {
+	for (it = tousers.begin(); it != tousers.end(); ++it)
+	{
 		size_t index = _id_user.get_hash_index(*it);
 
 		BaseUser* user = NULL;
 		IOComponent* ioc = NULL;
 
+		bool send_succ = false;
+		UNUSED(send_succ);
+
 		_id_user.ct_read_lock(index);
 		user = _id_user.get_user(index, *it);
-		if (user) {
+		if (user)
+		{
 			ioc = user->get_ioc();
-			if (ioc) {
+			if (ioc)
+			{
 				Packet* pack = new Packet();
 				pack->writeBytes(xml.c_str(), xml.length());
-				if (!ioc->post_packet(pack)) {
+				if (!ioc->post_packet(pack))
+				{
+					//printf("+++++++++++send to %s %s\n", it->c_str(), (send_succ ? "succ" : "false"));
 					delete pack;
+				}
+				else
+				{
+					send_succ = true;
 				}
 			}
 		}
 		_id_user.ct_read_unlock(index);
+
+		//printf(">>>>>>>>>>>send to %s %s\n", it->c_str(), (send_succ ? "succ" : "false"));
 	}
 
 	resp->_result = "succ";
 }
 
 // 处理用户群发消息
-void ChatServer::handle_user_group_send_msg(IOComponent* ioc, GroupSendMsg *groupsendmsg, Response* resp)
+void ChatServer::handle_user_group_send_msg(IOComponent* ioc, GroupSendMsg *groupsendmsg,
+        Response* resp)
 {
 	std::string name = ioc->get_userid();
-	if (name.empty()) {
+	if (name.empty())
+	{
 		resp->_result = groupsendmsg->_from_name + " has not logined in";
 		return;
 	}
@@ -228,9 +277,12 @@ void ChatServer::handle_user_group_send_msg(IOComponent* ioc, GroupSendMsg *grou
 
 	bool ret = _id_user.group_send(xml, name);
 
-	if (ret) {
+	if (ret)
+	{
 		resp->_result = "succ";
-	} else {
+	}
+	else
+	{
 		resp->_result = "fail";
 	}
 }

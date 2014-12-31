@@ -9,14 +9,17 @@
 #include "../../src/tinyxml/tinyxml.h"
 #include "../../src/tinyxml/tinystr.h"
 
-namespace triones {
+namespace triones
+{
 
-ChatXml::ChatXml() {
+ChatXml::ChatXml()
+{
 	// TODO Auto-generated constructor stub
 
 }
 
-ChatXml::~ChatXml() {
+ChatXml::~ChatXml()
+{
 	// TODO Auto-generated destructor stub
 }
 
@@ -29,7 +32,7 @@ std::string ChatXml::build_login_xml(const std::string& name, const std::string&
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -60,7 +63,7 @@ std::string ChatXml::build_logout_xml(const std::string& name)
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -81,7 +84,8 @@ std::string ChatXml::build_logout_xml(const std::string& name)
 }
 
 // 生成发送消息xml
-std::string ChatXml::build_send_xml(const std::string& msg, const std::string& from_name, const std::list<std::string>& tousers)
+std::string ChatXml::build_send_xml(const std::string& msg, const std::string& from_name,
+        const std::list<std::string>& tousers)
 {
 	std::string xml = "";
 
@@ -89,7 +93,7 @@ std::string ChatXml::build_send_xml(const std::string& msg, const std::string& f
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -104,7 +108,8 @@ std::string ChatXml::build_send_xml(const std::string& msg, const std::string& f
 	chat->LinkEndChild(to);
 
 	// 添加user
-	for (std::list<std::string>::const_iterator it = tousers.begin(); it != tousers.end(); ++it) {
+	for (std::list<std::string>::const_iterator it = tousers.begin(); it != tousers.end(); ++it)
+	{
 		TiXmlElement *user = new TiXmlElement("user");
 		user->SetAttribute("name", it->c_str());
 		to->LinkEndChild(user);
@@ -126,7 +131,7 @@ std::string ChatXml::build_groupsend_xml(const std::string& msg, const std::stri
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -156,7 +161,7 @@ std::string ChatXml::build_receive_xml(const std::string& msg, const std::string
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -186,7 +191,7 @@ std::string ChatXml::build_response_xml(const std::string& request, const std::s
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -216,7 +221,7 @@ std::string ChatXml::build_heartbeat_xml()
 	TiXmlDocument doc;
 
 	// 添加描述
-	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+	TiXmlDeclaration* decl = new TiXmlDeclaration("1.0", "", "");
 	doc.LinkEndChild(decl);
 
 	// 添加chat
@@ -238,7 +243,8 @@ Command* ChatXml::parse_command(const std::string& xml)
 	doc.Parse(xml.c_str());
 
 	TiXmlElement *chat = doc.RootElement();
-	if (chat == NULL) {
+	if (chat == NULL)
+	{
 		return NULL;
 	}
 
@@ -246,10 +252,12 @@ Command* ChatXml::parse_command(const std::string& xml)
 	std::string cmd = chat->Attribute("command");
 
 	// 解析协议
-	if (cmd == "login") {
+	if (cmd == "login")
+	{
 		// 获取user
 		TiXmlElement *user = chat->FirstChildElement("user");
-		if (user == NULL) {
+		if (user == NULL)
+		{
 			return NULL;
 		}
 		std::string name = user->Attribute("name");
@@ -261,10 +269,13 @@ Command* ChatXml::parse_command(const std::string& xml)
 		login->_name = name;
 		login->_pwd = pwd;
 		return login;
-	} else if (cmd == "logout") {
+	}
+	else if (cmd == "logout")
+	{
 		// 获取user
 		TiXmlElement *user = chat->FirstChildElement("user");
-		if (user == NULL) {
+		if (user == NULL)
+		{
 			return NULL;
 		}
 		std::string name = user->Attribute("name");
@@ -274,10 +285,13 @@ Command* ChatXml::parse_command(const std::string& xml)
 		logout->_cmd = cmd;
 		logout->_name = name;
 		return logout;
-	} else if (cmd == "send") {
+	}
+	else if (cmd == "send")
+	{
 		// 获取to
 		TiXmlElement *to = chat->FirstChildElement("to");
-		if (to == NULL) {
+		if (to == NULL)
+		{
 			return NULL;
 		}
 
@@ -291,16 +305,21 @@ Command* ChatXml::parse_command(const std::string& xml)
 		sendmsg->_from_name = from_name;
 
 		// 获取用户
-		for (TiXmlElement *user = to->FirstChildElement("user"); user != NULL; user = user->NextSiblingElement("user")) {
+		for (TiXmlElement *user = to->FirstChildElement("user"); user != NULL;
+		        user = user->NextSiblingElement("user"))
+		{
 			std::string name = user->Attribute("name");
 			sendmsg->_to_list.push_back(name);
 		}
 
 		return sendmsg;
-	} else if (cmd == "groupsend") {
+	}
+	else if (cmd == "groupsend")
+	{
 		// 获取to
 		TiXmlElement *to = chat->FirstChildElement("to");
-		if (to == NULL) {
+		if (to == NULL)
+		{
 			return NULL;
 		}
 
@@ -314,10 +333,13 @@ Command* ChatXml::parse_command(const std::string& xml)
 		groupsendmsg->_from_name = from_name;
 
 		return groupsendmsg;
-	} else if (cmd == "receive") {
+	}
+	else if (cmd == "receive")
+	{
 		// 获取from
 		TiXmlElement *from = chat->FirstChildElement("from");
-		if (from == NULL) {
+		if (from == NULL)
+		{
 			return NULL;
 		}
 
@@ -330,10 +352,13 @@ Command* ChatXml::parse_command(const std::string& xml)
 		receive->_msg = msg;
 
 		return receive;
-	} else if (cmd == "response") {
+	}
+	else if (cmd == "response")
+	{
 		// 获取response
 		TiXmlElement *response = chat->FirstChildElement("response");
-		if (NULL == response) {
+		if (NULL == response)
+		{
 			return NULL;
 		}
 
@@ -346,7 +371,9 @@ Command* ChatXml::parse_command(const std::string& xml)
 		resp->_result = result;
 
 		return resp;
-	} else if (cmd == "heartbeat") {
+	}
+	else if (cmd == "heartbeat")
+	{
 		HeartBeat* heart_beat = new HeartBeat();
 		heart_beat->_cmd = "heartbeat";
 		return heart_beat;

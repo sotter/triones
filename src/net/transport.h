@@ -4,13 +4,14 @@
 
 #include <sys/ptrace.h>
 #include "../comm/thread.h"
+#include "itimerwork.h"
 
 namespace triones
 {
 
 class Transport: public triones::TBRunnable
 {
-
+	typedef std::vector<ITimerWork*>::iterator TimerIter;
 public:
 
 	friend class UDPAcceptor;
@@ -65,6 +66,12 @@ public:
 	// 是否为stop
 	bool* getStop();
 
+	// 添加定时操作接口
+	void add_timer_work(ITimerWork* timer_work)
+	{
+		_timer_list.push_back(timer_work);
+	}
+
 private:
 
 	//把[upd|tcp]:ip:port分开放在args中,cnt:数组中最大个数, return返回的数组中个数
@@ -92,6 +99,9 @@ private:
 	HashSock    *_hash_socks;
 
 	triones::Mutex _iocs_mutex;
+
+	// 接口列表
+	std::vector<ITimerWork*> _timer_list;
 };
 
 }

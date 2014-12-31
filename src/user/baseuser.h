@@ -9,6 +9,7 @@
 #define BASEUSER_H_
 #include <map>
 #include <string>
+#include "../net/atomic.h"
 
 namespace triones
 {
@@ -39,9 +40,34 @@ public:
 		_ioc = ioc;
 	}
 
+	int add_ref()
+	{
+		return atomic_add_return(1, &_refcount);
+	}
+
+	void sub_ref()
+	{
+		atomic_dec(&_refcount);
+	}
+
+	int get_ref()
+	{
+		return atomic_read(&_refcount);
+	}
+
+	bool ref_none()
+	{
+		return atomic_read(&_refcount) <= 0;
+	}
 protected:
+	// 用户id
 	std::string _user_id;
+
+	// ioc指针
 	IOComponent *_ioc;
+
+	// 引用计数
+	atomic_t _refcount;
 };
 }
 

@@ -13,9 +13,11 @@
 #include "../chatxml/chatxml.h"
 #include <list>
 
-namespace triones {
+namespace triones
+{
 
-class ChatClient : public BaseService, public triones::TBRunnable{
+class ChatClient: public BaseService, public triones::TBRunnable
+{
 public:
 	ChatClient();
 	virtual ~ChatClient();

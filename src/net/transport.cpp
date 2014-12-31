@@ -9,7 +9,6 @@ namespace triones
 Transport::Transport()
 {
 	_stop = false;
-
 	_hash_socks = new HashSock(this);
 }
 
@@ -136,6 +135,16 @@ void Transport::timeout_loop()
 			//printf("timeout_loolp remove ioc %s", ioc->info().c_str());
 			remove_component(ioc);
 			_hash_socks->moveto_recycle(ioc);
+		}
+
+		// 调用定时接口
+		uint64_t now = triones::CTimeUtil::get_time();
+		for (TimerIter it = _timer_list.begin(); it != _timer_list.end(); ++it)
+		{
+			if (*it != NULL)
+			{
+				(*it)->timer_work(now);
+			}
 		}
 
 //		//获取被回收且引用计数为0的socket

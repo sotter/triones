@@ -1,32 +1,33 @@
-MAKE     = make
 AR       = ar
 ARFLAGS  = -ruv
-RANLIB	 = ranlib
+RANLIB   = ranlib
+
+MAKEFLAGS += --no-print-directory
 
 TRIONES_HOME ?= ${shell readlink -n -e .. }
+PREFIX       ?= ${TRIONES_HOME}
 
-SUB_DIRS =  comm net pack utils user tinyxml
-OBJ_DIRS =  comm net pack utils user tinyxml
+MODS = comm net pack tinyxml user utils
 
-all: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} all"; \
-		(cd $$dir && ${MAKE} --no-print-directory all) || exit 1; \
-	done
+net: comm pack utils
 
-clean: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} clean"; \
-		(cd $$dir && ${MAKE} --no-print-directory clean) || exit 1; \
-	done
+pack: comm utils
 
-ALL_OBJS=${OBJ_DIRS:%=%/var/*.o}
+user: comm
 
-install: 
-	@for dir in ${SUB_DIRS}; do \
-		echo "cd $$dir; ${MAKE} install"; \
-		(cd $$dir && ${MAKE} --no-print-directory install) || exit 1; \
-	done
-	
-	${AR} ${ARFLAGS} ${TRIONES_HOME}/lib/libtriones.a ${ALL_OBJS}
-	${RANLIB} ${TRIONES_HOME}/lib/libtriones.a
+.PHONY: all install clean ${MODS}
+
+#ALL_OBJS  = ${MODS:%=%/var/*.o}
+ALL_OBJS += ${MODS:%=%/*.o}
+
+all: ${MODS}
+
+install: ${MODS}
+	${AR} ${ARFLAGS} ${PREFIX}/lib/libtriones.a ${ALL_OBJS}
+	${RANLIB} ${PREFIX}/lib/libtriones.a
+
+clean: ${MODS}
+
+${MODS}:
+	${MAKE} ${MAKECMDGOALS} -C $@
+
