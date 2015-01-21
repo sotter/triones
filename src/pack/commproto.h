@@ -108,7 +108,8 @@ const uint32_t LOGIN_TYPE_PCC = 0x00000020;
 const uint32_t LOGIN_TYPE_SUBDPTERM = 0x00000040;
 const uint32_t LOGIN_TYPE_MSG = 0x00000080;
 const uint32_t LOGIN_TYPE_SENDSRV = 0x00000100;
-const uint32_t LOGIN_TYPE_PTRANS = 0x00000200;
+const uint32_t LOGIN_TYPE_SCMSG = 0x00000200;
+const uint32_t LOGIN_TYPE_PTRANS = 0x00000400;
 const uint32_t LOGIN_TYPE_ALL = 0xffffffff;
 
 const std::string REDIS_LBS_PHONE("lbs.phone");
@@ -140,18 +141,18 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int32(_type);
+		pack->writeInt32(_type);
 		pack->write_str(_uid);
 		pack->write_str(_ip);
-		pack->write_int16(_port);
+		pack->writeInt16(_port);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int32(_type);
+		pack->readInt32(_type);
 		pack->read_str(_uid);
 		pack->read_str(_ip);
-		pack->read_int16(_port);
+		pack->readInt16(_port);
 		return true;
 	}
 
@@ -178,12 +179,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -207,12 +208,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int32(_load);
+		pack->writeInt32(_load);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int32(_load);
+		pack->readInt32(_load);
 		return true;
 	}
 
@@ -236,12 +237,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int32(_load);
+		pack->writeInt32(_load);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int32(_load);
+		pack->readInt32(_load);
 		return true;
 	}
 
@@ -265,12 +266,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int32(_type);
+		pack->writeInt32(_type);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int32(_type);
+		pack->readInt32(_type);
 		return true;
 	}
 
@@ -286,6 +287,7 @@ public:
 		uint32_t _load;  // 服务的负载
 		uint16_t _port;  // 服务的端口
 		std::string _ip;    // 服务的 IP，NOTE: 长度最大为 255 字节。
+		std::string _id;    // 服务的 ID，NOTE: 长度最大为 255 字节。
 	};
 
 	typedef std::list<Srv> SrvList;
@@ -306,35 +308,37 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
-		pack->write_int32(_type);
+		pack->writeInt8(_result);
+		pack->writeInt32(_type);
 		_count = _srv_list.size();
-		pack->write_int16(_count);
+		pack->writeInt16(_count);
 
 		SrvList::iterator it = _srv_list.begin();
 		for (uint16_t i = 0; i < _count && it != _srv_list.end(); ++i, ++it)
 		{
 			Srv& srv = *it;
 
-			pack->write_int32(srv._load);
-			pack->write_int16(srv._port);
+			pack->writeInt32(srv._load);
+			pack->writeInt16(srv._port);
 			pack->write_str(srv._ip);
+			pack->write_str(srv._id);
 		}
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
-		pack->read_int32(_type);
-		pack->read_int16(_count);
+		pack->readInt8(_result);
+		pack->readInt32(_type);
+		pack->readInt16(_count);
 
 		for (uint16_t i = 0; i < _count; ++i)
 		{
 			Srv srv;
 
-			pack->read_int32(srv._load);
-			pack->read_int16(srv._port);
+			pack->readInt32(srv._load);
+			pack->readInt16(srv._port);
 			pack->read_str(srv._ip);
+			pack->read_str(srv._id);
 
 			_srv_list.push_back(srv);
 		}
@@ -364,6 +368,7 @@ public:
 		_type = Add;
 		_srv_type = 0;
 		_srv_port = 0;
+		_srv_load = 0;
 	}
 
 	virtual ~SrvListMod()
@@ -372,18 +377,22 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
-		pack->write_int32(_srv_type);
-		pack->write_int16(_srv_port);
+		pack->writeInt8(_type);
+		pack->writeInt32(_srv_type);
+		pack->writeInt32(_srv_load);
+		pack->writeInt16(_srv_port);
 		pack->write_str(_srv_ip);
+		pack->write_str(_srv_id);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
-		pack->read_int32(_srv_type);
-		pack->read_int16(_srv_port);
+		pack->readInt8(_type);
+		pack->readInt32(_srv_type);
+		pack->readInt32(_srv_load);
+		pack->readInt16(_srv_port);
 		pack->read_str(_srv_ip);
+		pack->read_str(_srv_id);
 
 		return true;
 	}
@@ -391,8 +400,10 @@ public:
 public:
 	uint8_t _type;      // 0:添加/更新， 1：删除
 	uint32_t _srv_type;  // 服务的登录类型
+	uint32_t _srv_load;  // 服务的负载
 	uint16_t _srv_port;  // 服务的端口
 	std::string _srv_ip;    // 服务的 IP，NOTE: 长度最大为 255 字节。
+	std::string _srv_id;    // 服务的 ID，NOTE: 长度最大为 255 字节。
 };
 
 class SrvListModRsp: public MsgPacket
@@ -411,12 +422,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -469,7 +480,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_phone);
 		pack->write_str(_flag);
 		pack->write_str(_color);
@@ -487,7 +498,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_phone);
 		pack->read_str(_flag);
 		pack->read_str(_color);
@@ -544,7 +555,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 
 		if (_type == Add)
@@ -565,7 +576,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 
 		if (_type == Add)
@@ -617,12 +628,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -674,14 +685,14 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_oem);
 		pack->write_str(_term_types);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_oem);
 		pack->read_str(_term_types);
 
@@ -716,7 +727,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_oem);
 
 		if (_type == Add)
@@ -727,7 +738,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_oem);
 
 		if (_type == Add)
@@ -760,12 +771,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -815,14 +826,14 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_oem);
 		pack->write_str(_reg);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_oem);
 		pack->read_str(_reg);
 
@@ -856,7 +867,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_oem);
 
 		if (_type == Add)
@@ -867,7 +878,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_oem);
 
 		if (_type == Add)
@@ -900,12 +911,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -981,31 +992,34 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
 		pack->write_str(_auth);
 		pack->write_str(_oem);
 		pack->write_str(_city);
-		pack->write_int8(_is_black);
-		pack->write_int8(_black_reason);
-		pack->write_int64(_black_time_sec);
-		pack->write_int64(_black_time_usec);
+		pack->writeInt8(_is_black);
+		pack->writeInt8(_black_reason);
+		pack->writeInt64(_black_time_sec);
+		pack->writeInt64(_black_time_usec);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
 		pack->read_str(_auth);
 		pack->read_str(_oem);
 		pack->read_str(_city);
-		pack->read_int8(_is_black);
-		pack->read_int8(_black_reason);
-		pack->read_int64(_black_time_sec);
-		pack->read_int64(_black_time_usec);
+		pack->readInt8(_is_black);
+		pack->readInt8(_black_reason);
+		pack->readInt64(_black_time_sec);
+		pack->readInt64(_black_time_usec);
 		return true;
 	}
 
 public:
 	uint8_t _result;    // 注册结果
+	std::string _phone;		// 鉴权码，NOTE: 长度最大为 255 字节。
 	std::string _auth;		// 鉴权码，NOTE: 长度最大为 255 字节。
 	std::string _oem;		// 设备 OME，NOTE: 长度最大为 255 字节。
 	std::string _city;      // 城市 ID，NOTE: 长度最大为 255 字节。
@@ -1066,29 +1080,35 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
+		pack->write_str(_auth);
 		pack->write_str(_oem);
 		pack->write_str(_city);
-		pack->write_int8(_is_black);
-		pack->write_int8(_black_reason);
-		pack->write_int64(_black_time_sec);
-		pack->write_int64(_black_time_usec);
+		pack->writeInt8(_is_black);
+		pack->writeInt8(_black_reason);
+		pack->writeInt64(_black_time_sec);
+		pack->writeInt64(_black_time_usec);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
+		pack->read_str(_auth);
 		pack->read_str(_oem);
 		pack->read_str(_city);
-		pack->read_int8(_is_black);
-		pack->read_int8(_black_reason);
-		pack->read_int64(_black_time_sec);
-		pack->read_int64(_black_time_usec);
+		pack->readInt8(_is_black);
+		pack->readInt8(_black_reason);
+		pack->readInt64(_black_time_sec);
+		pack->readInt64(_black_time_usec);
 		return true;
 	}
 
 public:
 	uint8_t _result;  // 结果
+	std::string _phone;    // 手机号，NOTE: 长度最大为 255 字节。
+	std::string _auth;     // 鉴权码，NOTE: 长度最大为 255 字节。
 	std::string _oem;     // OEM码，NOTE: 长度最大为 255 字节。
 	std::string _city;    // 城市 ID，NOTE: 长度最大为 255 字节。
 	uint8_t _is_black;			// 是否为黑名单
@@ -1150,27 +1170,30 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
 		pack->write_str(_msg);
-		pack->write_int8(_is_black);
-		pack->write_int8(_black_reason);
-		pack->write_int64(_black_time_sec);
-		pack->write_int64(_black_time_usec);
+		pack->writeInt8(_is_black);
+		pack->writeInt8(_black_reason);
+		pack->writeInt64(_black_time_sec);
+		pack->writeInt64(_black_time_usec);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
 		pack->read_str(_msg);
-		pack->read_int8(_is_black);
-		pack->read_int8(_black_reason);
-		pack->read_int64(_black_time_sec);
-		pack->read_int64(_black_time_usec);
+		pack->readInt8(_is_black);
+		pack->readInt8(_black_reason);
+		pack->readInt64(_black_time_sec);
+		pack->readInt64(_black_time_usec);
 		return true;
 	}
 
 public:
 	uint8_t _result;   // 识别结果
+	std::string _phone;   // 手机号，NOTE: 长度最大为 255 字节。
 	std::string _msg;      // 身份数据信息，NOTE: 长度最大为 255 字节。
 	uint8_t _is_black;			// 是否为黑名单
 	uint8_t _black_reason;		// 如果是，当时加入黑名单原因
@@ -1220,16 +1243,19 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
 	}
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
 		return true;
 	}
 
 public:
 	uint8_t _result;
+	std::string _phone;   // 手机号，NOTE: 长度最大为 255 字节。
 };
 
 class WasVehicleInfoMod: public MsgPacket
@@ -1242,6 +1268,7 @@ public:
 		MaskAuth = 0x02,
 		MaskCity = 0x04,
 		MaskFlag = 0x08,
+		MaskTermType = 0x10,
 		MaskAll = 0x7F,
 		MaskDel = 0x80
 	};
@@ -1259,7 +1286,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 		if (_type & MaskOEM)
 		{
@@ -1277,11 +1304,15 @@ public:
 		{
 			pack->write_str(_flag);
 		}
+		if ( _type & MaskTermType )
+		{
+			pack->write_str(_term_type);
+		}
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 		if (_type & MaskOEM)
 		{
@@ -1299,16 +1330,21 @@ public:
 		{
 			pack->read_str(_flag);
 		}
+		if ( _type & MaskTermType )
+		{
+			pack->read_str(_term_type);
+		}
 		return true;
 	}
 
 public:
-	uint8_t _type;  // 0:添加/更新， 1：删除
-	std::string _phone; // 手机号，NOTE: 长度最大为 255 字节。
-	std::string _oem;   // NOTE: 长度最大为 255 字节。
-	std::string _auth;  // 鉴权码，NOTE: 长度最大为 255 字节。
-	std::string _city;  // 省域 ID，NOTE: 长度最大为 255 字节。
-	std::string _flag;  // 是否已经注册的标志，NOTE: 长度最大为 255 字节。
+	uint8_t      _type;  // 0:添加/更新， 1：删除
+	std::string  _phone; // 手机号，NOTE: 长度最大为 255 字节。
+	std::string  _auth;  // 鉴权码，NOTE: 长度最大为 255 字节。
+	std::string  _oem;   // NOTE: 长度最大为 255 字节。
+	std::string  _city;  // 省域 ID，NOTE: 长度最大为 255 字节。
+	std::string  _flag;  // 是否已经注册的标志，NOTE: 长度最大为 255 字节。
+	std::string _term_type;
 };
 
 class WasVehicleInfoModRsp: public MsgPacket
@@ -1326,12 +1362,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 public:
@@ -1363,21 +1399,21 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 		pack->read_time(_black_time_sec);
 		pack->read_time(_black_time_usec);
-		pack->read_int8(_black_reason);
+		pack->readInt8(_black_reason);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 		pack->write_time(_black_time_sec);
 		pack->write_time(_black_time_usec);
-		pack->write_int8(_black_reason);
+		pack->writeInt8(_black_reason);
 	}
 
 public:
@@ -1404,13 +1440,13 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 public:
@@ -1465,7 +1501,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_phone);
 		pack->write_str(_corp);
 		pack->write_str(_auth);
@@ -1473,7 +1509,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_phone);
 		pack->read_str(_corp);
 		pack->read_str(_auth);
@@ -1509,7 +1545,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 		pack->write_str(_corp);
 
@@ -1522,7 +1558,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 		pack->read_str(_corp);
 
@@ -1555,12 +1591,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 public:
@@ -1614,26 +1650,26 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_corp_id);
 		pack->write_str(_master_ip);
-		pack->write_int16(_master_tcp_port);
-		pack->write_int16(_master_udp_port);
+		pack->writeInt16(_master_tcp_port);
+		pack->writeInt16(_master_udp_port);
 		pack->write_str(_slave_ip);
-		pack->write_int16(_slave_tcp_port);
-		pack->write_int16(_slave_udp_port);
+		pack->writeInt16(_slave_tcp_port);
+		pack->writeInt16(_slave_udp_port);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_corp_id);
 		pack->read_str(_master_ip);
-		pack->read_int16(_master_tcp_port);
-		pack->read_int16(_master_udp_port);
+		pack->readInt16(_master_tcp_port);
+		pack->readInt16(_master_udp_port);
 		pack->read_str(_slave_ip);
-		pack->read_int16(_slave_tcp_port);
-		pack->read_int16(_slave_udp_port);
+		pack->readInt16(_slave_tcp_port);
+		pack->readInt16(_slave_udp_port);
 
 		return true;
 	}
@@ -1674,33 +1710,33 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_corp_id);
 
 		if (_type == Add)
 		{
 			pack->write_str(_master_ip);
-			pack->write_int16(_master_tcp_port);
-			pack->write_int16(_master_udp_port);
+			pack->writeInt16(_master_tcp_port);
+			pack->writeInt16(_master_udp_port);
 			pack->write_str(_slave_ip);
-			pack->write_int16(_slave_tcp_port);
-			pack->write_int16(_slave_udp_port);
+			pack->writeInt16(_slave_tcp_port);
+			pack->writeInt16(_slave_udp_port);
 		}
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_corp_id);
 
 		if (_type == Add)
 		{
 			pack->read_str(_master_ip);
-			pack->read_int16(_master_tcp_port);
-			pack->read_int16(_master_udp_port);
+			pack->readInt16(_master_tcp_port);
+			pack->readInt16(_master_udp_port);
 			pack->read_str(_slave_ip);
-			pack->read_int16(_slave_tcp_port);
-			pack->read_int16(_slave_udp_port);
+			pack->readInt16(_slave_tcp_port);
+			pack->readInt16(_slave_udp_port);
 		}
 
 		return true;
@@ -1733,12 +1769,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -1803,10 +1839,10 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 
 		_corp_count = _corp_list.size();
-		pack->write_int16(_corp_count);
+		pack->writeInt16(_corp_count);
 
 		CorpInfoList::iterator it = _corp_list.begin();
 		for (uint16_t i = 0; i < _corp_count && it != _corp_list.end(); ++i, ++it)
@@ -1815,19 +1851,19 @@ public:
 
 			pack->write_str(corp._corp_id);
 			pack->write_str(corp._master_ip);
-			pack->write_int16(corp._master_tcp_port);
-			pack->write_int16(corp._master_udp_port);
+			pack->writeInt16(corp._master_tcp_port);
+			pack->writeInt16(corp._master_udp_port);
 			pack->write_str(corp._slave_ip);
-			pack->write_int16(corp._slave_tcp_port);
-			pack->write_int16(corp._slave_udp_port);
+			pack->writeInt16(corp._slave_tcp_port);
+			pack->writeInt16(corp._slave_udp_port);
 		}
 
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
-		pack->read_int16(_corp_count);
+		pack->readInt8(_result);
+		pack->readInt16(_corp_count);
 
 		for (uint16_t i = 0; i < _corp_count; ++i)
 		{
@@ -1835,11 +1871,11 @@ public:
 
 			pack->read_str(corp._corp_id);
 			pack->read_str(corp._master_ip);
-			pack->read_int16(corp._master_tcp_port);
-			pack->read_int16(corp._master_udp_port);
+			pack->readInt16(corp._master_tcp_port);
+			pack->readInt16(corp._master_udp_port);
 			pack->read_str(corp._slave_ip);
-			pack->read_int16(corp._slave_tcp_port);
-			pack->read_int16(corp._slave_udp_port);
+			pack->readInt16(corp._slave_tcp_port);
+			pack->readInt16(corp._slave_udp_port);
 
 			_corp_list.push_back(corp);
 		}
@@ -1898,10 +1934,10 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_phone);
 		_corp_count = _corp_set.size();
-		pack->write_int16(_corp_count);
+		pack->writeInt16(_corp_count);
 
 		CorpSet::iterator it = _corp_set.begin();
 		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end(); ++i, ++it)
@@ -1913,9 +1949,9 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_phone);
-		pack->read_int16(_corp_count);
+		pack->readInt16(_corp_count);
 
 		for (uint16_t i = 0; i < _corp_count; ++i)
 		{
@@ -1963,7 +1999,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 
 		if (_type == Del)
@@ -1972,7 +2008,7 @@ public:
 		}
 
 		_corp_count = _corp_set.size();
-		pack->write_int16(_corp_count);
+		pack->writeInt16(_corp_count);
 
 		CorpSet::iterator it = _corp_set.begin();
 		for (uint16_t i = 0; i < _corp_count && it != _corp_set.end(); ++i, ++it)
@@ -1985,7 +2021,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 
 		if (_type == Del)
@@ -1993,7 +2029,7 @@ public:
 			return true;
 		}
 
-		pack->read_int16(_corp_count);
+		pack->readInt16(_corp_count);
 
 		for (uint16_t i = 0; i < _corp_count; ++i)
 		{
@@ -2033,12 +2069,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -2072,10 +2108,10 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 
 		_count = _phone_list.size();
-		pack->write_int32(_count);
+		pack->writeInt32(_count);
 
 		PhoneList::iterator it = _phone_list.begin();
 		for (uint32_t i = 0; i < _count && it != _phone_list.end(); ++i, ++it)
@@ -2087,8 +2123,8 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
-		pack->read_int32(_count);
+		pack->readInt8(_type);
+		pack->readInt32(_count);
 
 		for (uint32_t i = 0; i < _count; ++i)
 		{
@@ -2122,12 +2158,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 public:
@@ -2156,14 +2192,14 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 		pack->write_str(_phone);
 		pack->write_string(_data);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 		pack->read_str(_phone);
 		pack->read_string(_data);
 		return true;
@@ -2190,11 +2226,11 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 public:
@@ -2244,14 +2280,14 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 		pack->write_str(_color_vehicle);
 		pack->write_str(_oem_phone);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		pack->read_str(_color_vehicle);
 		pack->read_str(_oem_phone);
 
@@ -2284,7 +2320,7 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_type);
+		pack->writeInt8(_type);
 
 		pack->write_str(_oem);
 		pack->write_str(_phone);
@@ -2295,7 +2331,7 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_type);
+		pack->readInt8(_type);
 
 		pack->read_str(_oem);
 		pack->read_str(_phone);
@@ -2328,12 +2364,12 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
@@ -2357,17 +2393,23 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_str(_oemcode);
+		pack->write_str(_phone);
+		pack->write_str(_oem);
+		pack->write_str(_city);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_str(_oemcode);
+		pack->read_str(_phone);
+		pack->read_str(_oem);
+		pack->read_str(_city);
 		return true;
 	}
 
 public:
-	std::string _oemcode;
+	std::string _phone;
+	std::string _oem;
+	std::string _city;
 };
 
 class PtrnasForwardConnectRsp: public MsgPacket
@@ -2386,20 +2428,20 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_str(_oemcode);
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_str(_oemcode);
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
 	}
 
 public:
-	std::string _oemcode;
 	uint8_t _result;  // 0 成功，1失败
+	std::string _phone;
 };
 
 class PtrnasForwardDisconnectReq: public MsgPacket
@@ -2417,18 +2459,24 @@ public:
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_str(_oemcode);
+		pack->write_str(_phone);
+		pack->write_str(_oem);
+		pack->write_str(_city);
 
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_str(_oemcode);
+		pack->read_str(_phone);
+		pack->read_str(_oem);
+		pack->read_str(_city);
 		return true;
 	}
 
 public:
-	std::string _oemcode;
+	std::string _phone;
+	std::string _oem;
+	std::string _city;
 };
 
 class PtrnasForwardDisconnectRsp: public MsgPacket
@@ -2447,20 +2495,20 @@ public:
 
 	virtual bool unbody(Packet *pack)
 	{
-		pack->read_str(_oemcode);
-		pack->read_int8(_result);
+		pack->readInt8(_result);
+		pack->read_str(_phone);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
-		pack->write_str(_oemcode);
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
+		pack->write_str(_phone);
 	}
 
 public:
-	std::string _oemcode;
 	uint8_t _result;  // 0 成功，1失败
+	std::string _phone;
 };
 
 class PtrnasForwardUpReq: public MsgPacket
@@ -2479,27 +2527,24 @@ public:
 	virtual void body(Packet *pack)
 	{
 		pack->write_str(_phone);
-		pack->write_str(_authcode);
-		pack->write_str(_oemcode);
-		pack->write_str(_cityid);
+		pack->write_str(_oem);
+		pack->write_str(_city);
 		pack->write_string(_data);
 	}
 
 	virtual bool unbody(Packet *pack)
 	{
 		pack->read_str(_phone);
-		pack->read_str(_authcode);
-		pack->read_str(_oemcode);
-		pack->read_str(_cityid);
+		pack->read_str(_oem);
+		pack->read_str(_city);
 		pack->read_string(_data);
 		return true;
 	}
 
 public:
 	std::string _phone;
-	std::string _authcode;
-	std::string _oemcode;
-	std::string _cityid;
+	std::string _oem;
+	std::string _city;
 	std::string _data;
 };
 
@@ -2519,14 +2564,14 @@ public:
 	virtual bool unbody(Packet *pack)
 	{
 		pack->read_str(_phone);
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
 		pack->write_str(_phone);
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 public:
 	std::string _phone;
@@ -2579,14 +2624,14 @@ public:
 	virtual bool unbody(Packet *pack)
 	{
 		pack->read_str(_phone);
-		pack->read_int8(_result);
+		pack->readInt8(_result);
 		return true;
 	}
 
 	virtual void body(Packet *pack)
 	{
 		pack->write_str(_phone);
-		pack->write_int8(_result);
+		pack->writeInt8(_result);
 	}
 
 public:
@@ -2607,7 +2652,7 @@ public:
 	}
 
 	// 实现数据解包接口方法
-	MsgPacket * unbody(unsigned short msgtype, Packet &pack)
+	MsgPacket* unpack(unsigned short msgtype, Packet &pack)
 	{
 		MsgPacket *msg = NULL;
 		switch (msgtype)

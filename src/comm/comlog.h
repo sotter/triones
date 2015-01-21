@@ -33,6 +33,8 @@ namespace triones
 //		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"WARN",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_ERROR(ip,port,user_id,msg,...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"ERROR",ip,port,user_id,msg,  ## __VA_ARGS__)
+#define OUT_WARN(ip,port,user_id,msg,...)\
+		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"WARN",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_ASSERT(ip,port,user_id,msg,...)\
 		CLog::instance()->CLog::print_net_msg(LOG_NUM_LEVEL(1),"ASSERT",ip,port,user_id,msg,  ## __VA_ARGS__)
 #define OUT_INFO(ip,port,user_id,msg,...)\

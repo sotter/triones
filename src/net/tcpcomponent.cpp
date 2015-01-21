@@ -297,7 +297,7 @@ bool TCPComponent::check_timeout(uint64_t now)
 	//重连时间间隔
 	const uint64_t reconn_time = (10 * 1000 * 1000);
 	//普通socket没有数据时的超时时间
-	const uint64_t timeout = (18 * 1000 * 1000);
+	const uint64_t timeout = (30 * 1000 * 1000);
 
 	bool ret = false;
 	// 检查是否连接超时
@@ -517,7 +517,7 @@ bool TCPComponent::read_data()
 	//对读到的数据业务回调处理，注意这个地方并不负责packet的释放，而是由外部来释放的
 	if (_input_queue.size() > 0)
 	{
-		if (_server_adapter->_batch_push_packet)
+		if (_server_adapter->is_batch_push_packet())
 		{
 			_server_adapter->handle_batch_packet(this, _input_queue);
 		}

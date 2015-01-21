@@ -44,6 +44,9 @@ private:
 
 	// 处理用户群发消息
 	void handle_user_group_send_msg(IOComponent* ioc, GroupSendMsg *groupsendmsg, Response* resp);
+
+	// 定时器回调函数
+	virtual void timer_work(uint64_t now);
 private:
 	TransProtocol *_tp;
 	IdUser _id_user;

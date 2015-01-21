@@ -7,13 +7,11 @@ MAKEFLAGS += --no-print-directory
 TRIONES_HOME ?= ${shell readlink -n -e .. }
 PREFIX       ?= ${TRIONES_HOME}
 
-MODS = comm net pack tinyxml user utils
+MODS = comm net pack tinyxml utils
 
 net: comm pack utils
 
 pack: comm utils
-
-user: comm
 
 .PHONY: all install clean ${MODS}
 

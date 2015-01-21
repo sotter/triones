@@ -20,16 +20,11 @@ namespace triones
 
 class IServerAdapter
 {
-	friend class TCPComponent;
-	friend class UDPComponent;
-
 public:
-    enum {
-    	CMD_DATA_PACKET = 0,
-        CMD_BAD_PACKET,
-        CMD_TIMEOUT_PACKET,
-        CMD_DISCONN_PACKET
-    };
+	enum
+	{
+		CMD_DATA_PACKET = 0, CMD_BAD_PACKET, CMD_TIMEOUT_PACKET, CMD_DISCONN_PACKET
+	};
 
 public:
 	// 单个packet回调， 直接从整个网络层，直接回调上去的
@@ -44,16 +39,7 @@ public:
 	}
 
 	// 处理连接结果
-	virtual bool handle_connected(IOComponent *connection, bool succ)
-	{
-		UNUSED(connection);
-		if (succ) {
-			//printf("(^_^) (^_^) (^_^) (^_^) (^_^)　connect succ!\n");
-		} else {
-			//printf("(>_<) (>_<) (>_<)　(>_<)　(>_<)　connect failed!\n");
-		}
-		return false;
-	}
+	virtual bool handle_connected(IOComponent *connection, bool succ) = 0;
 
 	// 构造函数
 	IServerAdapter()
@@ -71,7 +57,14 @@ public:
 		_batch_push_packet = value;
 	}
 
+
+	bool is_batch_push_packet()
+	{
+		return _batch_push_packet;
+	}
+
 private:
+
 	bool _batch_push_packet;          // 批量post packet
 };
 }

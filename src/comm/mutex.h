@@ -124,10 +124,10 @@ public:
 		}
 	}
 
-	RWGuard(const RWMutex& value, RWGuardType type)
-			: _rw_mutex(value)
+	RWGuard(const RWMutex* value, bool write = false)
+			: _rw_mutex(*value)
 	{
-		if (type == RW_WRITE)
+		if (write)
 		{
 			_rw_mutex.wrlock();
 		}
@@ -141,8 +141,9 @@ public:
 	{
 		_rw_mutex.unlock();
 	}
+
 private:
-	const RWMutex& _rw_mutex;
+	const RWMutex &_rw_mutex;
 };
 }  // namespace triones
 

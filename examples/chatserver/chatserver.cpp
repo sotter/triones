@@ -33,7 +33,6 @@ bool ChatServer::start(const char *host, int thread)
 	}
 	_tp = ioc->get_trans_proto();
 	_id_user.set_trans_proto(_tp);
-	_transport->add_timer_work(&_id_user);
 
 	init(thread);
 	return true;
@@ -291,5 +290,11 @@ void ChatServer::handle_user_group_send_msg(IOComponent* ioc, GroupSendMsg *grou
 TransProtocol* ChatServer::get_trans_proto()
 {
 	return _tp;
+}
+
+// 定时器回调函数
+void ChatServer::timer_work(uint64_t now)
+{
+	_id_user.delete_user(now);
 }
 } /* namespace triones */

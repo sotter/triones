@@ -81,8 +81,20 @@ public:
 	// 获取_address对应的字符串形式
 	std::string get_addr();
 
+	// 获取点分十进制ip
+	std::string get_ip();
+
+	// 获取端口
+	int get_port();
+
 	// 获取_peer_address对应的字符串形式
 	std::string get_peer_addr();
+
+	// 获取远端点分十进制ip
+	std::string get_peer_ip();
+
+	// 获取远端端口
+	int get_peer_port();
 
 	bool set_keep_alive(bool on);
 

@@ -10,7 +10,6 @@
 #ifndef BASESERVICE_H_
 #define BASESERVICE_H_
 
-#include "cnet.h"
 #include "../pack/pack.h"
 #include "../comm/queuethread.h"
 #include "../comm/dataqueue.h"
@@ -21,11 +20,11 @@ using namespace triones;
 namespace triones
 {
 
-class BaseService: public IServerAdapter, public IQueueHandler
+class BaseService: public IServerAdapter, public ITimerWork, public IQueueHandler
 {
 public:
 
-#define MAXQUEUE_LENGTH        102400    // 最大队列长度
+#define MAXQUEUE_LENGTH         (100 * 1024)    // 最大队列长度
 	//queuethread 异步队列，业务线程的处理数据, thread_num
 	bool init(int thread_num = 1);
 
@@ -37,6 +36,9 @@ public:
 
 	//处理有同步业务层的处理，子类的service来实现
 	virtual void handle_packet(IOComponent *ioc, Packet *packet);
+
+	//连接成功的回调处理
+	virtual bool handle_connected(IOComponent *connection, bool succ);
 
 	//上层业务销毁的回调函数，非必须实现；
 	virtual bool destroy_service();

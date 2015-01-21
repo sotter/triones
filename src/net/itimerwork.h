@@ -8,12 +8,17 @@
 #ifndef ITIMERWORK_H_
 #define ITIMERWORK_H_
 
-namespace triones {
+namespace triones
+{
 
-class ITimerWork {
+class ITimerWork
+{
 public:
-	virtual ~ITimerWork(){}
-	virtual void timer_work(uint64_t now) = 0;
+	virtual ~ITimerWork()
+	{
+	}
+
+	virtual void handle_timer_work(uint64_t now) = 0;
 };
 
 } /* namespace triones */

@@ -128,7 +128,7 @@ void Transport::timeout_loop()
 	IOComponent *ioc = NULL;
 	while (!_stop)
 	{
-		//检测超时，并超时的队列放入到超时队列中
+		//检测超时，并超时的队列放入到超时队列中,重连在这个时候发生
 		_hash_socks->get_timeout_list(timeout);
 		while((ioc = timeout.pop()) != NULL)
 		{
@@ -137,15 +137,18 @@ void Transport::timeout_loop()
 			_hash_socks->moveto_recycle(ioc);
 		}
 
-		// 调用定时接口
-		uint64_t now = triones::CTimeUtil::get_time();
-		for (TimerIter it = _timer_list.begin(); it != _timer_list.end(); ++it)
+		// 加读锁，调用定时接口
 		{
-			if (*it != NULL)
+			_timer_rwmutex.rdlock();
+			uint64_t now = triones::CTimeUtil::get_time();
+			for (TimerIter it = _timer_list.begin(); it != _timer_list.end(); ++it)
 			{
-				(*it)->timer_work(now);
+				(*it)->handle_timer_work(now);
 			}
+			_timer_rwmutex.unlock();
 		}
+
+
 
 //		//获取被回收且引用计数为0的socket
 //		_hash_socks->get_del_list(del);
@@ -441,6 +444,41 @@ void Transport::destroy()
 bool* Transport::getStop()
 {
 	return &_stop;
+}
+
+// 注册定时操作
+void Transport::register_timer_work(ITimerWork* timer_work)
+{
+	if (!timer_work) {
+		return;
+	}
+
+	// 加解锁
+	_timer_rwmutex.wrlock();
+	_timer_list.push_back(timer_work);
+	_timer_rwmutex.unlock();
+}
+
+// 注销定时操作
+void Transport::cancel_timer_work(ITimerWork* timer_work)
+{
+	if (!timer_work) {
+		return;
+	}
+
+	// 加解锁
+	TimerIter it;
+	_timer_rwmutex.wrlock();
+	for (TimerIter it = _timer_list.begin(); it != _timer_list.end(); it++) {
+		if (*it == timer_work) {
+			break;
+		}
+	}
+
+	if (it != _timer_list.end()) {
+		_timer_list.erase(it);
+	}
+	_timer_rwmutex.unlock();
 }
 
 }

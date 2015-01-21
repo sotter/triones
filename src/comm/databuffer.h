@@ -85,6 +85,11 @@ public:
 		return static_cast<int32_t>(_pend - _pfree);
 	}
 
+	void seekPos(int offset)
+	{
+		_pdata = _pstart + offset;
+	}
+
 	void drainData(int len)
 	{
 		_pdata += len;

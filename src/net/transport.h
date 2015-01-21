@@ -66,12 +66,11 @@ public:
 	// 是否为stop
 	bool* getStop();
 
-	// 添加定时操作接口
-	void add_timer_work(ITimerWork* timer_work)
-	{
-		_timer_list.push_back(timer_work);
-	}
+	// 注册定时操作
+	void register_timer_work(ITimerWork* timer_work);
 
+	// 注销定时操作
+	void cancel_timer_work(ITimerWork* timer_work);
 private:
 
 	//把[upd|tcp]:ip:port分开放在args中,cnt:数组中最大个数, return返回的数组中个数
@@ -102,6 +101,8 @@ private:
 
 	// 接口列表
 	std::vector<ITimerWork*> _timer_list;
+	// 定时器链表锁
+	triones::RWMutex _timer_rwmutex;
 };
 
 }

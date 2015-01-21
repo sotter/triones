@@ -59,7 +59,10 @@ class UDPComponent;
 class PacketQueueThread;
 class ConnectionManager;
 class TransProtocol;
-
+class UserScanHandler;
+class BaseUser;
+class BaseClient;
+class BaseServer;
 }
 
 #ifndef UNUSED
@@ -83,6 +86,10 @@ class TransProtocol;
 #include "hashioc.h"
 #include "transport.h"
 #include "baseservice.h"
+#include "baseuser.h"
+#include "onlineuser.h"
+#include "baseclient.h"
+#include "baseserver.h"
 
 //#define __DEBUG_INFO__
 

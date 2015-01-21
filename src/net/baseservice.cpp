@@ -4,7 +4,7 @@
  *Description:
  *******************************************************/
 
-#include "baseservice.h"
+#include "cnet.h"
 
 namespace triones
 {
@@ -41,6 +41,9 @@ bool BaseService::init(int thread_num /* = 1 */)
 		_queue_thread->stop();
 		return false;
 	}
+
+	// 注册定时操作，并启动工作线程
+	_transport->register_timer_work(this);
 
 	_inited = true;
 

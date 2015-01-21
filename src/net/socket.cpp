@@ -479,6 +479,36 @@ std::string Socket::get_addr()
 	return dest;
 }
 
+std::string Socket::get_ip()
+{
+	char dest[32];
+	unsigned long ad = ntohl(_address.sin_addr.s_addr);
+	sprintf(dest, "%d.%d.%d.%d", static_cast<int>((ad >> 24) & 255),
+		static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
+		static_cast<int>(ad & 255));
+	return dest;
+}
+
+int Socket::get_port()
+{
+	return ntohs(_address.sin_port);
+}
+
+std::string Socket::get_peer_ip()
+{
+	char dest[32];
+	unsigned long ad = ntohl(_peer_address.sin_addr.s_addr);
+	sprintf(dest, "%d.%d.%d.%d", static_cast<int>((ad >> 24) & 255),
+		static_cast<int>((ad >> 16) & 255), static_cast<int>((ad >> 8) & 255),
+		static_cast<int>(ad & 255));
+	return dest;
+}
+
+int Socket::get_peer_port()
+{
+	return ntohs(_peer_address.sin_port);
+}
+
 std::string Socket::get_peer_addr()
 {
 	char dest[32];
