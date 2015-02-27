@@ -122,6 +122,8 @@ public:
 
 	void show_addr();
 
+	bool is_tcp();		// 是否为tcp套接字
+
 protected:
 
 	// socket 套接字

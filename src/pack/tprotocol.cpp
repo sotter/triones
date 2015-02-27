@@ -166,6 +166,9 @@ Packet *TransProtocol808::encode_pack(const char *data, size_t len)
 
 Packet *TransProtocol808::decode808(const char *begin, const char *end)
 {
+	const void* raw_begin = begin;
+	int raw_len = end - begin;
+
 	if (NULL == begin || NULL == end)
 	{
 		return NULL;
@@ -212,6 +215,12 @@ Packet *TransProtocol808::decode808(const char *begin, const char *end)
 
 	// 设置包尾
 	pack->writeInt8(begin[len - 1]);
+
+	// 写入原始数据，为透传做点贡献
+	pack->_raw_data = new DataBuffer();
+	if (pack->_raw_data) {
+		pack->_raw_data->writeBytes(raw_begin, raw_len);
+	}
 
 	// 返回分包
 	return pack;

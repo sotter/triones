@@ -14,6 +14,7 @@ Packet::Packet(int type)
 	_next = NULL;
 	_type = type;
 	_ioc = NULL;
+	_raw_data = NULL;
 }
 
 Packet::~Packet()
@@ -23,6 +24,10 @@ Packet::~Packet()
 	{
 		_ioc->sub_ref();
 		_ioc = NULL;
+	}
+
+	if (_raw_data) {
+		delete _raw_data;
 	}
 }
 

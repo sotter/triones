@@ -48,6 +48,7 @@ public:
 	Packet *_next;
 	int _type;
 	IOComponent *_ioc;
+	DataBuffer* _raw_data;
 };
 
 class PacketQueue

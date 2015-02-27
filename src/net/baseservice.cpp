@@ -36,6 +36,7 @@ bool BaseService::init(int thread_num /* = 1 */)
 	//实际上在这里面线程就已经启动了，而不用start
 	if (!_queue_thread->init(thread_num)) return false;
 
+	// 启动event_loop线程
 	if (!_transport->start())
 	{
 		_queue_thread->stop();
@@ -130,6 +131,7 @@ bool BaseService::destroy()
 	//放在_transport stop和wait的中间
 	destroy_service();
 
+	// 停止工作线程
 	if (_queue_thread != NULL)
 	{
 		_queue_thread->stop();

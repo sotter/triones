@@ -168,6 +168,9 @@ bool BaseClient::handle_connected(IOComponent *connection, bool succ)
 //定时器的回调处理，timer是由底层Transport的定时线程回调上来的，不能有过大的阻塞的操作；
 void BaseClient::handle_timer_work(uint64_t now)
 {
+	// 定时删除过期用户
+	_online_user.delete_user(now);
+
 	/*
 	 * 默认操作是定时发送心跳数据包
 	 */
@@ -175,23 +178,6 @@ void BaseClient::handle_timer_work(uint64_t now)
 	holder.set(this, &BaseClient::user_scan_noop);
 	_online_user.traverse_all_user(holder, false);
 }
-
-//遍历用户的回调函数
-//void BaseClient::user_scan_handler(BaseUser *user, uint64_t now, void *param)
-//{
-//	// 默认操作是定时发送心跳数据包
-//	user_scan_noop(now, user);
-////	long type = (long)param;
-////
-////	if (type == SCAN_TYPE_CONN)
-////	{
-////		user_scan_connect(now, user);
-////	}
-////	else if (type == SCAN_TYPE_NOOP)
-////	{
-////		user_scan_noop(now, user);
-////	}
-//}
 
 void BaseClient::user_scan_connect(uint64_t now, BaseUser *user)
 {
@@ -265,11 +251,14 @@ bool BaseClient::handle_packet(IOComponent *connection, Packet *packet)
 		holder.set_user(user);
 	}
 
+	// 更新时间
+	user->_last_active_time = time(NULL);
+
+	// 处理数据包
 	bool ret = false;
 	if (packet->get_type() == IServerAdapter::CMD_DISCONN_PACKET) {
 		ret = handle_disconnected(user);
-	}
-	else if (packet->get_type == IServerAdapter::CMD_DATA_PACKET) {
+	} else if (packet->get_type == IServerAdapter::CMD_DATA_PACKET) {
 		ret = handle_user_packet(user, packet);
 	}
 

@@ -13,14 +13,15 @@
 namespace triones
 {
 
-class BaseClient: public BaseService//, public UserScanHandler
+class BaseClient: public BaseService
 {
 public:
 	BaseClient(int stream, IUserFactory* user_factory, int user_type, int thread_num = 4);
 
 	virtual ~BaseClient();
 
-	bool init_param();
+	// 初始化参数
+	virtual bool init_param();
 
 	//初始化连接列表
 	BaseUser* add_conn(const std::string& user_id, const string& host, unsigned short port, bool tcp = true, bool auto_reconn = true);
@@ -60,14 +61,6 @@ public:
 
 	//定时器的回调处理，timer是由底层Transport的定时线程回调上来的，不能有过大的阻塞的操作；
 	virtual void handle_timer_work(uint64_t now);
-
-//	enum
-//	{
-//		SCAN_TYPE_CONN = 0, SCAN_TYPE_NOOP, SCAN_TYPE_NUM
-//	};
-
-	//遍历用户的回调函数
-	//virtual void user_scan_handler(BaseUser *user, uint64_t now, void *param);
 
 	//遍历连接
 	void user_scan_connect(uint64_t now, BaseUser *user);

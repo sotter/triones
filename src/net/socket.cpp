@@ -535,6 +535,11 @@ uint64_t Socket::get_sockid(bool is_tcp)
 	}
 }
 
+bool Socket::is_tcp()
+{
+	return _setup & TCP_FLAG;
+}
+
 uint64_t Socket::get_peer_sockid(bool is_tcp)
 {
 	if (_fd == -1) return 0;
